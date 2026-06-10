@@ -513,6 +513,17 @@ tbody tr:hover{background:var(--s2)}
   </div>
   <!-- STATS -->
   <div class="cards-grid" id="stats-cards"></div>
+  <!-- META DIÁRIA + EVOLUÇÃO -->
+  <div class="grid-2">
+    <div class="card">
+      <div class="card-title">🎯 Meta de questões de hoje</div>
+      <div id="goal-box"></div>
+    </div>
+    <div class="card">
+      <div class="card-title">📈 Evolução semanal (questões)</div>
+      <div class="chart-box"><canvas id="c-evolucao"></canvas></div>
+    </div>
+  </div>
   <div class="grid-2">
     <div class="card">
       <div class="card-title">Progresso por Área</div>
@@ -1102,6 +1113,58 @@ const AREA_CLR={'CLÍNICA':'#f97316','CIRURGIA':'#10b981','PEDIATRIA':'#ec4899',
 
 function revDates(t){if(!t.data)return{};return{r1s:addD(t.data,7),r1m:addD(t.data,14),r2m:addD(t.data,25),r4m:addD(t.data,50),r6m:addD(t.data,75)};}
 
+// ── ATIVIDADE DIÁRIA (sequência, meta e evolução) ─────────────
+const ACT_KEY='medplanner26_activity';
+const GOAL_KEY='medplanner26_goal';
+const getAct=()=>{try{return JSON.parse(localStorage.getItem(ACT_KEY))||{};}catch{return{};}};
+const setAct=d=>localStorage.setItem(ACT_KEY,JSON.stringify(d));
+function logActivity(type,n){
+  n=n||1;const d=getAct();const t=today();
+  if(!d[t])d[t]={q:0,fc:0};
+  d[t][type]=(d[t][type]||0)+n;
+  setAct(d);
+}
+const getGoal=()=>{const g=parseInt(localStorage.getItem(GOAL_KEY),10);return g>0?g:50;};
+const setGoalVal=n=>localStorage.setItem(GOAL_KEY,String(n));
+const todayAct=()=>{const a=getAct()[today()];return a||{q:0,fc:0};};
+// Conta dias seguidos com atividade (questões ou flashcards), terminando hoje ou ontem
+function studyStreak(){
+  const d=getAct();let streak=0;const cur=new Date();
+  const ta=d[today()];
+  if(!ta||((ta.q||0)+(ta.fc||0))===0)cur.setDate(cur.getDate()-1);
+  for(let guard=0;guard<3650;guard++){
+    const key=cur.toISOString().slice(0,10);const a=d[key];
+    if(a&&((a.q||0)+(a.fc||0))>0){streak++;cur.setDate(cur.getDate()-1);}else break;
+  }
+  return streak;
+}
+// Soma de questões por semana (8 blocos de 7 dias terminando hoje)
+function weeklyQ(){
+  const d=getAct();const weeks=[];
+  for(let w=7;w>=0;w--){
+    const start=new Date();start.setDate(start.getDate()-(w*7)-6);
+    let sum=0;
+    for(let i=0;i<7;i++){const dt=new Date(start);dt.setDate(start.getDate()+i);const key=dt.toISOString().slice(0,10);if(d[key])sum+=(d[key].q||0);}
+    const lbl=String(start.getDate()).padStart(2,'0')+'/'+String(start.getMonth()+1).padStart(2,'0');
+    weeks.push({lbl,sum});
+  }
+  return weeks;
+}
+function addQuestions(n){
+  if(n==='custom'){
+    const v=prompt('Quantas questões você fez? (será somado ao total de hoje)','10');
+    if(v===null)return;n=parseInt(v,10);if(!(n>0)){toast('Valor inválido','info');return;}
+  }
+  logActivity('q',n);
+  toast('+'+n+' questões registradas hoje! 🎯','ok');
+  renderDashboard();
+}
+function editGoal(){
+  const v=prompt('Defina sua meta diária de questões:',getGoal());
+  if(v===null)return;const n=parseInt(v,10);if(!(n>0)){toast('Valor inválido','info');return;}
+  setGoalVal(n);toast('Meta atualizada!','ok');renderDashboard();
+}
+
 function dbadge(d,id){
   const cls=d==='≥ 80%'?'bgreen':d==='61 - 79%'?'byellow':d==='≤ 60%'?'bred':'bg';
   const label=d==='61 - 79%'?'61-79%':(d||'—');
@@ -1398,12 +1461,15 @@ function renderDashboard(){
   const icoAlert=`<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>`;
   const icoCheck=`<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>`;
   const icoAward=`<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="6"/><path d="M15.477 12.89L17 22l-5-3-5 3 1.523-9.11"/></svg>`;
+  const icoFlame=`<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/></svg>`;
+  const streak=studyStreak();
   document.getElementById('stats-cards').innerHTML=`
     <div class="stat-card c-orange"><div class="stat-icon">${icoBook}</div><div class="stat-body"><div class="stat-label">Tópicos</div><div class="stat-value va">${total}</div><div class="stat-sub">cadastrados</div></div></div>
     <div class="stat-card c-blue"><div class="stat-icon">${icoPlay}</div><div class="stat-body"><div class="stat-label">Aulas vistas</div><div class="stat-value vb">${viu}</div><div class="stat-sub">${pct(viu)}% do total</div></div></div>
     <div class="stat-card c-green"><div class="stat-icon">${icoQ}</div><div class="stat-body"><div class="stat-label">Com Questões</div><div class="stat-value vg">${qpos}</div><div class="stat-sub">${pct(qpos)}% do total</div></div></div>
     <div class="stat-card ${atrasadas>0?'c-red':'c-green'}"><div class="stat-icon">${atrasadas>0?icoAlert:icoCheck}</div><div class="stat-body"><div class="stat-label">Rev. Atrasadas</div><div class="stat-value ${atrasadas>0?'vr':'vg'}">${atrasadas}</div><div class="stat-sub">${atrasadas>0?'urgente!':'Tudo em dia'}</div></div></div>
-    <div class="stat-card c-purple"><div class="stat-icon">${icoAward}</div><div class="stat-body"><div class="stat-label">Concluídos</div><div class="stat-value vp">${conc}</div><div class="stat-sub">${pct(conc)}% do total</div></div></div>`;
+    <div class="stat-card c-purple"><div class="stat-icon">${icoAward}</div><div class="stat-body"><div class="stat-label">Concluídos</div><div class="stat-value vp">${conc}</div><div class="stat-sub">${pct(conc)}% do total</div></div></div>
+    <div class="stat-card c-orange"><div class="stat-icon">${icoFlame}</div><div class="stat-body"><div class="stat-label">Sequência</div><div class="stat-value" style="color:#f97316">${streak}</div><div class="stat-sub">${streak===1?'dia seguido':'dias seguidos'}</div></div></div>`;
 
   // AREA BARS
   const areas=['CLÍNICA','CIRURGIA','PEDIATRIA','GO','PREVENTIVA'];
@@ -1439,6 +1505,38 @@ function renderDashboard(){
   // SIMULADOS
   renderSimulados();
   renderSimsFeitos();
+
+  // META DIÁRIA + EVOLUÇÃO
+  renderGoalBox();
+  renderEvolucao();
+}
+
+function renderGoalBox(){
+  const box=document.getElementById('goal-box');if(!box)return;
+  const a=todayAct();const goal=getGoal();const q=a.q||0;const fc=a.fc||0;
+  const p=Math.min(100,Math.round(q/goal*100));
+  const done=q>=goal;
+  const clr=done?'var(--green)':'var(--accent)';
+  box.innerHTML=`
+    <div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:8px">
+      <div><span style="font-size:30px;font-weight:800;color:${clr}">${q}</span><span style="font-size:15px;color:var(--muted)"> / ${goal} questões</span></div>
+      <button class="btn btn-o btn-sm" onclick="editGoal()">✏️ Meta</button>
+    </div>
+    <div style="background:var(--s3);border-radius:99px;height:12px;overflow:hidden;margin-bottom:4px"><div style="height:100%;border-radius:99px;background:${clr};width:${p}%;transition:width .5s ease"></div></div>
+    <div style="text-align:right;font-size:12px;font-weight:700;color:${clr};margin-bottom:14px">${done?'Meta batida! 🎉':p+'%'}</div>
+    <div style="display:flex;gap:6px;flex-wrap:wrap">
+      <button class="btn btn-p btn-sm" onclick="addQuestions(5)">+5</button>
+      <button class="btn btn-p btn-sm" onclick="addQuestions(10)">+10</button>
+      <button class="btn btn-p btn-sm" onclick="addQuestions(20)">+20</button>
+      <button class="btn btn-o btn-sm" onclick="addQuestions('custom')">+ Outro…</button>
+    </div>
+    <div style="margin-top:12px;font-size:12px;color:var(--muted)">🃏 Flashcards revisados hoje: <strong style="color:var(--text)">${fc}</strong></div>`;
+}
+
+function renderEvolucao(){
+  if(!document.getElementById('c-evolucao'))return;
+  const wk=weeklyQ();
+  mkChart('c-evolucao',{type:'line',data:{labels:wk.map(w=>w.lbl),datasets:[{label:'Questões',data:wk.map(w=>w.sum),borderColor:'#6366f1',backgroundColor:'rgba(99,102,241,0.12)',fill:true,tension:.35,pointRadius:4,pointBackgroundColor:'#6366f1',borderWidth:2}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{title:items=>'Semana de '+items[0].label,label:ctx=>` ${ctx.parsed.y} questões`}}},scales:{x:{grid:{display:false},ticks:{color:'#4b5a6e',font:{size:11}}},y:{beginAtZero:true,grid:{color:'rgba(0,0,0,0.06)'},ticks:{color:'#4b5a6e',precision:0}}}}});
 }
 
 // ── INLINE COUNT EDIT ─────────────────────────────────────────
@@ -2719,7 +2817,7 @@ function rateFCCard(rating){
     }
     if(card)card.nextTs=nextTs;
   }
-  setFC(d);nextFCCard();
+  setFC(d);logActivity('fc',1);nextFCCard();
 }
 
 // ── DARK MODE ─────────────────────────────────────────────────
@@ -2877,7 +2975,7 @@ db.settings({experimentalForceLongPolling:true});
 auth.setPersistence(firebase.auth.Auth.Persistence.SESSION).catch(()=>{});
 
 // Chaves do localStorage que devem ser sincronizadas entre dispositivos
-const CLOUD_KEYS=['medplanner26','medplanner26_notas','medplanner26_cal','medplanner26_fc','medplanner_resumos','medplanner26_basefolder','medplanner_simulados','medplanner_sims_feitos'];
+const CLOUD_KEYS=['medplanner26','medplanner26_notas','medplanner26_cal','medplanner26_fc','medplanner_resumos','medplanner26_basefolder','medplanner_simulados','medplanner_sims_feitos','medplanner26_activity','medplanner26_goal'];
 
 let cloudUid=null;
 let applyingRemote=false;
