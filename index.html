@@ -769,25 +769,14 @@ tbody tr:hover{background:var(--s2)}
     </div>
     <div class="fg" style="margin-bottom:12px">
       <label>Link do Resumo (opcional)</label>
-      <div style="display:flex;gap:6px;align-items:center">
-        <input type="url" id="res-f-resumo" placeholder="https://... ou escolha um arquivo" style="flex:1">
-        <label style="cursor:pointer;display:inline-flex;align-items:center;gap:5px;padding:8px 12px;background:var(--s2);border:1.5px solid var(--border);border-radius:8px;font-size:12px;font-weight:600;color:var(--muted);white-space:nowrap;transition:all .15s" onmouseover="this.style.borderColor='var(--accent)';this.style.color='var(--accent)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--muted)'">
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-          Arquivo
-          <input type="file" style="display:none" accept=".pdf,.pptx,.ppt,.docx,.doc" onchange="pickLocalFile(this,'res-f-resumo')">
-        </label>
-      </div>
+      <input type="url" id="res-f-resumo" placeholder="Cole aqui o link do Google Drive">
     </div>
-    <div class="fg" style="margin-bottom:20px">
+    <div class="fg" style="margin-bottom:12px">
       <label>Link dos Slides (opcional)</label>
-      <div style="display:flex;gap:6px;align-items:center">
-        <input type="url" id="res-f-slide" placeholder="https://... ou escolha um arquivo" style="flex:1">
-        <label style="cursor:pointer;display:inline-flex;align-items:center;gap:5px;padding:8px 12px;background:var(--s2);border:1.5px solid var(--border);border-radius:8px;font-size:12px;font-weight:600;color:var(--muted);white-space:nowrap;transition:all .15s" onmouseover="this.style.borderColor='var(--accent)';this.style.color='var(--accent)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--muted)'">
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-          Arquivo
-          <input type="file" style="display:none" accept=".pdf,.pptx,.ppt,.docx,.doc" onchange="pickLocalFile(this,'res-f-slide')">
-        </label>
-      </div>
+      <input type="url" id="res-f-slide" placeholder="Cole aqui o link do Google Drive">
+    </div>
+    <div style="background:var(--s2);border:1px solid var(--border);border-radius:8px;padding:10px 12px;margin-bottom:20px;font-size:12px;color:var(--muted);line-height:1.6">
+      💡 <strong>Como funciona:</strong> suba o PDF no <a href="https://drive.google.com" target="_blank" style="color:var(--accent);font-weight:600">Google Drive</a>, clique com o botão direito no arquivo → <strong>Compartilhar</strong> → <strong>Copiar link</strong>, e cole aqui. Assim o arquivo abre em qualquer dispositivo (PC, celular...).
     </div>
     <div style="display:flex;gap:8px">
       <button class="btn btn-p" onclick="saveResumoItem()">Salvar</button>
@@ -852,12 +841,14 @@ tbody tr:hover{background:var(--s2)}
     <button class="btn btn-o" onclick="document.getElementById('imp-csv').click()">📄 Importar CSV do Notion</button>
   </div>
   <div class="card" style="margin-top:14px">
-    <div class="card-title">📁 Pasta dos Arquivos (Resumos/Slides)</div>
-    <p style="color:var(--muted);font-size:13px;margin-bottom:14px">Caminho da pasta onde ficam seus PDFs/slides (ex: a pasta "slide medcurso" na Área de Trabalho). Quando você escolher um arquivo nessa pasta em "Resumos", o link será gerado automaticamente com este caminho.</p>
-    <div style="display:flex;gap:8px;flex-wrap:wrap">
-      <input type="text" id="base-folder" placeholder="C:/Users/User/Desktop/slide medcurso" style="flex:1;min-width:260px;background:var(--s2);border:1px solid var(--border);border-radius:6px;color:var(--text);padding:8px 10px;font-size:13px">
-      <button class="btn btn-p" onclick="saveBaseFolder()">Salvar</button>
-    </div>
+    <div class="card-title">📁 Arquivos PDF (Resumos/Slides)</div>
+    <p style="color:var(--muted);font-size:13px;margin-bottom:10px;line-height:1.7">Para que seus PDFs abram em <strong>qualquer dispositivo</strong> (PC, celular...), eles precisam estar na nuvem — use o Google Drive (grátis):</p>
+    <ol style="color:var(--muted);font-size:13px;line-height:2;margin:0 0 14px 18px">
+      <li>Acesse o <a href="https://drive.google.com" target="_blank" style="color:var(--accent);font-weight:600">Google Drive</a> e arraste seus PDFs pra lá (pode criar uma pasta "slide medcurso").</li>
+      <li>Clique com o botão direito no arquivo → <strong>Compartilhar</strong> → <strong>Copiar link</strong>.</li>
+      <li>Em <strong>Resumos</strong>, edite a aula e cole o link no campo de Resumo ou Slides.</li>
+    </ol>
+    <p style="color:var(--dim);font-size:12px;margin:0">Dica: estando logado na sua conta Google no celular, os arquivos abrem direto, sem precisar liberar acesso público.</p>
   </div>
   <div class="card" style="margin-top:14px">
     <div class="card-title" style="color:var(--red)">Zona de Perigo</div>
@@ -1671,37 +1662,12 @@ function openResumoModal(id){
   setTimeout(()=>document.getElementById('res-f-semana').focus(),50);
 }
 function closeResumoModal(){document.getElementById('overlay-resumo').classList.remove('open');resEditId=null;}
-// ── PASTA BASE DOS ARQUIVOS (Resumos/Slides) ────────────────────
-const BASE_FOLDER_KEY='medplanner26_basefolder';
-function getBaseFolder(){
-  return localStorage.getItem(BASE_FOLDER_KEY)||'C:/Users/User/Desktop/slide medcurso';
-}
-function saveBaseFolder(){
-  let v=document.getElementById('base-folder').value.trim();
-  v=v.replace(/\\/g,'/').replace(/\/$/,''); // normaliza barras e remove barra final
-  localStorage.setItem(BASE_FOLDER_KEY,v);
-  toast('Pasta salva!','ok');
-}
-function renderDados(){
-  const el=document.getElementById('base-folder');
-  if(el)el.value=getBaseFolder();
-}
+function renderDados(){}
 
-function pickLocalFile(input,targetId){
-  const file=input.files[0];
-  if(!file)return;
-  const field=document.getElementById(targetId);
-  // O navegador não expõe o caminho real do arquivo por segurança —
-  // sempre montamos o caminho com a pasta configurada em Dados + nome do arquivo
-  const base=getBaseFolder();
-  field.value='file:///'+base.replace(/^file:\/\/\//,'')+'/'+file.name;
-  field.select();
-  toast('Caminho preenchido com a pasta configurada (confira em Dados)','info');
-  const label=input.closest('label');
-  if(label){
-    label.style.borderColor='var(--green)';label.style.color='var(--green)';
-    setTimeout(()=>{label.style.borderColor='var(--border)';label.style.color='var(--muted)';},2000);
-  }
+// Links antigos do tipo file:/// (arquivo do PC) não abrem no site hospedado —
+// avisa o usuário a trocar pelo link do Google Drive
+function legacyFileLinkWarn(){
+  toast('Este link aponta pra um arquivo do seu PC e não abre pela internet. Suba o PDF no Google Drive e cole o novo link editando a aula (✏️).','err');
 }
 function saveResumoItem(){
   const semana=(document.getElementById('res-f-semana')?.value||'').trim().toUpperCase();
@@ -1756,12 +1722,15 @@ function renderResumos(){
     <div class="res-group">
       <div class="res-group-header">${sem}</div>
       ${items.map(r=>{
-        const btnResumo=r.linkResumo
-          ?`<a class="res-btn res-btn-resumo" href="${r.linkResumo}" target="_blank"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg> Resumo</a>`
-          :`<span class="res-btn res-btn-resumo res-btn-disabled"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg> Resumo</span>`;
-        const btnSlide=r.linkSlide
-          ?`<a class="res-btn res-btn-slide" href="${r.linkSlide}" target="_blank"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg> Slides</a>`
-          :`<span class="res-btn res-btn-slide res-btn-disabled"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg> Slides</span>`;
+        const icoRes=`<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>`;
+        const icoSli=`<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>`;
+        const mkBtn=(link,cls,ico,txt)=>{
+          if(!link)return`<span class="res-btn ${cls} res-btn-disabled">${ico} ${txt}</span>`;
+          if(link.startsWith('file:'))return`<span class="res-btn ${cls}" style="cursor:pointer;opacity:.65" onclick="legacyFileLinkWarn()" title="Link antigo (arquivo do PC) — troque pelo link do Google Drive">${ico} ${txt} ⚠️</span>`;
+          return`<a class="res-btn ${cls}" href="${link}" target="_blank">${ico} ${txt}</a>`;
+        };
+        const btnResumo=mkBtn(r.linkResumo,'res-btn-resumo',icoRes,'Resumo');
+        const btnSlide=mkBtn(r.linkSlide,'res-btn-slide',icoSli,'Slides');
         return`<div class="res-row">
           <span class="res-aula-tag">${r.aula}</span>
           <span class="res-titulo" title="${r.titulo}">${r.titulo}</span>
@@ -2975,7 +2944,7 @@ db.settings({experimentalForceLongPolling:true});
 auth.setPersistence(firebase.auth.Auth.Persistence.SESSION).catch(()=>{});
 
 // Chaves do localStorage que devem ser sincronizadas entre dispositivos
-const CLOUD_KEYS=['medplanner26','medplanner26_notas','medplanner26_cal','medplanner26_fc','medplanner_resumos','medplanner26_basefolder','medplanner_simulados','medplanner_sims_feitos','medplanner26_activity','medplanner26_goal'];
+const CLOUD_KEYS=['medplanner26','medplanner26_notas','medplanner26_cal','medplanner26_fc','medplanner_resumos','medplanner_simulados','medplanner_sims_feitos','medplanner26_activity','medplanner26_goal'];
 
 let cloudUid=null;
 let applyingRemote=false;
