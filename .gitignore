@@ -1,0 +1,5 @@
+# Segurança: este repositório é PÚBLICO.
+# Ignora tudo por padrão e libera apenas o app (index.html).
+*
+!index.html
+!.gitignore
