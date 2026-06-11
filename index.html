@@ -1935,6 +1935,12 @@ function autoMerge(){
     if(existMap.has(src.id)){
       const tgt=existMap.get(src.id);
       SYNC_FIELDS.forEach(f=>{
+        // 'data' é editável pelo usuário (lápis ✏️): a base só preenche quando está vazia,
+        // nunca sobrescreve uma data que o usuário definiu
+        if(f==='data'){
+          if(!tgt.data&&src.data){tgt.data=src.data;changed=true;}
+          return;
+        }
         if(tgt[f]!==src[f]){tgt[f]=src[f];changed=true;}
       });
     } else {
