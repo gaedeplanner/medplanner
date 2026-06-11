@@ -463,6 +463,7 @@ tbody tr:hover{background:var(--s2)}
     <button class="tab-btn" data-tab="flashcards"><span class="nav-icon"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg></span><span class="nav-label">Flashcards</span></button>
     <button class="tab-btn" data-tab="anotacoes"><span class="nav-icon"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></span><span class="nav-label">Anotações</span></button>
     <button class="tab-btn" data-tab="resumos"><span class="nav-icon"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg></span><span class="nav-label">Resumos</span></button>
+    <button class="tab-btn" data-tab="escalas"><span class="nav-icon"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1"/><line x1="9" y1="11" x2="15" y2="11"/><line x1="9" y1="15" x2="13" y2="15"/></svg></span><span class="nav-label">Critérios e Escalas</span></button>
     <button class="tab-btn" data-tab="openevidence"><span class="nav-icon"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></span><span class="nav-label">Open Evidence</span></button>
     <div class="nav-group">Sistema</div>
     <button class="tab-btn" data-tab="dados"><span class="nav-icon"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></span><span class="nav-label">Dados</span></button>
@@ -781,6 +782,50 @@ tbody tr:hover{background:var(--s2)}
     <div style="display:flex;gap:8px">
       <button class="btn btn-p" onclick="saveResumoItem()">Salvar</button>
       <button class="btn btn-o" onclick="closeResumoModal()">Cancelar</button>
+    </div>
+  </div>
+</div>
+
+<!-- CRITÉRIOS E ESCALAS -->
+<div class="tab-panel" id="tab-escalas">
+  <div class="sec-header">
+    <h2 class="sec-title">Critérios e Escalas</h2>
+    <button class="btn btn-p btn-sm" onclick="openEscalaModal()">+ Nova Escala</button>
+  </div>
+  <div class="toolbar" style="margin-bottom:16px">
+    <input type="text" id="esc-search" placeholder="Buscar escala ou critério..." style="min-width:240px" oninput="renderEscalas()">
+  </div>
+  <div id="escalas-list"></div>
+</div>
+
+<!-- MODAL ESCALA -->
+<div class="overlay" id="overlay-escala">
+  <div class="modal" style="max-width:560px">
+    <div class="modal-head">
+      <span class="modal-title" id="esc-modal-title">Nova Escala</span>
+      <button class="modal-close" onclick="closeEscalaModal()">×</button>
+    </div>
+    <div class="form-row">
+      <div class="fg">
+        <label>Nome</label>
+        <input type="text" id="esc-f-nome" placeholder="Ex: Escala de Coma de Glasgow">
+      </div>
+      <div class="fg">
+        <label>Categoria (opcional)</label>
+        <input type="text" id="esc-f-cat" placeholder="Ex: Neurologia">
+      </div>
+    </div>
+    <div class="fg" style="margin-bottom:12px">
+      <label>Critérios e pontuações</label>
+      <textarea id="esc-f-conteudo" placeholder="Ex:&#10;ABERTURA OCULAR&#10;Espontânea — 4&#10;Ao chamado — 3&#10;..." style="width:100%;min-height:220px;background:var(--s2);border:1px solid var(--border);border-radius:8px;color:var(--text);padding:12px;font-size:13.5px;font-family:inherit;line-height:1.7;resize:vertical;outline:none;transition:border-color .2s" onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'"></textarea>
+    </div>
+    <div class="fg" style="margin-bottom:20px">
+      <label>Link de imagem/PDF (opcional)</label>
+      <input type="url" id="esc-f-link" placeholder="Cole aqui o link do Google Drive">
+    </div>
+    <div style="display:flex;gap:8px">
+      <button class="btn btn-p" onclick="saveEscalaItem()">Salvar</button>
+      <button class="btn btn-o" onclick="closeEscalaModal()">Cancelar</button>
     </div>
   </div>
 </div>
@@ -1258,8 +1303,8 @@ function autoNextTask(t){
 }
 
 // ── TABS ──────────────────────────────────────────────────────
-const TAB_FN={dashboard:renderDashboard,cronograma:renderTable,hoje:renderHoje,analise:renderAnalise,calendario:renderCalendar,flashcards:renderFC,anotacoes:renderNotas,resumos:renderResumos,openevidence:renderOE,dados:renderDados};
-const TAB_TITLES={dashboard:'Dashboard',cronograma:'Cronograma',hoje:'Revisar Hoje',analise:'Análise de Desempenho',calendario:'Calendário',flashcards:'Flashcards',anotacoes:'Anotações',resumos:'Resumos',openevidence:'Open Evidence',dados:'Gerenciar Dados'};
+const TAB_FN={dashboard:renderDashboard,cronograma:renderTable,hoje:renderHoje,analise:renderAnalise,calendario:renderCalendar,flashcards:renderFC,anotacoes:renderNotas,resumos:renderResumos,escalas:renderEscalas,openevidence:renderOE,dados:renderDados};
+const TAB_TITLES={dashboard:'Dashboard',cronograma:'Cronograma',hoje:'Revisar Hoje',analise:'Análise de Desempenho',calendario:'Calendário',flashcards:'Flashcards',anotacoes:'Anotações',resumos:'Resumos',escalas:'Critérios e Escalas',openevidence:'Open Evidence',dados:'Gerenciar Dados'};
 
 function switchToTab(tab){
   document.querySelectorAll('.tab-btn').forEach(x=>x.classList.remove('active'));
@@ -1748,6 +1793,77 @@ function renderResumos(){
 function renderOE(){
   const el=document.getElementById('nota-openevidence');
   if(el)el.value=getNotas().openevidence||'';
+}
+// ── CRITÉRIOS E ESCALAS ───────────────────────────────────────
+const ESC_KEY='medplanner26_escalas';
+const ESC_DEFAULT=[{id:'esc-glasgow',nome:'Escala de Coma de Glasgow',cat:'Neurologia',link:'',conteudo:'ABERTURA OCULAR\nEspontânea — 4\nAo chamado — 3\nÀ dor — 2\nAusente — 1\n\nRESPOSTA VERBAL\nOrientado — 5\nConfuso — 4\nPalavras — 3\nSons — 2\nAusente — 1\n\nRESPOSTA MOTORA\nObedece — 6\nLocaliza — 5\nFlete — 4\nFlexão anormal — 3\nExtensão — 2\nAusente — 1\n\nSoma dos critérios avalia o nível de consciência = 3 a 15'}];
+let escEditId=null;
+const escOpen=new Set();
+function getEscalas(){try{const v=localStorage.getItem(ESC_KEY);return v?JSON.parse(v):ESC_DEFAULT.map(e=>({...e}));}catch{return[];}}
+function setEscalas(arr){localStorage.setItem(ESC_KEY,JSON.stringify(arr));}
+function escHtml(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+function openEscalaModal(id){
+  escEditId=id||null;
+  const item=id?getEscalas().find(e=>e.id===id):null;
+  document.getElementById('esc-modal-title').textContent=id?'Editar Escala':'Nova Escala';
+  document.getElementById('esc-f-nome').value=item?item.nome:'';
+  document.getElementById('esc-f-cat').value=item?(item.cat||''):'';
+  document.getElementById('esc-f-conteudo').value=item?(item.conteudo||''):'';
+  document.getElementById('esc-f-link').value=item?(item.link||''):'';
+  document.getElementById('overlay-escala').classList.add('open');
+  setTimeout(()=>document.getElementById('esc-f-nome').focus(),50);
+}
+function closeEscalaModal(){document.getElementById('overlay-escala').classList.remove('open');escEditId=null;}
+function saveEscalaItem(){
+  const nome=(document.getElementById('esc-f-nome')?.value||'').trim();
+  const cat=(document.getElementById('esc-f-cat')?.value||'').trim();
+  const conteudo=(document.getElementById('esc-f-conteudo')?.value||'').trim();
+  const link=(document.getElementById('esc-f-link')?.value||'').trim();
+  if(!nome){toast('Dê um nome à escala.','err');return;}
+  if(!conteudo&&!link){toast('Preencha os critérios ou cole um link.','err');return;}
+  const arr=getEscalas();
+  if(escEditId){
+    const i=arr.findIndex(e=>e.id===escEditId);
+    if(i>=0)arr[i]={...arr[i],nome,cat,conteudo,link};
+  } else {
+    const id=Date.now().toString(36)+Math.random().toString(36).slice(2,4);
+    arr.push({id,nome,cat,conteudo,link});
+    escOpen.add(id);
+  }
+  setEscalas(arr);closeEscalaModal();renderEscalas();toast(escEditId?'Escala atualizada!':'Escala adicionada!','ok');
+}
+function deleteEscalaItem(id){
+  if(!confirm('Remover esta escala?'))return;
+  setEscalas(getEscalas().filter(e=>e.id!==id));renderEscalas();toast('Escala removida.','info');
+}
+function toggleEscala(id){escOpen.has(id)?escOpen.delete(id):escOpen.add(id);renderEscalas();}
+function renderEscalas(){
+  const el=document.getElementById('escalas-list');
+  if(!el)return;
+  const q=(document.getElementById('esc-search')?.value||'').toLowerCase();
+  const arr=getEscalas().filter(e=>!q||e.nome.toLowerCase().includes(q)||(e.cat||'').toLowerCase().includes(q)||(e.conteudo||'').toLowerCase().includes(q)).sort((a,b)=>a.nome.localeCompare(b.nome));
+  if(!arr.length){
+    el.innerHTML=`<div class="empty"><div class="icon" style="opacity:.3"><svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1"/><line x1="9" y1="11" x2="15" y2="11"/><line x1="9" y1="15" x2="13" y2="15"/></svg></div><h3>${q?'Nenhuma escala encontrada':'Nenhuma escala cadastrada'}</h3><p>${q?'Tente buscar por outro termo.':'Clique em "+ Nova Escala" para adicionar a primeira.'}</p></div>`;
+    return;
+  }
+  el.innerHTML=arr.map(e=>{
+    const open=escOpen.has(e.id);
+    // a busca expande automaticamente para mostrar o conteúdo encontrado
+    const show=open||(q&&(e.conteudo||'').toLowerCase().includes(q));
+    return`<div class="card" style="margin-bottom:10px;padding:0;overflow:hidden">
+      <div onclick="toggleEscala('${e.id}')" style="display:flex;align-items:center;gap:10px;padding:14px 16px;cursor:pointer">
+        <span style="font-size:11px;color:var(--muted);flex-shrink:0">${show?'▼':'▶'}</span>
+        <span style="font-weight:700;color:var(--text);flex:1;font-size:14.5px">${escHtml(e.nome)}</span>
+        ${e.cat?`<span style="font-size:11px;background:var(--s2);color:var(--muted);padding:3px 10px;border-radius:20px;font-weight:600;flex-shrink:0">${escHtml(e.cat)}</span>`:''}
+        <button class="res-btn-edit" onclick="event.stopPropagation();openEscalaModal('${e.id}')" title="Editar"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>
+        <button class="res-btn-edit" onclick="event.stopPropagation();deleteEscalaItem('${e.id}')" title="Remover" style="color:var(--dim)"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/></svg></button>
+      </div>
+      ${show?`<div style="border-top:1px solid var(--border);padding:14px 16px;background:var(--s2)">
+        ${e.conteudo?`<pre style="white-space:pre-wrap;font-family:inherit;font-size:13.5px;color:var(--text);line-height:1.9;margin:0">${escHtml(e.conteudo)}</pre>`:''}
+        ${e.link?`<a href="${escHtml(e.link)}" target="_blank" class="btn btn-o btn-sm" style="margin-top:${e.conteudo?'12px':'0'};display:inline-flex;align-items:center;gap:6px;text-decoration:none"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg> Abrir imagem/arquivo</a>`:''}
+      </div>`:''}
+    </div>`;
+  }).join('');
 }
 
 // ── ANÁLISE ───────────────────────────────────────────────────
@@ -2954,7 +3070,7 @@ db.settings({experimentalForceLongPolling:true});
 auth.setPersistence(firebase.auth.Auth.Persistence.SESSION).catch(()=>{});
 
 // Chaves do localStorage que devem ser sincronizadas entre dispositivos
-const CLOUD_KEYS=['medplanner26','medplanner26_notas','medplanner26_cal','medplanner26_fc','medplanner_resumos','medplanner_simulados','medplanner_sims_feitos','medplanner26_activity','medplanner26_goal'];
+const CLOUD_KEYS=['medplanner26','medplanner26_notas','medplanner26_cal','medplanner26_fc','medplanner_resumos','medplanner26_escalas','medplanner_simulados','medplanner_sims_feitos','medplanner26_activity','medplanner26_goal'];
 
 let cloudUid=null;
 let applyingRemote=false;
