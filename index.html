@@ -5,38 +5,42 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..700;1,9..144,300..700&family=Hanken+Grotesk:ital,wght@0,300..800;1,300..800&family=IBM+Plex+Mono:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet">
 <title>MEDPlanner 2026</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
 <style>
-/* MEDPlanner 2026 — Design System */
+/* MEDPlanner 2026 — "Atlas Editorial": papel de prontuário, tinta quente, vermelho anatômico */
 :root{
-  --bg:#f0f2f5;--s1:#ffffff;--s2:#f7f8fa;--s3:#eceef2;
-  --border:#e1e4ea;--accent:#4f46e5;--ah:#4338ca;
-  --text:#111827;--muted:#6b7280;--dim:#9ca3af;
-  --green:#059669;--yellow:#d97706;--red:#dc2626;
-  --blue:#0284c7;--purple:#7c3aed;--r:10px;
-  --shadow-xs:0 1px 2px rgba(17,24,39,.05);
-  --shadow-sm:0 2px 8px rgba(17,24,39,.08);
-  --shadow:0 4px 20px rgba(17,24,39,.10);
-  --shadow-lg:0 12px 40px rgba(17,24,39,.14);
+  --bg:#f2ecdf;--s1:#fbf7ec;--s2:#f3edde;--s3:#e9e0cb;
+  --border:#d9cdb2;--accent:#b23a26;--ah:#8f2d1c;
+  --teal:#0e7a6d;
+  --text:#241d12;--muted:#6f6450;--dim:#a99a7e;
+  --green:#1e7a4f;--yellow:#a86a10;--red:#c03524;
+  --blue:#1f5f8f;--purple:#6d4f9e;--r:6px;
+  --font-d:'Fraunces',Georgia,serif;
+  --font-m:'IBM Plex Mono',ui-monospace,monospace;
+  --shadow-xs:2px 2px 0 rgba(36,29,18,.10);
+  --shadow-sm:4px 4px 0 rgba(36,29,18,.13);
+  --shadow:6px 6px 0 rgba(36,29,18,.15);
+  --shadow-lg:10px 10px 0 rgba(36,29,18,.18);
 }
 [data-dark]{
-  --bg:#0f1117;--s1:#1a1d27;--s2:#21242f;--s3:#292d3e;
-  --border:#2e3347;--accent:#818cf8;--ah:#6366f1;
-  --text:#e8eaf0;--muted:#7c849a;--dim:#3d4460;
-  --green:#34d399;--yellow:#fbbf24;--red:#f87171;
-  --blue:#38bdf8;--purple:#c084fc;
-  --shadow-xs:0 1px 3px rgba(0,0,0,.3);
-  --shadow-sm:0 2px 10px rgba(0,0,0,.4);
-  --shadow:0 4px 24px rgba(0,0,0,.5);
-  --shadow-lg:0 12px 48px rgba(0,0,0,.65);
+  --bg:#171310;--s1:#201b15;--s2:#282219;--s3:#332b1f;
+  --border:#413726;--accent:#e2654a;--ah:#c44e35;
+  --teal:#43b298;
+  --text:#f1e9d7;--muted:#a5977c;--dim:#5e5340;
+  --green:#4cc38a;--yellow:#e3a93c;--red:#ea6a5a;
+  --blue:#5aa3d8;--purple:#b08ae0;
+  --shadow-xs:2px 2px 0 rgba(0,0,0,.35);
+  --shadow-sm:4px 4px 0 rgba(0,0,0,.4);
+  --shadow:6px 6px 0 rgba(0,0,0,.45);
+  --shadow-lg:10px 10px 0 rgba(0,0,0,.5);
 }
 *{box-sizing:border-box;margin:0;padding:0}
-body{font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;font-size:14.5px;transition:background .25s,color .25s;-webkit-font-smoothing:antialiased}
+body{font-family:'Hanken Grotesk','Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;font-size:14.5px;transition:background .25s,color .25s;-webkit-font-smoothing:antialiased}
 /* LAYOUT */
 :root{--sidebar-w:220px;--topbar-h:52px}
 body.sb-collapsed{--sidebar-w:64px}
@@ -107,7 +111,7 @@ body.sb-collapsed .nav-badge{display:none!important}
 .stat-card:hover{box-shadow:var(--shadow-sm);transform:translateY(-1px)}
 .stat-card::before{content:'';position:absolute;left:0;top:0;bottom:0;width:4px;border-radius:4px 0 0 4px}
 .stat-card.c-orange::before{background:linear-gradient(180deg,#f59e0b,#d97706)}
-.stat-card.c-blue::before{background:linear-gradient(180deg,#6366f1,#4338ca)}
+.stat-card.c-blue::before{background:linear-gradient(180deg,#5aa3d8,#1f5f8f)}
 .stat-card.c-green::before{background:linear-gradient(180deg,#10b981,#059669)}
 .stat-card.c-red::before{background:linear-gradient(180deg,#f87171,#dc2626)}
 .stat-card.c-purple::before{background:linear-gradient(180deg,#a78bfa,#7c3aed)}
@@ -420,6 +424,152 @@ tbody tr:hover{background:var(--s2)}
 #app-root.ready{display:contents}
 .logout-btn{background:none;border:none;color:var(--muted);cursor:pointer;padding:8px;border-radius:8px;display:flex;align-items:center;justify-content:center;transition:all .2s}
 .logout-btn:hover{background:var(--s2);color:var(--red)}
+
+/* ═══════════ REDESIGN "ATLAS EDITORIAL" — camada de estilo ═══════════ */
+/* Grão de papel sobre tudo */
+body::after{content:'';position:fixed;inset:0;z-index:99999;pointer-events:none;opacity:.05;mix-blend-mode:multiply;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")}
+[data-dark] body::after{mix-blend-mode:screen;opacity:.035}
+::selection{background:var(--accent);color:#fbf7ec}
+
+/* Tipografia editorial */
+.sec-title{font-family:var(--font-d);font-style:italic;font-weight:550;font-size:30px;letter-spacing:-.01em}
+.topbar-title{font-family:var(--font-m);text-transform:uppercase;font-size:11.5px;letter-spacing:.14em;color:var(--muted);font-weight:600}
+.stat-value,.counter-val,.fc-stat-val,.dash-ring-label,.fc-session-done h3{font-family:var(--font-d);font-weight:600}
+.modal-title,.cal-month-title{font-family:var(--font-d);font-style:italic;font-weight:550;font-size:22px}
+.cal-month-title{font-size:24px}
+.stat-label,.counter-label,.fc-stat-lbl,.card-title,.nav-group,.hoje-sec-title,.res-group-header,.fg label,.login-fg label,.pomo-title,.fc-card-tag,.fc-card-side,.res-aula-tag,th{font-family:var(--font-m)}
+.card-title{text-transform:uppercase;letter-spacing:.1em;font-size:10.5px;font-weight:600;border-bottom:1.5px solid var(--border)}
+th{letter-spacing:.09em;border-bottom:2px solid var(--border)}
+
+/* Sidebar = índice de livro */
+.sidebar{border-right:1.5px solid var(--border);box-shadow:none}
+[data-dark] .sidebar{box-shadow:none}
+.sidebar-logo{border-bottom:1.5px solid var(--border);background:linear-gradient(135deg,rgba(178,58,38,.06),transparent)}
+[data-dark] .sidebar-logo{background:linear-gradient(135deg,rgba(226,101,74,.07),transparent)}
+.sidebar-logo-name{font-family:var(--font-d);font-style:italic;font-size:17px;font-weight:600;color:var(--text);letter-spacing:0}
+.sidebar-logo-sub{font-family:var(--font-m);color:var(--accent);letter-spacing:.12em;font-size:8.5px}
+.nav-group{color:var(--accent);letter-spacing:.18em;font-weight:600}
+.nav-group::after{background:var(--border);opacity:1}
+.tab-btn{border-radius:8px;font-weight:600}
+.tab-btn.active,[data-dark] .tab-btn.active{background:var(--text);color:var(--bg);box-shadow:3px 3px 0 rgba(178,58,38,.35);font-weight:700}
+[data-dark] .tab-btn.active{box-shadow:3px 3px 0 rgba(226,101,74,.4)}
+
+/* Topbar = régua editorial */
+.topbar{box-shadow:none;border-bottom:1.5px solid var(--border)}
+.hdr-icon-btn.active-icon,[data-dark] .hdr-icon-btn.active-icon{color:var(--accent);background:rgba(178,58,38,.1)}
+[data-dark] .hdr-icon-btn.active-icon{background:rgba(226,101,74,.14)}
+
+/* Cards = fichas impressas */
+.card,.stat-card,.counter-card,.fc-stat,.rev-card,.fc-form{border:1.5px solid var(--border)}
+.card:hover{box-shadow:var(--shadow-sm);transform:translate(-1px,-1px)}
+.stat-card:hover{transform:translate(-1px,-1px)}
+.card.accent-border{border-color:rgba(178,58,38,.45);background:rgba(178,58,38,.04)}
+
+/* Banner do dashboard = capa de atlas */
+.dash-banner{background:#241c12;border:1.5px solid #3c2f1d;border-radius:var(--r);box-shadow:var(--shadow-sm)}
+.dash-banner::before{right:auto;left:0;top:0;bottom:0;width:100%;height:100%;border-radius:0;background:repeating-linear-gradient(-45deg,rgba(226,101,74,.06) 0 2px,transparent 2px 16px)}
+.dash-banner::after{content:'✚';position:absolute;left:auto;right:26px;bottom:-26px;width:auto;height:auto;border-radius:0;background:none;font-size:130px;line-height:1;color:rgba(226,101,74,.10);font-family:var(--font-d);pointer-events:none}
+.dash-banner-name{font-family:var(--font-d);font-style:italic;font-weight:550;font-size:30px;color:#f6ead2;letter-spacing:0}
+.dash-banner-sub{color:rgba(246,234,210,.55)}
+.dash-banner-badge{font-family:var(--font-m);background:rgba(226,101,74,.12);border:1px solid rgba(226,101,74,.3);border-radius:3px;color:#eba88f;font-size:10px;letter-spacing:.06em}
+.dash-banner-credit{color:rgba(246,234,210,.3)}
+.dash-banner-credit strong{color:rgba(246,234,210,.6)}
+
+/* Botões = tipos de imprensa (apertam ao clicar) */
+.btn{border-radius:8px}
+.btn-p{box-shadow:3px 3px 0 rgba(36,29,18,.25);border:1.5px solid rgba(36,29,18,.2)}
+.btn-p:hover{background:var(--ah);transform:translate(-1px,-1px);box-shadow:4px 4px 0 rgba(36,29,18,.25)}
+.btn-p:active{transform:translate(2px,2px);box-shadow:none}
+[data-dark] .btn-p{box-shadow:3px 3px 0 rgba(0,0,0,.5);border-color:rgba(0,0,0,.4)}
+[data-dark] .btn-p:hover{box-shadow:4px 4px 0 rgba(0,0,0,.5)}
+.btn-o{border:1.5px solid var(--muted);color:var(--text)}
+.btn-o:hover{background:var(--s2);border-color:var(--text);transform:translate(-1px,-1px);box-shadow:2px 2px 0 rgba(36,29,18,.15)}
+.login-btn{border-radius:8px;box-shadow:3px 3px 0 rgba(36,29,18,.3);border:1.5px solid rgba(36,29,18,.2);font-weight:800;letter-spacing:.02em}
+.login-btn:hover{transform:translate(-1px,-1px);box-shadow:4px 4px 0 rgba(36,29,18,.3)}
+
+/* Carimbos: badges, tags e pílulas em mono */
+.badge,.tag,.fc-due-pill,.sim-badge{font-family:var(--font-m);border-radius:3px;font-size:10.5px;font-weight:600;letter-spacing:.02em}
+.cal-task-pill{font-family:var(--font-m);border-radius:3px;font-size:10px}
+.tGO{background:rgba(31,95,143,.12);color:#1a4e76}
+[data-dark] .tGO{background:rgba(90,163,216,.16);color:#9cc8e8}
+.cp0{background:rgba(178,58,38,.1);color:#8f2d1c}
+[data-dark] .cp0{color:#f0a08d}
+
+/* Tabelas */
+tbody tr:hover{background:rgba(178,58,38,.035)}
+[data-dark] tbody tr:hover{background:rgba(226,101,74,.05)}
+
+/* Inputs */
+.fg input,.fg select,.toolbar select,.toolbar input[type=text],.day-add-input,.fc-textarea,.cnt-input,.login-fg input{border-radius:6px;font-family:inherit}
+.fg input:focus,.fg select:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(178,58,38,.12)}
+.day-add-input:focus,.fc-textarea:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(178,58,38,.1)}
+
+/* Modal = ficha destacada */
+.modal{border:1.5px solid var(--text);border-radius:10px}
+
+/* Calendário */
+.cal-day{border-radius:4px}
+.cal-day:hover{border-color:var(--accent)}
+.cal-day.today{border:1.5px solid var(--accent);background:rgba(178,58,38,.06)}
+[data-dark] .cal-day.today{background:rgba(226,101,74,.08)}
+.cal-nav{border-radius:6px}
+.day-task-row.auto-task{border-left:3px solid var(--accent);background:rgba(178,58,38,.05)}
+[data-dark] .day-task-row.auto-task{background:rgba(226,101,74,.07)}
+
+/* Flashcards = fichas de estudo */
+.fc-card{border:2px solid var(--text);border-radius:10px;box-shadow:8px 8px 0 rgba(36,29,18,.12)}
+[data-dark] .fc-card{box-shadow:8px 8px 0 rgba(0,0,0,.4)}
+.fc-card:hover{border-color:var(--accent);box-shadow:10px 10px 0 rgba(178,58,38,.15)}
+.fc-card-text{font-family:var(--font-d);font-weight:500;font-size:26px;line-height:1.5}
+.fc-back{border-color:var(--teal);background:rgba(14,122,109,.04)}
+.fc-btn-good{background:rgba(14,122,109,.1);color:#0b5d54;border:1.5px solid rgba(14,122,109,.3);border-radius:8px}
+.fc-btn-good:hover{background:rgba(14,122,109,.18)}
+[data-dark] .fc-btn-good{color:#5fcab2}
+.fc-btn-again,.fc-btn-hard,.fc-btn-easy{border-radius:8px}
+.fc-drop-zone.drag-over{background:rgba(178,58,38,.06)!important;border-color:var(--accent)!important;outline:2px dashed var(--accent)}
+
+/* Resumos / Simulados */
+.res-row{border-radius:6px}
+.res-btn{border-radius:5px;font-family:var(--font-m);font-size:11px}
+.res-btn-resumo{background:rgba(178,58,38,.07);border-color:rgba(178,58,38,.3)}
+.res-btn-resumo:hover{background:rgba(178,58,38,.14)}
+[data-dark] .res-btn-resumo{background:rgba(226,101,74,.1);border-color:rgba(226,101,74,.35)}
+.sim-badge.futuro{background:rgba(178,58,38,.09);color:var(--accent)}
+.notion-banner{background:rgba(178,58,38,.05);border:1px solid rgba(178,58,38,.28)}
+.notion-banner p span{color:var(--accent)}
+
+/* Pomodoro = cronômetro de mesa */
+.pomo-panel{border:1.5px solid var(--text);border-radius:12px}
+.pomo-time{font-family:var(--font-m);font-weight:700}
+.pomo-btn{border-radius:8px}
+.pomo-btn-main{box-shadow:2px 2px 0 rgba(36,29,18,.25)}
+.pomo-dot.active{box-shadow:0 0 0 3px rgba(178,58,38,.25)}
+.pomo-preset{border-radius:5px;font-family:var(--font-m);font-size:10.5px}
+.pomo-preset:hover,.pomo-preset.active-preset{background:rgba(178,58,38,.08);border-color:rgba(178,58,38,.4);color:var(--accent)}
+
+/* Toast = recado fixado */
+.toast{border-radius:8px;border:1.5px solid var(--border)}
+
+/* Login = capa do prontuário */
+#login-screen::before{content:'';position:absolute;inset:0;background:repeating-linear-gradient(-45deg,rgba(178,58,38,.035) 0 2px,transparent 2px 18px);pointer-events:none}
+[data-dark] #login-screen::before{background:repeating-linear-gradient(-45deg,rgba(226,101,74,.04) 0 2px,transparent 2px 18px)}
+.login-card{border:2px solid var(--text);border-radius:12px;position:relative}
+.login-title{font-family:var(--font-d);font-style:italic;font-weight:600;font-size:30px}
+.login-sub{font-family:var(--font-m);font-size:11px;letter-spacing:.04em}
+.login-fg input{border-radius:6px}
+.login-fg input:focus{box-shadow:0 0 0 3px rgba(178,58,38,.12)}
+.login-error{font-family:var(--font-m);font-size:11.5px}
+
+/* Barras de progresso e contagens */
+.cnt-pos{color:var(--accent)}
+.cnt-btn:hover{background:var(--accent);border-color:var(--accent)}
+.bar-track{border-radius:2px}
+.bar-fill{border-radius:2px}
+
+/* Scrollbar */
+::-webkit-scrollbar{width:5px;height:5px}
+::-webkit-scrollbar-thumb{background:var(--dim)}
+::-webkit-scrollbar-thumb:hover{background:var(--accent)}
 </style>
 </head>
 <body>
@@ -1147,7 +1297,7 @@ const today=()=>{const d=new Date();return d.getFullYear()+'-'+String(d.getMonth
 const addD=(s,n)=>{if(!s)return null;const d=new Date(s);d.setDate(d.getDate()+n);return d.toISOString().slice(0,10);};
 const diffD=s=>{if(!s)return null;return Math.round((new Date(s)-new Date(today()))/(864e5));};
 const fmtD=s=>{if(!s)return '—';const[y,m,d]=s.split('-');return`${d}/${m}/${y}`;};
-const AREA_CLR={'CLÍNICA':'#f97316','CIRURGIA':'#10b981','PEDIATRIA':'#ec4899','GO':'#6366f1','PREVENTIVA':'#a855f7'};
+const AREA_CLR={'CLÍNICA':'#f97316','CIRURGIA':'#10b981','PEDIATRIA':'#ec4899','GO':'#1f5f8f','PREVENTIVA':'#6d4f9e'};
 
 function revDates(t){if(!t.data)return{};return{r1s:addD(t.data,7),r1m:addD(t.data,14),r2m:addD(t.data,25),r4m:addD(t.data,50),r6m:addD(t.data,75)};}
 
@@ -1518,7 +1668,7 @@ function renderDashboard(){
     const at=topics.filter(t=>(Array.isArray(t.area)?t.area:[t.area]).includes(a));
     const done=at.filter(t=>t.aula).length;
     const p=at.length>0?Math.round(done/at.length*100):0;
-    const clr=AREA_CLR[a]||'#6366f1';
+    const clr=AREA_CLR[a]||'#b23a26';
     return`<div style="margin-bottom:14px"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:5px"><div style="display:flex;align-items:center;gap:8px"><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:${clr}"></span><span style="font-weight:600;font-size:13px">${a}</span></div><span style="font-size:12px;color:var(--muted)">${done}/${at.length} aulas</span></div><div style="background:var(--s3);border-radius:99px;height:10px;overflow:hidden"><div style="height:100%;border-radius:99px;background:${clr};width:${p}%;transition:width .5s ease"></div></div><div style="text-align:right;font-size:11px;font-weight:700;color:${clr};margin-top:2px">${p}%</div></div>`;
   }).join('');
 
@@ -1577,7 +1727,7 @@ function renderGoalBox(){
 function renderEvolucao(){
   if(!document.getElementById('c-evolucao'))return;
   const wk=weeklyQ();
-  mkChart('c-evolucao',{type:'line',data:{labels:wk.map(w=>w.lbl),datasets:[{label:'Questões',data:wk.map(w=>w.sum),borderColor:'#6366f1',backgroundColor:'rgba(99,102,241,0.12)',fill:true,tension:.35,pointRadius:4,pointBackgroundColor:'#6366f1',borderWidth:2}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{title:items=>'Semana de '+items[0].label,label:ctx=>` ${ctx.parsed.y} questões`}}},scales:{x:{grid:{display:false},ticks:{color:'#4b5a6e',font:{size:11}}},y:{beginAtZero:true,grid:{color:'rgba(0,0,0,0.06)'},ticks:{color:'#4b5a6e',precision:0}}}}});
+  mkChart('c-evolucao',{type:'line',data:{labels:wk.map(w=>w.lbl),datasets:[{label:'Questões',data:wk.map(w=>w.sum),borderColor:'#b23a26',backgroundColor:'rgba(178,58,38,0.10)',fill:true,tension:.35,pointRadius:4,pointBackgroundColor:'#b23a26',borderWidth:2}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{title:items=>'Semana de '+items[0].label,label:ctx=>` ${ctx.parsed.y} questões`}}},scales:{x:{grid:{display:false},ticks:{color:'#4b5a6e',font:{size:11}}},y:{beginAtZero:true,grid:{color:'rgba(0,0,0,0.06)'},ticks:{color:'#4b5a6e',precision:0}}}}});
 }
 
 // ── INLINE COUNT EDIT ─────────────────────────────────────────
