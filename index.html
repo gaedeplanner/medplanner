@@ -1096,7 +1096,8 @@ function updT(id,u){const d=get();const i=d.topics.findIndex(t=>t.id===id);if(i>
 function delT(id){const d=get();d.topics=d.topics.filter(t=>t.id!==id);set(d);}
 
 // ── UTILS ─────────────────────────────────────────────────────
-const today=()=>new Date().toISOString().slice(0,10);
+// Data de hoje no fuso LOCAL (toISOString usaria UTC e viraria "amanhã" depois das ~21h no Brasil)
+const today=()=>{const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');};
 const addD=(s,n)=>{if(!s)return null;const d=new Date(s);d.setDate(d.getDate()+n);return d.toISOString().slice(0,10);};
 const diffD=s=>{if(!s)return null;return Math.round((new Date(s)-new Date(today()))/(864e5));};
 const fmtD=s=>{if(!s)return '—';const[y,m,d]=s.split('-');return`${d}/${m}/${y}`;};
@@ -1237,7 +1238,10 @@ function toggleField(id,field){
   const{topics}=get();const t=topics.find(x=>x.id===id);if(!t)return;
   const newVal=!t[field];
   const updated={...t,[field]:newVal};
-  updT(id,{[field]:newVal,pt:autoNextTask(updated)});
+  const patch={[field]:newVal,pt:autoNextTask(updated)};
+  // Ao marcar "vi a aula", registra a data de hoje (vira a base das revisões/prazos)
+  if(field==='aula'&&newVal){patch.data=today();updated.data=patch.data;}
+  updT(id,patch);
   syncRevToCalendar(updated);
   renderTable();
 }
