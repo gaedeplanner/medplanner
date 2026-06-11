@@ -1,5 +1,6 @@
 # Segurança: este repositório é PÚBLICO.
-# Ignora tudo por padrão e libera apenas o app (index.html).
+# Ignora tudo por padrão e libera apenas o app (index.html) e as instruções do projeto.
 *
 !index.html
+!CLAUDE.md
 !.gitignore
