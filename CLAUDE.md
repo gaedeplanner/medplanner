@@ -5,6 +5,12 @@ Planner de estudos de medicina (MEDCURSO 2026) do Lucas. App de **arquivo único
 ## Sobre o usuário
 - Lucas é estudante de medicina, **não é programador**. Fale em português simples, explique passo a passo, sem jargão técnico.
 - Ele descreve o que quer em linguagem natural; você implementa e publica.
+- **Visual**: ele prefere mudanças ousadas e marcantes, não ajustes tímidos com "cara de IA". Na dúvida sobre intensidade, pergunte ou vá mais ousado.
+- Ele costuma mandar prints (telas, erros, materiais de estudo) — use-os como fonte principal do que ele quer.
+
+## Verificação (antes de publicar)
+- Sempre teste as mudanças no preview com `preview_eval` (simule cliques/fluxos e cheque o DOM/localStorage). `preview_screenshot` costuma dar timeout neste ambiente — não dependa dele.
+- Depois de mexer em login/sync, teste o fluxo de autenticação de ponta a ponta (já quebrou uma vez ao mudar a persistência).
 
 ## Como publicar mudanças (fluxo padrão)
 1. Edite `index.html`.
