@@ -818,6 +818,7 @@ tbody tr:hover{background:var(--s2)}
     <div class="fg" style="margin-bottom:12px">
       <label>Critérios e pontuações</label>
       <textarea id="esc-f-conteudo" placeholder="Ex:&#10;ABERTURA OCULAR&#10;Espontânea — 4&#10;Ao chamado — 3&#10;..." style="width:100%;min-height:220px;background:var(--s2);border:1px solid var(--border);border-radius:8px;color:var(--text);padding:12px;font-size:13.5px;font-family:inherit;line-height:1.7;resize:vertical;outline:none;transition:border-color .2s" onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'"></textarea>
+      <p style="font-size:11.5px;color:var(--dim);margin-top:6px">💡 Escreva o nome da seção numa linha (ex: ABERTURA OCULAR) e os critérios como "Critério — pontos". O app monta o quadro colorido sozinho.</p>
     </div>
     <div class="fg" style="margin-bottom:20px">
       <label>Link de imagem/PDF (opcional)</label>
@@ -1837,6 +1838,46 @@ function deleteEscalaItem(id){
   setEscalas(getEscalas().filter(e=>e.id!==id));renderEscalas();toast('Escala removida.','info');
 }
 function toggleEscala(id){escOpen.has(id)?escOpen.delete(id):escOpen.add(id);renderEscalas();}
+// Transforma o texto da escala num quadro visual: linhas "Critério — pontos" viram
+// tabelas com badges; linhas soltas em volta viram títulos de seção ou notas de rodapé
+function escParse(conteudo){
+  // travessão (—/–) separa pontos; hífen simples só com espaço antes (senão "CURB-65" viraria critério)
+  const itemRe=/^(.+?)(?:\s*[—–]|\s+-)\s*(\d+(?:[.,]\d+)?)\s*$/;
+  const sections=[];const notes=[];
+  let cur=null,pending=null;
+  for(const raw of String(conteudo||'').split('\n')){
+    const l=raw.trim();
+    if(!l)continue;
+    const m=l.match(itemRe);
+    if(m){
+      if(!cur||pending!==null){cur={title:pending||'',items:[]};sections.push(cur);pending=null;}
+      cur.items.push({label:m[1],val:m[2]});
+    }else{
+      if(pending!==null)notes.push(pending);
+      pending=l;
+    }
+  }
+  if(pending!==null)notes.push(pending);
+  return{sections,notes};
+}
+function escRenderConteudo(conteudo){
+  const{sections,notes}=escParse(conteudo);
+  // sem linhas "Critério — pontos": mostra como texto simples mesmo
+  if(!sections.length)return conteudo?`<pre style="white-space:pre-wrap;font-family:inherit;font-size:13.5px;color:var(--text);line-height:1.9;margin:0">${escHtml(conteudo)}</pre>`:'';
+  const colors=['#ef4444','#64748b','#ec4899','#3b82f6','#10b981','#f59e0b','#8b5cf6'];
+  const grid=`<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px">`+sections.map((s,i)=>{
+    const c=colors[i%colors.length];
+    return`<div style="border:1px solid var(--border);border-radius:10px;overflow:hidden;background:var(--s1)">
+      ${s.title?`<div style="background:${c};color:#fff;font-weight:800;font-size:12px;padding:9px 12px;text-transform:uppercase;letter-spacing:.04em;text-align:center">${escHtml(s.title)}</div>`:''}
+      ${s.items.map((it,j)=>`<div style="display:flex;justify-content:space-between;align-items:center;gap:8px;padding:8px 12px;${j>0?'border-top:1px solid var(--border)':''}">
+        <span style="font-size:13px;color:var(--text)">${escHtml(it.label)}</span>
+        <span style="background:${c}22;color:${c};font-weight:800;font-size:13px;min-width:27px;height:27px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0">${escHtml(it.val)}</span>
+      </div>`).join('')}
+    </div>`;
+  }).join('')+`</div>`;
+  const notesHtml=notes.length?`<div style="margin-top:10px;background:var(--s3);border-radius:8px;padding:10px 14px;text-align:center;font-weight:700;font-size:13px;color:var(--text)">${notes.map(escHtml).join('<br>')}</div>`:'';
+  return grid+notesHtml;
+}
 function renderEscalas(){
   const el=document.getElementById('escalas-list');
   if(!el)return;
@@ -1859,7 +1900,7 @@ function renderEscalas(){
         <button class="res-btn-edit" onclick="event.stopPropagation();deleteEscalaItem('${e.id}')" title="Remover" style="color:var(--dim)"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/></svg></button>
       </div>
       ${show?`<div style="border-top:1px solid var(--border);padding:14px 16px;background:var(--s2)">
-        ${e.conteudo?`<pre style="white-space:pre-wrap;font-family:inherit;font-size:13.5px;color:var(--text);line-height:1.9;margin:0">${escHtml(e.conteudo)}</pre>`:''}
+        ${escRenderConteudo(e.conteudo)}
         ${e.link?`<a href="${escHtml(e.link)}" target="_blank" class="btn btn-o btn-sm" style="margin-top:${e.conteudo?'12px':'0'};display:inline-flex;align-items:center;gap:6px;text-decoration:none"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg> Abrir imagem/arquivo</a>`:''}
       </div>`:''}
     </div>`;
