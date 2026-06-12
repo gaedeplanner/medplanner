@@ -572,6 +572,27 @@ tbody tr:hover{background:rgba(178,58,38,.035)}
 .late-badge{border:1.5px solid var(--red);background:rgba(192,53,36,.08);color:var(--red);text-transform:uppercase;font-size:10px;letter-spacing:.04em}
 [data-dark] .late-badge{background:rgba(234,106,90,.12)}
 
+/* Quadro "Desempenho por Área" (Análise) — barras desenhadas à mão */
+#area-perf-wrap{padding:8px 2px 2px}
+.apf-row{display:flex;align-items:center;gap:12px;margin-bottom:14px}
+.apf-label{font-family:var(--font-m);font-size:10px;font-weight:600;letter-spacing:.08em;color:var(--muted);width:86px;text-align:right;flex-shrink:0;text-transform:uppercase}
+.apf-track{flex:1;display:flex;height:28px;border:1.5px solid var(--text);border-radius:4px;overflow:hidden;background:repeating-linear-gradient(-45deg,transparent 0 5px,rgba(36,29,18,.06) 5px 7px);box-shadow:2px 2px 0 rgba(36,29,18,.08)}
+[data-dark] .apf-track{border-color:var(--border);background:repeating-linear-gradient(-45deg,transparent 0 5px,rgba(241,233,215,.06) 5px 7px);box-shadow:2px 2px 0 rgba(0,0,0,.3)}
+.apf-seg{display:flex;align-items:center;justify-content:center;font-family:var(--font-m);font-size:10.5px;font-weight:700;color:rgba(255,255,255,.95);border-right:1.5px solid var(--bg);transform-origin:left;animation:apfGrow .55s cubic-bezier(.22,.9,.35,1) backwards;transition:filter .15s;min-width:0;overflow:hidden;white-space:nowrap}
+.apf-seg:hover{filter:brightness(1.12)}
+.apf-seg:last-child{border-right:none}
+[data-dark] .apf-seg{color:rgba(23,19,16,.88)}
+.apf-g{background:var(--green)}.apf-y{background:var(--yellow)}.apf-r{background:var(--red)}
+@keyframes apfGrow{from{transform:scaleX(0)}to{transform:scaleX(1)}}
+.apf-num{font-family:var(--font-d);font-size:21px;font-weight:600;width:58px;text-align:right;flex-shrink:0;color:var(--text);line-height:1}
+.apf-num span{font-size:11px;color:var(--muted);font-family:var(--font-m);margin-left:1px}
+.apf-foot{display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin-top:16px;padding-top:12px;border-top:1.5px solid var(--border)}
+.apf-leg{display:inline-flex;align-items:center;gap:6px;font-family:var(--font-m);font-size:9.5px;letter-spacing:.05em;color:var(--muted);text-transform:uppercase}
+.apf-leg i{width:12px;height:12px;border-radius:3px;border:1px solid rgba(36,29,18,.25);flex-shrink:0}
+[data-dark] .apf-leg i{border-color:rgba(241,233,215,.2)}
+.apf-hatch{background:repeating-linear-gradient(-45deg,transparent 0 3px,rgba(36,29,18,.2) 3px 5px)}
+[data-dark] .apf-hatch{background:repeating-linear-gradient(-45deg,transparent 0 3px,rgba(241,233,215,.2) 3px 5px)}
+
 /* Scrollbar */
 ::-webkit-scrollbar{width:5px;height:5px}
 ::-webkit-scrollbar-thumb{background:var(--dim)}
@@ -816,7 +837,7 @@ tbody tr:hover{background:rgba(178,58,38,.035)}
   <div class="grid-2">
     <div class="card">
       <div class="card-title">Desempenho por Área</div>
-      <div class="chart-box"><canvas id="c-area-perf"></canvas></div>
+      <div id="area-perf-wrap"></div>
     </div>
     <div class="card">
       <div class="card-title">Distribuição de Desempenho Geral</div>
@@ -2118,12 +2139,32 @@ function renderAnalise(){
   const{topics}=get();
   const areas=['CLÍNICA','CIRURGIA','PEDIATRIA','GO','PREVENTIVA'];
   const ap=areas.map(a=>{const at=topics.filter(t=>(Array.isArray(t.area)?t.area:[t.area]).includes(a));return{a,alto:at.filter(t=>t.desemp==='≥ 80%').length,medio:at.filter(t=>t.desemp==='61 - 79%').length,baixo:at.filter(t=>t.desemp==='≤ 60%').length,total:at.length};});
-  // LEFT: % stacked horizontal bars per area
-  mkChart('c-area-perf',{type:'bar',data:{labels:areas,datasets:[
-    {label:'≥ 80%',data:ap.map(x=>x.total?Math.round(x.alto/x.total*100):0),backgroundColor:'#10b981',borderRadius:3},
-    {label:'61-79%',data:ap.map(x=>x.total?Math.round(x.medio/x.total*100):0),backgroundColor:'#f59e0b',borderRadius:3},
-    {label:'≤ 60%',data:ap.map(x=>x.total?Math.round(x.baixo/x.total*100):0),backgroundColor:'#ef4444',borderRadius:3}
-  ]},options:{responsive:true,maintainAspectRatio:false,indexAxis:'y',plugins:{legend:{position:'bottom',labels:{color:'#4b5a6e',font:{size:11},boxWidth:12,padding:16}},tooltip:{callbacks:{label:ctx=>`${ctx.dataset.label}: ${ctx.parsed.x}%`}}},scales:{x:{stacked:true,max:100,grid:{color:'rgba(0,0,0,0.06)'},ticks:{color:'#4b5a6e',callback:v=>v+'%'}},y:{stacked:true,grid:{display:false},ticks:{color:'#1e293b',font:{size:12,weight:'600'}}}}}});
+  // LEFT: quadro de barras desenhado à mão (estilo editorial, sem Chart.js)
+  const apfWrap=document.getElementById('area-perf-wrap');
+  if(apfWrap){
+    const segs=[{k:'alto',cls:'apf-g',l:'≥ 80%'},{k:'medio',cls:'apf-y',l:'61-79%'},{k:'baixo',cls:'apf-r',l:'≤ 60%'}];
+    apfWrap.innerHTML=ap.map((x,i)=>{
+      const classif=x.alto+x.medio+x.baixo;
+      const segHtml=segs.map(s=>{
+        const p=x.total?(x[s.k]/x.total*100):0;
+        if(p<=0)return'';
+        return`<div class="apf-seg ${s.cls}" style="width:${p}%;animation-delay:${i*90}ms" title="${x.a} — ${s.l}: ${x[s.k]} aula${x[s.k]!==1?'s':''}">${p>=9?x[s.k]:''}</div>`;
+      }).join('');
+      const pct=x.total?Math.round(classif/x.total*100):null;
+      return`<div class="apf-row">
+        <div class="apf-label">${x.a}</div>
+        <div class="apf-track" title="${x.a}: ${classif} de ${x.total} aulas classificadas">${segHtml}</div>
+        <div class="apf-num">${pct===null?'—':pct+'<span>%</span>'}</div>
+      </div>`;
+    }).join('')+`<div class="apf-foot">
+      <span class="apf-leg"><i class="apf-g"></i>≥ 80%</span>
+      <span class="apf-leg"><i class="apf-y"></i>61–79%</span>
+      <span class="apf-leg"><i class="apf-r"></i>≤ 60%</span>
+      <span class="apf-leg"><i class="apf-hatch"></i>não classificada</span>
+      <span style="flex:1"></span>
+      <span class="apf-leg" style="text-transform:none;letter-spacing:0">% = aulas já classificadas</span>
+    </div>`;
+  }
   // RIGHT: overall desempenho donut
   const alto=topics.filter(t=>t.desemp==='≥ 80%').length;
   const medio=topics.filter(t=>t.desemp==='61 - 79%').length;
