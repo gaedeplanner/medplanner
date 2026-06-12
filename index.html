@@ -593,6 +593,26 @@ tbody tr:hover{background:rgba(178,58,38,.035)}
 .apf-hatch{background:repeating-linear-gradient(-45deg,transparent 0 3px,rgba(36,29,18,.2) 3px 5px)}
 [data-dark] .apf-hatch{background:repeating-linear-gradient(-45deg,transparent 0 3px,rgba(241,233,215,.2) 3px 5px)}
 
+/* Anel "Distribuição de Desempenho" (Análise) */
+#dist-perf-wrap{display:flex;align-items:center;justify-content:center;gap:28px;flex-wrap:wrap;padding:12px 4px 6px}
+.dist-ring-wrap{position:relative;width:180px;height:180px;flex-shrink:0}
+.dist-svg{transform:rotate(-90deg);animation:distIn .7s cubic-bezier(.22,.9,.35,1)}
+.dist-svg circle{transition:filter .15s}
+.dist-svg circle:hover{filter:brightness(1.12)}
+@keyframes distIn{from{opacity:0;transform:rotate(-120deg) scale(.85)}to{opacity:1;transform:rotate(-90deg) scale(1)}}
+.dist-center{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;pointer-events:none}
+.dist-center-num{font-family:var(--font-d);font-size:38px;font-weight:600;line-height:1;color:var(--text)}
+.dist-center-lbl{font-family:var(--font-m);font-size:8.5px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-top:5px;line-height:1.5}
+.dist-legend{flex:1;min-width:170px;max-width:260px;display:flex;flex-direction:column;gap:9px}
+.dist-leg-row{display:flex;align-items:center;gap:9px;font-family:var(--font-m);font-size:11px;color:var(--text);border-bottom:1px solid var(--border);padding-bottom:8px}
+.dist-leg-row i{width:12px;height:12px;border-radius:3px;border:1px solid rgba(36,29,18,.25);flex-shrink:0}
+[data-dark] .dist-leg-row i{border-color:rgba(241,233,215,.2)}
+.dist-leg-name{color:var(--muted);flex:1;letter-spacing:.04em}
+.dist-leg-cnt{font-weight:700}
+.dist-leg-pct{font-family:var(--font-d);font-size:17px;font-weight:600;width:46px;text-align:right}
+.dist-foot{font-family:var(--font-m);font-size:9.5px;color:var(--dim);letter-spacing:.03em;line-height:1.5}
+.dist-empty{text-align:center;color:var(--muted);font-size:13px;padding:42px 0;line-height:1.7;width:100%}
+
 /* Scrollbar */
 ::-webkit-scrollbar{width:5px;height:5px}
 ::-webkit-scrollbar-thumb{background:var(--dim)}
@@ -841,7 +861,7 @@ tbody tr:hover{background:rgba(178,58,38,.035)}
     </div>
     <div class="card">
       <div class="card-title">Distribuição de Desempenho Geral</div>
-      <div class="chart-box"><canvas id="c-rev-pct"></canvas></div>
+      <div id="dist-perf-wrap"></div>
     </div>
   </div>
   <div class="card" style="margin-bottom:18px">
@@ -2165,12 +2185,39 @@ function renderAnalise(){
       <span class="apf-leg" style="text-transform:none;letter-spacing:0">% = aulas já classificadas</span>
     </div>`;
   }
-  // RIGHT: overall desempenho donut
+  // RIGHT: anel de desempenho desenhado à mão (só aulas classificadas)
   const alto=topics.filter(t=>t.desemp==='≥ 80%').length;
   const medio=topics.filter(t=>t.desemp==='61 - 79%').length;
   const baixo=topics.filter(t=>t.desemp==='≤ 60%').length;
   const naocl=topics.filter(t=>!t.desemp||t.desemp==='Não classificada').length;
-  mkChart('c-rev-pct',{type:'doughnut',data:{labels:['≥ 80%','61-79%','≤ 60%','Não classif.'],datasets:[{data:[alto,medio,baixo,naocl],backgroundColor:['#10b981','#f59e0b','#ef4444','#94a3b8'],borderColor:['#fff','#fff','#fff','#fff'],borderWidth:3,hoverOffset:8}]},options:{responsive:true,maintainAspectRatio:false,cutout:'68%',plugins:{legend:{position:'bottom',labels:{color:'#4b5a6e',font:{size:11},boxWidth:12,padding:14}},tooltip:{callbacks:{label:ctx=>{const tot=ctx.dataset.data.reduce((a,b)=>a+b,0)||1;return` ${ctx.label}: ${ctx.parsed} (${Math.round(ctx.parsed/tot*100)}%)`;}}}}}})
+  const distWrap=document.getElementById('dist-perf-wrap');
+  if(distWrap){
+    const tot=alto+medio+baixo;
+    const dsegs=[{n:alto,cls:'apf-g',l:'≥ 80%',c:'var(--green)'},{n:medio,cls:'apf-y',l:'61-79%',c:'var(--yellow)'},{n:baixo,cls:'apf-r',l:'≤ 60%',c:'var(--red)'}];
+    if(!tot){
+      distWrap.innerHTML=`<div class="dist-empty">Nenhuma aula classificada ainda.<br>Classifique o desempenho no Cronograma e o quadro aparece aqui.</div>`;
+    }else{
+      const R=70,C=2*Math.PI*R;
+      const vivos=dsegs.filter(s=>s.n>0).length;
+      let off=0;
+      const circles=dsegs.filter(s=>s.n>0).map(s=>{
+        const len=s.n/tot*C;
+        const gap=vivos>1?3:0;
+        const el=`<circle r="${R}" cx="90" cy="90" fill="none" stroke="${s.c}" stroke-width="26" stroke-dasharray="${Math.max(len-gap,1)} ${C}" stroke-dashoffset="${-off}"><title>${s.l}: ${s.n} aula${s.n!==1?'s':''} (${Math.round(s.n/tot*100)}%)</title></circle>`;
+        off+=len;
+        return el;
+      }).join('');
+      distWrap.innerHTML=`
+        <div class="dist-ring-wrap">
+          <svg width="180" height="180" viewBox="0 0 180 180" class="dist-svg">${circles}</svg>
+          <div class="dist-center"><div class="dist-center-num">${tot}</div><div class="dist-center-lbl">aulas<br>classificadas</div></div>
+        </div>
+        <div class="dist-legend">
+          ${dsegs.map(s=>`<div class="dist-leg-row"><i class="${s.cls}"></i><span class="dist-leg-name">${s.l}</span><span class="dist-leg-cnt">${s.n}</span><span class="dist-leg-pct">${Math.round(s.n/tot*100)}%</span></div>`).join('')}
+          ${naocl?`<div class="dist-foot">+ ${naocl} aula${naocl!==1?'s':''} sem classificação (fora do gráfico)</div>`:''}
+        </div>`;
+    }
+  }
 
   // CONTADORES POR TÓPICO
   const comConts=topics.filter(t=>(t.nAulas||0)+(t.nQuestoes||0)+(t.nMini||0)+(t.nFlash||0)>0).sort((a,b)=>(b.nQuestoes||0)-(a.nQuestoes||0));
