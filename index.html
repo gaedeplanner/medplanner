@@ -594,7 +594,7 @@ tbody tr:hover{background:rgba(178,58,38,.035)}
 [data-dark] .apf-hatch{background:repeating-linear-gradient(-45deg,transparent 0 3px,rgba(241,233,215,.2) 3px 5px)}
 
 /* Anel "Distribuição de Desempenho" (Análise) */
-#dist-perf-wrap{display:flex;align-items:center;justify-content:center;gap:28px;flex-wrap:wrap;padding:12px 4px 6px}
+#dist-perf-wrap,#dist-perf-dash{display:flex;align-items:center;justify-content:center;gap:28px;flex-wrap:wrap;padding:12px 4px 6px}
 .dist-ring-wrap{position:relative;width:180px;height:180px;flex-shrink:0}
 .dist-svg{transform:rotate(-90deg);animation:distIn .7s cubic-bezier(.22,.9,.35,1)}
 .dist-svg circle{transition:filter .15s}
@@ -711,6 +711,17 @@ tbody tr:hover{background:rgba(178,58,38,.035)}
   </div>
   <!-- STATS -->
   <div class="cards-grid" id="stats-cards"></div>
+  <!-- PROGRESSO + DISTRIBUIÇÃO -->
+  <div class="grid-2">
+    <div class="card">
+      <div class="card-title">Progresso por Área</div>
+      <div id="area-bars"></div>
+    </div>
+    <div class="card">
+      <div class="card-title">Distribuição de Desempenho</div>
+      <div id="dist-perf-dash"></div>
+    </div>
+  </div>
   <!-- META DIÁRIA + EVOLUÇÃO -->
   <div class="grid-2">
     <div class="card">
@@ -720,16 +731,6 @@ tbody tr:hover{background:rgba(178,58,38,.035)}
     <div class="card">
       <div class="card-title">📈 Evolução semanal (questões)</div>
       <div class="chart-box"><canvas id="c-evolucao"></canvas></div>
-    </div>
-  </div>
-  <div class="grid-2">
-    <div class="card">
-      <div class="card-title">Progresso por Área</div>
-      <div id="area-bars"></div>
-    </div>
-    <div class="card">
-      <div class="card-title">Distribuição de Desempenho</div>
-      <div class="chart-box"><canvas id="c-desemp"></canvas></div>
     </div>
   </div>
   <div class="grid-2">
@@ -1767,12 +1768,8 @@ function renderDashboard(){
     return`<div style="margin-bottom:14px"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:5px"><div style="display:flex;align-items:center;gap:8px"><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:${clr}"></span><span style="font-weight:600;font-size:13px">${a}</span></div><span style="font-size:12px;color:var(--muted)">${done}/${at.length} aulas</span></div><div style="background:var(--s3);border-radius:99px;height:10px;overflow:hidden"><div style="height:100%;border-radius:99px;background:${clr};width:${p}%;transition:width .5s ease"></div></div><div style="text-align:right;font-size:11px;font-weight:700;color:${clr};margin-top:2px">${p}%</div></div>`;
   }).join('');
 
-  // DESEMPENHO DONUT
-  const d80=topics.filter(t=>t.desemp==='≥ 80%').length;
-  const d61=topics.filter(t=>t.desemp==='61 - 79%').length;
-  const d60=topics.filter(t=>t.desemp==='≤ 60%').length;
-  const dnc=topics.filter(t=>!t.desemp||t.desemp==='Não classificada').length;
-  mkChart('c-desemp',{type:'doughnut',data:{labels:['≥ 80%','61-79%','≤ 60%','Não classif.'],datasets:[{data:[d80,d61,d60,dnc],backgroundColor:['#10b981','#f59e0b','#ef4444','#94a3b8'],borderColor:['#fff','#fff','#fff','#fff'],borderWidth:3,hoverOffset:8}]},options:{responsive:true,maintainAspectRatio:false,cutout:'65%',plugins:{legend:{position:'right',labels:{color:'#4b5a6e',font:{size:11},boxWidth:12,padding:12}},tooltip:{callbacks:{label:ctx=>{const tot=ctx.dataset.data.reduce((a,b)=>a+b,0)||1;return` ${ctx.label}: ${ctx.parsed} (${Math.round(ctx.parsed/tot*100)}%)`;}}}}}});
+  // DESEMPENHO — anel desenhado à mão (mesmo componente da aba Análise)
+  buildDistRing('dist-perf-dash');
 
   // PRÓXIMAS REVISÕES
   const upcoming=[];
@@ -2155,6 +2152,42 @@ function renderEscalas(){
 }
 
 // ── ANÁLISE ───────────────────────────────────────────────────
+// Anel de desempenho desenhado à mão (usado no Dashboard e na Análise) —
+// só conta aulas classificadas; as não classificadas viram nota de rodapé
+function buildDistRing(wrapId){
+  const wrap=document.getElementById(wrapId);
+  if(!wrap)return;
+  const{topics}=get();
+  const alto=topics.filter(t=>t.desemp==='≥ 80%').length;
+  const medio=topics.filter(t=>t.desemp==='61 - 79%').length;
+  const baixo=topics.filter(t=>t.desemp==='≤ 60%').length;
+  const naocl=topics.filter(t=>!t.desemp||t.desemp==='Não classificada').length;
+  const tot=alto+medio+baixo;
+  const dsegs=[{n:alto,cls:'apf-g',l:'≥ 80%',c:'var(--green)'},{n:medio,cls:'apf-y',l:'61-79%',c:'var(--yellow)'},{n:baixo,cls:'apf-r',l:'≤ 60%',c:'var(--red)'}];
+  if(!tot){
+    wrap.innerHTML=`<div class="dist-empty">Nenhuma aula classificada ainda.<br>Classifique o desempenho no Cronograma e o quadro aparece aqui.</div>`;
+    return;
+  }
+  const R=70,C=2*Math.PI*R;
+  const vivos=dsegs.filter(s=>s.n>0).length;
+  let off=0;
+  const circles=dsegs.filter(s=>s.n>0).map(s=>{
+    const len=s.n/tot*C;
+    const gap=vivos>1?3:0;
+    const el=`<circle r="${R}" cx="90" cy="90" fill="none" stroke="${s.c}" stroke-width="26" stroke-dasharray="${Math.max(len-gap,1)} ${C}" stroke-dashoffset="${-off}"><title>${s.l}: ${s.n} aula${s.n!==1?'s':''} (${Math.round(s.n/tot*100)}%)</title></circle>`;
+    off+=len;
+    return el;
+  }).join('');
+  wrap.innerHTML=`
+    <div class="dist-ring-wrap">
+      <svg width="180" height="180" viewBox="0 0 180 180" class="dist-svg">${circles}</svg>
+      <div class="dist-center"><div class="dist-center-num">${tot}</div><div class="dist-center-lbl">aulas<br>classificadas</div></div>
+    </div>
+    <div class="dist-legend">
+      ${dsegs.map(s=>`<div class="dist-leg-row"><i class="${s.cls}"></i><span class="dist-leg-name">${s.l}</span><span class="dist-leg-cnt">${s.n}</span><span class="dist-leg-pct">${Math.round(s.n/tot*100)}%</span></div>`).join('')}
+      ${naocl?`<div class="dist-foot">+ ${naocl} aula${naocl!==1?'s':''} sem classificação (fora do gráfico)</div>`:''}
+    </div>`;
+}
 function renderAnalise(){
   const{topics}=get();
   const areas=['CLÍNICA','CIRURGIA','PEDIATRIA','GO','PREVENTIVA'];
@@ -2185,39 +2218,8 @@ function renderAnalise(){
       <span class="apf-leg" style="text-transform:none;letter-spacing:0">% = aulas já classificadas</span>
     </div>`;
   }
-  // RIGHT: anel de desempenho desenhado à mão (só aulas classificadas)
-  const alto=topics.filter(t=>t.desemp==='≥ 80%').length;
-  const medio=topics.filter(t=>t.desemp==='61 - 79%').length;
-  const baixo=topics.filter(t=>t.desemp==='≤ 60%').length;
-  const naocl=topics.filter(t=>!t.desemp||t.desemp==='Não classificada').length;
-  const distWrap=document.getElementById('dist-perf-wrap');
-  if(distWrap){
-    const tot=alto+medio+baixo;
-    const dsegs=[{n:alto,cls:'apf-g',l:'≥ 80%',c:'var(--green)'},{n:medio,cls:'apf-y',l:'61-79%',c:'var(--yellow)'},{n:baixo,cls:'apf-r',l:'≤ 60%',c:'var(--red)'}];
-    if(!tot){
-      distWrap.innerHTML=`<div class="dist-empty">Nenhuma aula classificada ainda.<br>Classifique o desempenho no Cronograma e o quadro aparece aqui.</div>`;
-    }else{
-      const R=70,C=2*Math.PI*R;
-      const vivos=dsegs.filter(s=>s.n>0).length;
-      let off=0;
-      const circles=dsegs.filter(s=>s.n>0).map(s=>{
-        const len=s.n/tot*C;
-        const gap=vivos>1?3:0;
-        const el=`<circle r="${R}" cx="90" cy="90" fill="none" stroke="${s.c}" stroke-width="26" stroke-dasharray="${Math.max(len-gap,1)} ${C}" stroke-dashoffset="${-off}"><title>${s.l}: ${s.n} aula${s.n!==1?'s':''} (${Math.round(s.n/tot*100)}%)</title></circle>`;
-        off+=len;
-        return el;
-      }).join('');
-      distWrap.innerHTML=`
-        <div class="dist-ring-wrap">
-          <svg width="180" height="180" viewBox="0 0 180 180" class="dist-svg">${circles}</svg>
-          <div class="dist-center"><div class="dist-center-num">${tot}</div><div class="dist-center-lbl">aulas<br>classificadas</div></div>
-        </div>
-        <div class="dist-legend">
-          ${dsegs.map(s=>`<div class="dist-leg-row"><i class="${s.cls}"></i><span class="dist-leg-name">${s.l}</span><span class="dist-leg-cnt">${s.n}</span><span class="dist-leg-pct">${Math.round(s.n/tot*100)}%</span></div>`).join('')}
-          ${naocl?`<div class="dist-foot">+ ${naocl} aula${naocl!==1?'s':''} sem classificação (fora do gráfico)</div>`:''}
-        </div>`;
-    }
-  }
+  // RIGHT: anel de desempenho desenhado à mão (componente compartilhado)
+  buildDistRing('dist-perf-wrap');
 
   // CONTADORES POR TÓPICO
   const comConts=topics.filter(t=>(t.nAulas||0)+(t.nQuestoes||0)+(t.nMini||0)+(t.nFlash||0)>0).sort((a,b)=>(b.nQuestoes||0)-(a.nQuestoes||0));
