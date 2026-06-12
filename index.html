@@ -576,7 +576,7 @@ tbody tr:hover{background:rgba(178,58,38,.035)}
 #area-perf-wrap{padding:8px 2px 2px}
 .apf-row{display:flex;align-items:center;gap:12px;margin-bottom:14px}
 .apf-label{font-family:var(--font-m);font-size:10px;font-weight:600;letter-spacing:.08em;color:var(--muted);width:86px;text-align:right;flex-shrink:0;text-transform:uppercase}
-.apf-track{flex:1;display:flex;height:28px;border:1.5px solid var(--text);border-radius:4px;overflow:hidden;background:repeating-linear-gradient(-45deg,transparent 0 5px,rgba(36,29,18,.06) 5px 7px);box-shadow:2px 2px 0 rgba(36,29,18,.08)}
+.apf-track{flex:1;display:flex;height:30px;border:1.5px solid var(--text);border-radius:4px;overflow:hidden;background:repeating-linear-gradient(-45deg,transparent 0 5px,rgba(36,29,18,.06) 5px 7px);box-shadow:2px 2px 0 rgba(36,29,18,.08)}
 [data-dark] .apf-track{border-color:var(--border);background:repeating-linear-gradient(-45deg,transparent 0 5px,rgba(241,233,215,.06) 5px 7px);box-shadow:2px 2px 0 rgba(0,0,0,.3)}
 .apf-seg{display:flex;align-items:center;justify-content:center;font-family:var(--font-m);font-size:10.5px;font-weight:700;color:rgba(255,255,255,.95);border-right:1.5px solid var(--bg);transform-origin:left;animation:apfGrow .55s cubic-bezier(.22,.9,.35,1) backwards;transition:filter .15s;min-width:0;overflow:hidden;white-space:nowrap}
 .apf-seg:hover{filter:brightness(1.12)}
@@ -864,10 +864,6 @@ tbody tr:hover{background:rgba(178,58,38,.035)}
       <div class="card-title">Distribuição de Desempenho Geral</div>
       <div id="dist-perf-wrap"></div>
     </div>
-  </div>
-  <div class="card" style="margin-bottom:18px">
-    <div class="card-title">Contadores por Tópico</div>
-    <div id="contadores-tabela"></div>
   </div>
   <div class="card" style="margin-bottom:18px">
     <div class="card-title">Tópicos com Desempenho Baixo</div>
@@ -2201,7 +2197,7 @@ function renderAnalise(){
       const segHtml=segs.map(s=>{
         const p=x.total?(x[s.k]/x.total*100):0;
         if(p<=0)return'';
-        return`<div class="apf-seg ${s.cls}" style="width:${p}%;animation-delay:${i*90}ms" title="${x.a} — ${s.l}: ${x[s.k]} aula${x[s.k]!==1?'s':''}">${p>=9?x[s.k]:''}</div>`;
+        return`<div class="apf-seg ${s.cls}" style="width:${p}%;animation-delay:${i*90}ms" title="${x.a} — ${s.l}: ${x[s.k]} aula${x[s.k]!==1?'s':''}">${p>=4?x[s.k]:''}</div>`;
       }).join('');
       const pct=x.total?Math.round(classif/x.total*100):null;
       return`<div class="apf-row">
@@ -2219,13 +2215,6 @@ function renderAnalise(){
   }
   // RIGHT: anel de desempenho desenhado à mão (componente compartilhado)
   buildDistRing('dist-perf-wrap');
-
-  // CONTADORES POR TÓPICO
-  const comConts=topics.filter(t=>(t.nAulas||0)+(t.nQuestoes||0)+(t.nMini||0)+(t.nFlash||0)>0).sort((a,b)=>(b.nQuestoes||0)-(a.nQuestoes||0));
-  document.getElementById('contadores-tabela').innerHTML=comConts.length?`<div class="table-wrap" style="margin-top:8px"><table>
-    <thead><tr><th>Semana</th><th>Área</th><th>Aulas</th><th>Questões</th><th>Mini</th><th>Flashcards</th></tr></thead>
-    <tbody>${comConts.map(t=>`<tr><td style="font-weight:600">${t.semana}</td><td>${atags(t.area)}</td><td style="text-align:center;color:var(--accent);font-weight:700">${t.nAulas||0}</td><td style="text-align:center;color:var(--blue);font-weight:700">${t.nQuestoes||0}</td><td style="text-align:center;color:var(--purple);font-weight:700">${t.nMini||0}</td><td style="text-align:center;color:var(--green);font-weight:700">${t.nFlash||0}</td></tr>`).join('')}</tbody>
-  </table></div>`:'<p style="color:var(--muted);padding:12px 0;font-size:13px">Nenhum contador preenchido ainda. Clique nos números no Cronograma para registrar.</p>';
 
   // FRAQUEZAS
   const fraq=topics.filter(t=>t.desemp==='≤ 60%'||t.desemp==='61 - 79%').sort((a,b)=>{const o={'≤ 60%':0,'61 - 79%':1};return(o[a.desemp]??9)-(o[b.desemp]??9);});
