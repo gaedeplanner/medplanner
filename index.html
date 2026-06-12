@@ -1435,9 +1435,11 @@ function setPt(id,val){
   renderTable();
 }
 function atags(area){const arr=Array.isArray(area)?area:[area||''];return arr.filter(Boolean).map(a=>`<span class="tag t${a.normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/[^A-Z]/g,'')}">${a}</span>`).join('');}
-// Calcula o prazo da próxima revisão pendente (usado pela coluna de data, badge e calendário)
+// Calcula o prazo da próxima tarefa pendente (usado pela coluna de data, badge e calendário).
+// Fase "Questões": prazo = o próprio dia da aula (Lucas faz as questões no mesmo dia).
 function nextRevInfo(t){
   if(!t.data)return null;
+  if(t.aula&&!t.qpos)return{done:false,date:t.data,diff:diffD(t.data)};
   const k=['r1s','r1m','r2m','r4m','r6m'].find(k=>!t[k]);
   if(!k)return{done:true};
   const date=revDates(t)[k];
@@ -1457,7 +1459,7 @@ function ptCell(t){
   const pt=autoNextTask(t);
   const info=t.aula?nextRevInfo(t):null;
   const late=!!(info&&!info.done&&info.diff!==null&&info.diff<0);
-  if(late&&pt.startsWith('Revisão')){
+  if(late&&(pt.startsWith('Revisão')||pt==='Questões')){
     return`<span class="badge bred late-badge" style="cursor:pointer;user-select:none" onclick="openPtMenu(event,'${t.id}')">⚠ ${pt} · ${Math.abs(info.diff)}d atr.</span>`;
   }
   return ptbadge(pt,t.id)+(late?`<span class="late-stamp">⚠ ${Math.abs(info.diff)}d atrasada</span>`:'');
