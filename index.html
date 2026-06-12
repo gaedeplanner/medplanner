@@ -832,14 +832,12 @@ tbody tr:hover{background:rgba(178,58,38,.035)}
     </select>
     <span id="table-count" style="color:var(--muted);font-size:12px;margin-left:auto"></span>
   </div>
-  <div style="font-size:12px;color:var(--muted);margin-bottom:10px">Use os botões <span style="color:var(--accent)">− +</span> na coluna <strong>Questões</strong> para incrementar rapidamente. Clique no número para digitar um valor específico.</div>
   <div class="table-wrap">
     <table>
       <thead>
         <tr>
           <th>#</th><th>Semana</th><th>Área</th><th>Aula Principal</th><th>Data</th>
-          <th title="Aula assistida">Aula</th><th title="Mini Aula">Mini</th><th title="Questões Pré">Q Pré</th><th title="Questões Pós">Q Pós</th>
-          <th style="color:var(--accent);text-align:center">Questões</th>
+          <th title="Aula assistida">Aula</th><th title="Mini Aula">Mini</th><th title="Questões Pós">Q Pós</th>
           <th style="color:var(--accent)" title="Flashcards feitos">Flash</th>
           <th>Desempenho</th><th>Próxima Tarefa</th>
           <th title="Rev 1 Semana">1 Sem</th><th title="Rev 1 Mês">1 Mês</th><th title="Rev 2 Meses">2 Meses</th>
@@ -1884,8 +1882,6 @@ function renderTable(){
   empty.style.display='none';
 
   tbody.innerHTML=f.map((t,i)=>{
-    const nQ=t.nQuestoes||0;
-    const cc=(val,field)=>`<td class="cnt-cell"><div class="cnt-wrap"><button class="cnt-btn" onclick="adjCount('${t.id}','${field}',-1,this)">−</button><span class="cnt-val ${val>0?'cnt-pos':'cnt-zero'}" onclick="editCount(this.closest('td'),'${t.id}','${field}')" title="Clique para digitar">${val}</span><button class="cnt-btn" onclick="adjCount('${t.id}','${field}',1,this)">+</button></div></td>`;
     return`<tr>
       <td style="color:var(--dim);font-size:12px">${i+1}</td>
       <td style="font-weight:600;white-space:nowrap">${t.semana||'—'}</td>
@@ -1894,9 +1890,8 @@ function renderTable(){
       <td style="white-space:nowrap;color:var(--muted);font-size:12px">${fmtD(t.data)}</td>
       <td style="text-align:center">${chk(t.aula,t.id,'aula')}</td>
       <td style="text-align:center">${chk(t.mini,t.id,'mini')}</td>
-      <td style="text-align:center">${chk(t.qpre,t.id,'qpre')}</td>
       <td style="text-align:center">${chk(t.qpos,t.id,'qpos')}</td>
-      ${cc(nQ,'nQuestoes')}<td style="text-align:center">${chk(t.flash,t.id,'flash')}</td>
+      <td style="text-align:center">${chk(t.flash,t.id,'flash')}</td>
       <td>${dbadge(t.desemp,t.id)}</td>
       <td style="white-space:nowrap">${ptCell(t)}</td>
       <td style="text-align:center">${chk(t.r1s,t.id,'r1s')}</td><td style="text-align:center">${chk(t.r1m,t.id,'r1m')}</td>
