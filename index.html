@@ -566,6 +566,10 @@ tbody tr:hover{background:rgba(178,58,38,.035)}
 .bar-track{border-radius:2px}
 .bar-fill{border-radius:2px}
 
+/* Carimbo de revisão atrasada */
+.late-stamp{display:inline-flex;align-items:center;gap:3px;font-family:var(--font-m);font-size:9px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--red);border:1.5px solid var(--red);border-radius:3px;padding:1px 6px;margin-left:6px;transform:rotate(-2deg);background:rgba(192,53,36,.07);white-space:nowrap;vertical-align:middle}
+[data-dark] .late-stamp{background:rgba(234,106,90,.1)}
+
 /* Scrollbar */
 ::-webkit-scrollbar{width:5px;height:5px}
 ::-webkit-scrollbar-thumb{background:var(--dim)}
@@ -1413,18 +1417,31 @@ function setPt(id,val){
   renderTable();
 }
 function atags(area){const arr=Array.isArray(area)?area:[area||''];return arr.filter(Boolean).map(a=>`<span class="tag t${a.normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/[^A-Z]/g,'')}">${a}</span>`).join('');}
-function calcNextRev(t){
-  if(!t.data)return`<span style="color:var(--dim)">—</span>`;
+// Calcula o prazo da próxima revisão pendente (usado pela coluna de data e pelo carimbo de atraso)
+function nextRevInfo(t){
+  if(!t.data)return null;
   const revs=[{k:'r1s',d:7},{k:'r1m',d:14},{k:'r2m',d:25},{k:'r4m',d:50},{k:'r6m',d:75}];
   const next=revs.find(r=>!t[r.k]);
-  if(!next)return`<span style="color:var(--green);font-weight:600">✓ Concluído</span>`;
+  if(!next)return{done:true};
   const mult=t.desemp==='≥ 80%'?1.0:t.desemp==='61 - 79%'?0.85:t.desemp==='≤ 60%'?0.65:1.0;
-  const days=Math.round(next.d*mult);
-  const date=addD(t.data,days);
-  const diff=diffD(date);
+  const date=addD(t.data,Math.round(next.d*mult));
+  return{done:false,date,diff:diffD(date)};
+}
+function calcNextRev(t){
+  const info=nextRevInfo(t);
+  if(!info)return`<span style="color:var(--dim)">—</span>`;
+  if(info.done)return`<span style="color:var(--green);font-weight:600">✓ Concluído</span>`;
+  const diff=info.diff;
   const color=diff===null?'var(--muted)':diff<0?'var(--red)':diff<=7?'var(--yellow)':'var(--text)';
   const suffix=diff!==null&&diff<0?` <span style="font-size:10px;color:var(--red)">(${Math.abs(diff)}d atr.)</span>`:'';
-  return`<span style="font-size:12px;font-weight:600;color:${color};white-space:nowrap">${fmtD(date)}${suffix}</span>`;
+  return`<span style="font-size:12px;font-weight:600;color:${color};white-space:nowrap">${fmtD(info.date)}${suffix}</span>`;
+}
+// Carimbo vermelho ao lado da tarefa quando o prazo da revisão já passou
+function lateStamp(t){
+  if(!t.aula)return'';
+  const info=nextRevInfo(t);
+  if(!info||info.done||info.diff===null||info.diff>=0)return'';
+  return`<span class="late-stamp">⚠ ${Math.abs(info.diff)}d atrasada</span>`;
 }
 function chk(v,id,field){
   if(id&&field)return`<span class="chk-toggle ${v?'chk-on':'chk-off'}" onclick="toggleField('${id}','${field}')">${v?'☑':'☐'}</span>`;
@@ -1799,7 +1816,7 @@ function renderTable(){
       <td style="text-align:center">${chk(t.qpos,t.id,'qpos')}</td>
       ${cc(nQ,'nQuestoes')}<td style="text-align:center">${chk(t.flash,t.id,'flash')}</td>
       <td>${dbadge(t.desemp,t.id)}</td>
-      <td>${ptbadge(autoNextTask(t),t.id)}</td>
+      <td style="white-space:nowrap">${ptbadge(autoNextTask(t),t.id)}${lateStamp(t)}</td>
       <td style="text-align:center">${chk(t.r1s,t.id,'r1s')}</td><td style="text-align:center">${chk(t.r1m,t.id,'r1m')}</td>
       <td style="text-align:center">${chk(t.r2m,t.id,'r2m')}</td><td style="text-align:center">${chk(t.r4m,t.id,'r4m')}</td>
       <td style="text-align:center">${chk(t.r6m,t.id,'r6m')}</td>
