@@ -569,6 +569,8 @@ tbody tr:hover{background:rgba(178,58,38,.035)}
 /* Carimbo de revisão atrasada */
 .late-stamp{display:inline-flex;align-items:center;gap:3px;font-family:var(--font-m);font-size:9px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--red);border:1.5px solid var(--red);border-radius:3px;padding:1px 6px;margin-left:6px;transform:rotate(-2deg);background:rgba(192,53,36,.07);white-space:nowrap;vertical-align:middle}
 [data-dark] .late-stamp{background:rgba(234,106,90,.1)}
+.late-badge{border:1.5px solid var(--red);background:rgba(192,53,36,.08);color:var(--red);text-transform:uppercase;font-size:10px;letter-spacing:.04em}
+[data-dark] .late-badge{background:rgba(234,106,90,.12)}
 
 /* Scrollbar */
 ::-webkit-scrollbar{width:5px;height:5px}
@@ -1303,7 +1305,23 @@ const diffD=s=>{if(!s)return null;return Math.round((new Date(s)-new Date(today(
 const fmtD=s=>{if(!s)return '—';const[y,m,d]=s.split('-');return`${d}/${m}/${y}`;};
 const AREA_CLR={'CLÍNICA':'#f97316','CIRURGIA':'#10b981','PEDIATRIA':'#ec4899','GO':'#1f5f8f','PREVENTIVA':'#6d4f9e'};
 
-function revDates(t){if(!t.data)return{};return{r1s:addD(t.data,7),r1m:addD(t.data,14),r2m:addD(t.data,25),r4m:addD(t.data,50),r6m:addD(t.data,75)};}
+// Prazos das revisões em cadeia (fonte única — tabela, Hoje, sino e calendário usam isto).
+// Cada etapa parte da CONCLUSÃO real da anterior (rXXAt, gravada ao marcar o ☑); se não
+// houver registro, parte do prazo teórico. Assim, pôr uma revisão atrasada em dia faz a
+// próxima contar a partir de hoje, em vez de já nascer atrasada.
+function revDates(t){
+  if(!t.data)return{};
+  const seq=[{k:'r1s',d:7},{k:'r1m',d:14},{k:'r2m',d:25},{k:'r4m',d:50},{k:'r6m',d:75}];
+  const mult=t.desemp==='≥ 80%'?1.0:t.desemp==='61 - 79%'?0.85:t.desemp==='≤ 60%'?0.65:1.0;
+  const out={};let base=t.data,prevD=0;
+  for(const s of seq){
+    const due=addD(base,Math.round((s.d-prevD)*mult));
+    out[s.k]=due;
+    base=(t[s.k]&&t[s.k+'At'])?t[s.k+'At']:due;
+    prevD=s.d;
+  }
+  return out;
+}
 
 // ── ATIVIDADE DIÁRIA (sequência, meta e evolução) ─────────────
 const ACT_KEY='medplanner26_activity';
@@ -1417,14 +1435,12 @@ function setPt(id,val){
   renderTable();
 }
 function atags(area){const arr=Array.isArray(area)?area:[area||''];return arr.filter(Boolean).map(a=>`<span class="tag t${a.normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/[^A-Z]/g,'')}">${a}</span>`).join('');}
-// Calcula o prazo da próxima revisão pendente (usado pela coluna de data e pelo carimbo de atraso)
+// Calcula o prazo da próxima revisão pendente (usado pela coluna de data, badge e calendário)
 function nextRevInfo(t){
   if(!t.data)return null;
-  const revs=[{k:'r1s',d:7},{k:'r1m',d:14},{k:'r2m',d:25},{k:'r4m',d:50},{k:'r6m',d:75}];
-  const next=revs.find(r=>!t[r.k]);
-  if(!next)return{done:true};
-  const mult=t.desemp==='≥ 80%'?1.0:t.desemp==='61 - 79%'?0.85:t.desemp==='≤ 60%'?0.65:1.0;
-  const date=addD(t.data,Math.round(next.d*mult));
+  const k=['r1s','r1m','r2m','r4m','r6m'].find(k=>!t[k]);
+  if(!k)return{done:true};
+  const date=revDates(t)[k];
   return{done:false,date,diff:diffD(date)};
 }
 function calcNextRev(t){
@@ -1436,12 +1452,15 @@ function calcNextRev(t){
   const suffix=diff!==null&&diff<0?` <span style="font-size:10px;color:var(--red)">(${Math.abs(diff)}d atr.)</span>`:'';
   return`<span style="font-size:12px;font-weight:600;color:${color};white-space:nowrap">${fmtD(info.date)}${suffix}</span>`;
 }
-// Carimbo vermelho ao lado da tarefa quando o prazo da revisão já passou
-function lateStamp(t){
-  if(!t.aula)return'';
-  const info=nextRevInfo(t);
-  if(!info||info.done||info.diff===null||info.diff>=0)return'';
-  return`<span class="late-stamp">⚠ ${Math.abs(info.diff)}d atrasada</span>`;
+// Célula da próxima tarefa: badge normal, ou selo vermelho único quando a revisão está atrasada
+function ptCell(t){
+  const pt=autoNextTask(t);
+  const info=t.aula?nextRevInfo(t):null;
+  const late=!!(info&&!info.done&&info.diff!==null&&info.diff<0);
+  if(late&&pt.startsWith('Revisão')){
+    return`<span class="badge bred late-badge" style="cursor:pointer;user-select:none" onclick="openPtMenu(event,'${t.id}')">⚠ ${pt} · ${Math.abs(info.diff)}d atr.</span>`;
+  }
+  return ptbadge(pt,t.id)+(late?`<span class="late-stamp">⚠ ${Math.abs(info.diff)}d atrasada</span>`:'');
 }
 function chk(v,id,field){
   if(id&&field)return`<span class="chk-toggle ${v?'chk-on':'chk-off'}" onclick="toggleField('${id}','${field}')">${v?'☑':'☐'}</span>`;
@@ -1454,6 +1473,11 @@ function toggleField(id,field){
   const patch={[field]:newVal,pt:autoNextTask(updated)};
   // Ao marcar "vi a aula", registra a data de hoje (vira a base das revisões/prazos)
   if(field==='aula'&&newVal){patch.data=today();updated.data=patch.data;}
+  // Ao marcar uma revisão, registra QUANDO foi feita (a próxima conta a partir daí)
+  if(['r1s','r1m','r2m','r4m','r6m'].includes(field)){
+    patch[field+'At']=newVal?today():null;
+    updated[field+'At']=patch[field+'At'];
+  }
   updT(id,patch);
   syncRevToCalendar(updated);
   renderTable();
@@ -1816,7 +1840,7 @@ function renderTable(){
       <td style="text-align:center">${chk(t.qpos,t.id,'qpos')}</td>
       ${cc(nQ,'nQuestoes')}<td style="text-align:center">${chk(t.flash,t.id,'flash')}</td>
       <td>${dbadge(t.desemp,t.id)}</td>
-      <td style="white-space:nowrap">${ptbadge(autoNextTask(t),t.id)}${lateStamp(t)}</td>
+      <td style="white-space:nowrap">${ptCell(t)}</td>
       <td style="text-align:center">${chk(t.r1s,t.id,'r1s')}</td><td style="text-align:center">${chk(t.r1m,t.id,'r1m')}</td>
       <td style="text-align:center">${chk(t.r2m,t.id,'r2m')}</td><td style="text-align:center">${chk(t.r4m,t.id,'r4m')}</td>
       <td style="text-align:center">${chk(t.r6m,t.id,'r6m')}</td>
@@ -1844,7 +1868,9 @@ function renderHoje(){
 
 function markRev(id,key){
   const{topics}=get();const t=topics.find(x=>x.id===id);if(!t)return;
-  updT(id,{[key]:true,pt:autoNextTask({...t,[key]:true})});
+  const updated={...t,[key]:true,[key+'At']:today()};
+  updT(id,{[key]:true,[key+'At']:today(),pt:autoNextTask(updated)});
+  syncRevToCalendar(updated);
   renderHoje();
   updateBellBadge();
 }
@@ -2348,12 +2374,9 @@ function syncRevToCalendar(topic){
     ev[date]=ev[date].filter(t=>t.id!==marker);
     if(!ev[date].length)delete ev[date];
   });
-  const revs=[{k:'r1s',d:7},{k:'r1m',d:14},{k:'r2m',d:25},{k:'r4m',d:50},{k:'r6m',d:75}];
-  const next=revs.find(r=>!topic[r.k]);
-  if(!next||!topic.data){setCal(ev);return;}
-  const mult=topic.desemp==='≥ 80%'?1.0:topic.desemp==='61 - 79%'?0.7:topic.desemp==='≤ 60%'?0.5:1.0;
-  const date=addD(topic.data,Math.round(next.d*mult));
-  if(!date){setCal(ev);return;}
+  const info=nextRevInfo(topic);
+  if(!info||info.done||!info.date){setCal(ev);return;}
+  const date=info.date;
   if(!ev[date])ev[date]=[];
   ev[date].push({id:marker,text:`📚 ${topic.semana} · ${topic.ap||''}`,done:false,auto:true});
   setCal(ev);
