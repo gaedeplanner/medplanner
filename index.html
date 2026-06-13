@@ -2553,6 +2553,9 @@ let fcFlipped=false;
 let fcEditId=null;
 let fcDeckSubs=[];
 let fcCurrentCatId=null;
+// True enquanto há revisão em andamento ou formulário aberto. Impede que o
+// onSnapshot da nuvem chame renderFC() e feche a revisão/formulário no meio.
+let fcViewLocked=false;
 
 function isDueFc(ts){return !ts||ts<=Date.now();}
 
@@ -2654,7 +2657,7 @@ function startFCReviewScoped(catId,subId){
   if(!fcSession.length){toast('Nenhum card para revisar!','info');return;}
   for(let i=fcSession.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[fcSession[i],fcSession[j]]=[fcSession[j],fcSession[i]];}
   if(includeAll)toast('Sem pendentes — revisando todos os cards.','info');
-  fcFlipped=false;nextFCCard();
+  fcViewLocked=true;fcFlipped=false;nextFCCard();
 }
 
 function fmtNextTs(ts){
@@ -2669,6 +2672,7 @@ function fmtNextTs(ts){
 }
 
 function renderFC(){
+  fcViewLocked=false; // voltou pra lista de cards → libera re-render da nuvem
   const d=getFC();
   const cats=d.cards.filter(c=>c.type==='category');
   const orphans=d.cards.filter(c=>c.type!=='category');
@@ -2718,7 +2722,7 @@ function showFCBrowse(){
           <div style="flex:1;color:var(--text);font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${s.q}</div>
           <div style="flex:1;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${s.a}</div>
           <span class="fc-due-pill" style="background:${isDueFc(s.nextTs)?'rgba(79,70,229,.1)':'var(--s3)'};color:${isDueFc(s.nextTs)?'var(--accent)':'var(--muted)'}">${isDueFc(s.nextTs)?'Pendente':fmtNextTs(s.nextTs)}</span>
-          ${catId?`<button class="btn btn-d btn-sm" style="padding:3px 7px" onclick="deleteCardFromSubtema('${catId}','${ch.id}','${s.id}')">×</button>`:'<div style="width:32px"></div>'}
+          ${catId?`<button class="btn btn-o btn-sm" style="padding:3px 6px" title="Subir" onclick="moveFCCard('${catId}','${ch.id}','${s.id}',-1)">▲</button><button class="btn btn-o btn-sm" style="padding:3px 6px" title="Descer" onclick="moveFCCard('${catId}','${ch.id}','${s.id}',1)">▼</button><button class="btn btn-d btn-sm" style="padding:3px 7px" onclick="deleteCardFromSubtema('${catId}','${ch.id}','${s.id}')">×</button>`:'<div style="width:32px"></div>'}
         </div>`).join(''):'';
       const addCardBtn=(catId&&!collapsed)?`
         <div style="padding:8px 12px 8px 40px;border-top:1px solid var(--border);background:var(--s2);display:flex;gap:6px">
@@ -2733,6 +2737,7 @@ function showFCBrowse(){
           <div class="fc-browse-back" style="font-size:11px">${ch.subs.length} card${ch.subs.length!==1?'s':''}</div>
           ${pill}
           <div style="display:flex;gap:4px;flex-shrink:0">
+            ${catId?`<button class="btn btn-o btn-sm" style="padding:5px 7px" title="Subir subtema" onclick="event.stopPropagation();moveFCDeck('${catId}','${ch.id}',-1)">▲</button><button class="btn btn-o btn-sm" style="padding:5px 7px" title="Descer subtema" onclick="event.stopPropagation();moveFCDeck('${catId}','${ch.id}',1)">▼</button>`:''}
             ${catId&&ch.subs.length>0?`<button class="btn btn-p btn-sm" onclick="event.stopPropagation();startFCReviewScoped('${catId}','${ch.id}')">▶ Revisar</button>`:''}
             <button class="btn btn-o btn-sm" onclick="showFCAdd('${ch.id}')">Editar</button>
             <button class="btn btn-d btn-sm" onclick="deleteFCCard('${ch.id}')">Excluir</button>
@@ -2780,6 +2785,7 @@ function showFCBrowse(){
         <div style="font-size:12px;color:var(--muted);margin-right:8px">${(cat.children||[]).length} subtema${(cat.children||[]).length!==1?'s':''} · ${total} card${total!==1?'s':''}</div>
         ${pill}
         <div style="display:flex;gap:4px;flex-shrink:0" onclick="event.stopPropagation()">
+          <button class="btn btn-o btn-sm" style="padding:5px 7px" title="Subir categoria" onclick="moveFCCategory('${cat.id}',-1)">▲</button><button class="btn btn-o btn-sm" style="padding:5px 7px" title="Descer categoria" onclick="moveFCCategory('${cat.id}',1)">▼</button>
           ${total>0?`<button class="btn btn-p btn-sm" onclick="startFCReviewScoped('${cat.id}',null)">▶ Revisar</button>`:''}
           <button class="btn btn-o btn-sm" onclick="showFCAddCategory('${cat.id}')">Editar</button>
           <button class="btn btn-d btn-sm" onclick="deleteFCCategory('${cat.id}')">Excluir</button>
@@ -2829,6 +2835,7 @@ function showFCAdd(id){
 }
 
 function renderFCForm(type,card){
+  fcViewLocked=true;
   if(type==='deck'){
     const subsHtml=fcDeckSubs.map((s,i)=>`
       <div style="background:var(--s2);border:1px solid var(--border);border-radius:10px;padding:14px;margin-bottom:8px">
@@ -2968,6 +2975,7 @@ function toggleFCOrphanDeck(id){
   setFC(d);showFCBrowse();
 }
 function showFCAddCategory(id){
+  fcViewLocked=true;
   const d=getFC();
   const cat=id?d.cards.find(c=>c.id===id&&c.type==='category'):null;
   document.getElementById('fc-main').innerHTML=`
@@ -3001,6 +3009,7 @@ function deleteFCCategory(id){
   const d=getFC();d.cards=d.cards.filter(c=>c.id!==id);setFC(d);renderFC();toast('Categoria excluída.','info');
 }
 function showFCAddInCat(catId){
+  fcViewLocked=true;
   fcCurrentCatId=catId;fcEditId=null;fcDeckSubs=[];
   document.getElementById('fc-main').innerHTML=`
     <div class="fc-form">
@@ -3028,6 +3037,7 @@ function saveFCSubtema(catId){
   setFC(d);renderFC();toast('Subtema criado!','ok');
 }
 function showFCAddCardInSubtema(catId,subId){
+  fcViewLocked=true;
   document.getElementById('fc-main').innerHTML=`
     <div class="fc-form">
       <div class="card-title" style="margin-bottom:14px">Novo Flashcard</div>
@@ -3055,6 +3065,7 @@ function saveCardInSubtema(catId,subId){
   setFC(d);renderFC();toast('Card adicionado!','ok');
 }
 function showFCBulkImport(catId,subId){
+  fcViewLocked=true;
   document.getElementById('fc-main').innerHTML=`
     <div class="fc-form">
       <div class="card-title" style="margin-bottom:8px">Importar cards em massa</div>
@@ -3112,6 +3123,28 @@ function deleteCardFromSubtema(catId,subId,cardId){
   setFC(d);renderFC();toast('Card excluído.','info');
 }
 
+// ── REORDENAR (setas ▲▼) ──────────────────────────────────────
+function swapAt(arr,i,dir){const j=i+dir;if(i<0||j<0||j>=arr.length)return false;[arr[i],arr[j]]=[arr[j],arr[i]];return true;}
+function moveFCCategory(catId,dir){
+  const d=getFC();
+  const catIdxs=d.cards.map((c,i)=>c.type==='category'?i:-1).filter(i=>i>=0);
+  const pos=catIdxs.findIndex(i=>d.cards[i].id===catId);const t=pos+dir;
+  if(pos<0||t<0||t>=catIdxs.length)return;
+  const a=catIdxs[pos],b=catIdxs[t];[d.cards[a],d.cards[b]]=[d.cards[b],d.cards[a]];
+  setFC(d);showFCBrowse();
+}
+function moveFCDeck(catId,deckId,dir){
+  const d=getFC();const cat=d.cards.find(c=>c.id===catId&&c.type==='category');
+  if(!cat||!cat.children)return;
+  if(swapAt(cat.children,cat.children.findIndex(c=>c.id===deckId),dir)){setFC(d);showFCBrowse();}
+}
+function moveFCCard(catId,deckId,cardId,dir){
+  const d=getFC();const cat=d.cards.find(c=>c.id===catId&&c.type==='category');
+  const deck=cat&&(cat.children||[]).find(c=>c.id===deckId);
+  if(!deck||!deck.subs)return;
+  if(swapAt(deck.subs,deck.subs.findIndex(s=>s.id===cardId),dir)){setFC(d);showFCBrowse();}
+}
+
 // ── DRAG & DROP ───────────────────────────────────────────────
 let fcDragId=null;
 function onFCDragStart(e,id){
@@ -3164,7 +3197,7 @@ function startFCReview(){
   if(!fcSession.length){toast('Nenhum card para revisar!','info');return;}
   for(let i=fcSession.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[fcSession[i],fcSession[j]]=[fcSession[j],fcSession[i]];}
   if(includeAll)toast('Sem pendentes — revisando todos os cards.','info');
-  fcFlipped=false;nextFCCard();
+  fcViewLocked=true;fcFlipped=false;nextFCCard();
 }
 
 function nextFCCard(){
@@ -3443,6 +3476,8 @@ function reRenderAll(){
   const activeTab=document.querySelector('.tab-btn.active')?.dataset.tab||'dashboard';
   renderDashboard();
   updateBellBadge();
+  // Não re-renderiza flashcards se há revisão/formulário aberto (não fechar no meio)
+  if(activeTab==='flashcards'&&fcViewLocked)return;
   if(TAB_FN[activeTab]&&activeTab!=='dashboard')TAB_FN[activeTab]();
 }
 
