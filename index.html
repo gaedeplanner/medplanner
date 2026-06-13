@@ -3447,8 +3447,16 @@ function reRenderAll(){
 }
 
 // Inicializa a aplicação (chamado após login + carregar dados da nuvem)
+// Aula marcada precisa de data (base dos prazos). Linhas antigas marcadas antes da
+// regra de auto-data ficaram sem data — preenche com hoje para passarem a calcular.
+function fillMissingAulaDates(){
+  const d=get();let changed=false;
+  d.topics.forEach(t=>{ if(t.aula && !t.data){ t.data=today(); changed=true; } });
+  if(changed)set(d);
+}
 function startApp(){
   autoMerge();
+  fillMissingAulaDates();
   syncAllRevToCalendar();
   renderDashboard();
   renderTable();
