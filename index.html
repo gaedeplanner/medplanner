@@ -919,6 +919,7 @@ tbody tr:hover{background:rgba(178,58,38,.035)}
   <div style="display:flex;gap:8px;margin-bottom:18px;flex-wrap:wrap" id="fc-mode-btns">
     <button class="btn btn-p" id="fc-btn-review" onclick="startFCReview()">▶ Iniciar Revisão</button>
     <button class="btn btn-o" onclick="showFCBrowse()">Ver Todos os Cards</button>
+    <button class="btn btn-o" onclick="showFCStats()">📊 Estatísticas</button>
   </div>
   <div id="fc-main"></div>
 </div>
@@ -3213,6 +3214,84 @@ function onFCDrop(e,catId,subId){
   setFC(d);fcDragId=null;renderFC();toast('Card movido para "'+sub.front+'"!','ok');
 }
 
+// ── ESTATÍSTICAS DE FLASHCARDS ────────────────────────────────
+// Registra o resultado de cada revisão na própria carta (a=Errei,h=Difícil,g=Bom,e=Fácil)
+function bumpFcStat(unit,rating){
+  if(!unit.st)unit.st={a:0,h:0,g:0,e:0};
+  unit.st[['a','h','g','e'][rating]]++;
+}
+// Junta todas as cartas que já têm registro, com sua categoria/subtema
+function collectFCUnits(){
+  const d=getFC();const out=[];
+  const tot=s=>s.a+s.h+s.g+s.e;
+  for(const c of d.cards){
+    if(c.type==='category'){
+      for(const deck of (c.children||[])){
+        for(const s of (deck.subs||[]))if(s.st&&tot(s.st)>0)out.push({cat:c.name,sub:deck.front,label:s.q,st:s.st});
+      }
+    }else if(c.type==='deck'){
+      for(const s of (c.subs||[]))if(s.st&&tot(s.st)>0)out.push({cat:'Cards avulsos',sub:c.front,label:s.q,st:s.st});
+    }else if(c.st&&tot(c.st)>0){out.push({cat:'Cards avulsos',sub:'',label:c.front,st:c.st});}
+  }
+  return out;
+}
+function showFCStats(){
+  fcViewLocked=true; // não deixar a nuvem trocar a tela enquanto vê estatísticas
+  const units=collectFCUnits();
+  const el=document.getElementById('fc-main');
+  if(!units.length){
+    el.innerHTML=`<div class="fc-empty"><div style="margin-bottom:12px;opacity:.3;font-size:40px">📊</div><h3 style="font-size:16px;margin-bottom:6px;color:var(--text)">Sem estatísticas ainda</h3><p>As estatísticas começam a contar a partir de agora. Faça uma revisão (Errei / Difícil / Bom / Fácil) e os números aparecem aqui.</p><button class="btn btn-o" style="margin-top:16px" onclick="renderFC()">← Voltar</button></div>`;
+    return;
+  }
+  const sum=(arr,f)=>arr.reduce((n,x)=>n+f(x),0);
+  const tot=s=>s.a+s.h+s.g+s.e, acc=s=>s.g+s.e;
+  const gTot=sum(units,u=>tot(u.st)), gAcc=sum(units,u=>acc(u.st));
+  const pct=gTot?Math.round(gAcc/gTot*100):0;
+  // por categoria
+  const byCat={};
+  units.forEach(u=>{(byCat[u.cat]=byCat[u.cat]||{t:0,a:0,n:0}); byCat[u.cat].t+=tot(u.st); byCat[u.cat].a+=acc(u.st); byCat[u.cat].n++;});
+  const cats=Object.entries(byCat).map(([name,v])=>({name,p:v.t?Math.round(v.a/v.t*100):0,rev:v.t,n:v.n})).sort((x,y)=>x.p-y.p);
+  // pontos fracos: cartas com mais "Errei"
+  const fracas=units.filter(u=>u.st.a>0).sort((x,y)=>(y.st.a-x.st.a)||(y.st.h-x.st.h)).slice(0,8);
+  const pctColor=p=>p>=80?'var(--green)':p>=60?'var(--yellow)':'var(--red)';
+  const box=(v,l,c)=>`<div class="fc-stat" style="flex:1;min-width:120px"><div class="fc-stat-val" style="color:${c}">${v}</div><div class="fc-stat-lbl">${l}</div></div>`;
+  el.innerHTML=`
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+      <div style="font-size:13px;color:var(--muted)">Estatísticas começam a contar a partir de agora (não há histórico anterior).</div>
+      <button class="btn btn-o btn-sm" onclick="renderFC()">← Voltar</button>
+    </div>
+    <div style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:20px">
+      ${box(pct+'%','Acerto geral',pctColor(pct))}
+      ${box(gTot,'Revisões feitas','var(--accent)')}
+      ${box(units.length,'Cartas estudadas','var(--blue)')}
+      ${box(gAcc,'Acertos (Bom+Fácil)','var(--green)')}
+    </div>
+    <div class="card" style="margin-bottom:16px">
+      <div class="card-title">Acerto por categoria · pior → melhor</div>
+      ${cats.map(c=>`
+        <div style="margin-bottom:12px">
+          <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:5px">
+            <span style="font-weight:600;color:var(--text)">${c.name}</span>
+            <span style="color:var(--muted)">${c.p}% · ${c.rev} revisõe${c.rev!==1?'s':''}</span>
+          </div>
+          <div style="height:9px;background:var(--s3);border-radius:99px;overflow:hidden">
+            <div style="height:100%;width:${c.p}%;background:${pctColor(c.p)};border-radius:99px;transition:width .6s"></div>
+          </div>
+        </div>`).join('')}
+    </div>
+    <div class="card">
+      <div class="card-title">⚠️ Cartas que você mais erra</div>
+      ${fracas.length?fracas.map(u=>`
+        <div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border)">
+          <span class="badge bred" style="flex-shrink:0">${u.st.a} ✗</span>
+          <div style="flex:1;min-width:0">
+            <div style="font-size:13px;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${u.label}</div>
+            <div style="font-size:11px;color:var(--muted)">${u.cat}${u.sub?' · '+u.sub:''}</div>
+          </div>
+        </div>`).join(''):'<p style="color:var(--muted);font-size:13px;padding:8px 0">Nenhuma carta errada ainda. 👏</p>'}
+    </div>`;
+}
+
 // ── SESSÃO DE REVISÃO ─────────────────────────────────────────
 function startFCReview(){
   const due=countDue();
@@ -3287,7 +3366,7 @@ function rateFCCard(rating){
         if(parent)break;
       }
     }
-    if(parent){const sub=parent.subs.find(s=>s.id===fcCurrent.id);if(sub)sub.nextTs=nextTs;}
+    if(parent){const sub=parent.subs.find(s=>s.id===fcCurrent.id);if(sub){sub.nextTs=nextTs;bumpFcStat(sub,rating);}}
   } else {
     let card=d.cards.find(c=>c.id===fcCurrent.id);
     if(!card){
@@ -3296,7 +3375,7 @@ function rateFCCard(rating){
         if(card)break;
       }
     }
-    if(card)card.nextTs=nextTs;
+    if(card){card.nextTs=nextTs;bumpFcStat(card,rating);}
   }
   setFC(d);logActivity('fc',1);
   // "Errei" (1 min) e "Difícil" (10 min) reaparecem ainda nesta sessão:
