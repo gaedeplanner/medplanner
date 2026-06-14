@@ -4195,9 +4195,20 @@ auth.onAuthStateChanged(user=>{
   }
 });
 
-// PWA: registra o service worker (só funciona via http/https, não em file://)
+// PWA: remove qualquer service worker antigo "fantasma" que esteja servindo
+// uma versão velha do app em cache, e limpa os caches. Isso garante que o
+// usuário sempre receba a versão mais nova publicada (sem ficar preso no cache).
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
-  window.addEventListener('load',()=>{navigator.serviceWorker.register('sw.js').catch(()=>{});});
+  navigator.serviceWorker.getRegistrations().then(rs=>{
+    let hadOne=false;
+    rs.forEach(r=>{hadOne=true;r.unregister();});
+    if(window.caches&&caches.keys){caches.keys().then(ks=>ks.forEach(k=>caches.delete(k)));}
+    // Se havia um SW preso, recarrega uma única vez já com o cache limpo.
+    if(hadOne&&!sessionStorage.getItem('sw_killed')){
+      sessionStorage.setItem('sw_killed','1');
+      location.reload();
+    }
+  }).catch(()=>{});
 }
 
 // ===== LOGIN: campo "antigravidade" interativo (canvas) =====
