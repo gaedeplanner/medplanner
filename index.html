@@ -629,6 +629,34 @@ tbody tr:hover{background:rgba(178,58,38,.035)}
 .dist-foot{font-family:var(--font-m);font-size:9.5px;color:var(--dim);letter-spacing:.03em;line-height:1.5}
 .dist-empty{text-align:center;color:var(--muted);font-size:13px;padding:42px 0;line-height:1.7;width:100%}
 
+/* EXAMES DE SANGUE */
+.ex-chips{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px}
+.ex-chip{flex:1;min-width:120px;background:var(--s2);border:1px solid var(--border);border-radius:10px;padding:12px 14px}
+.ex-chip-val{font-size:22px;font-weight:800;line-height:1}
+.ex-chip-lbl{font-size:11px;color:var(--muted);margin-top:5px;text-transform:uppercase;letter-spacing:.04em}
+.ex-panel{border:1.5px solid var(--border);border-radius:14px;overflow:hidden;margin-bottom:16px}
+.ex-panel-head{background:var(--s2);padding:14px 16px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;border-bottom:1px solid var(--border)}
+.ex-date{font-size:18px;font-weight:800;color:var(--text)}
+.ex-meta{font-size:12px;color:var(--muted)}
+.ex-group{padding:4px 0}
+.ex-group-title{font-size:11px;font-weight:800;color:var(--accent);text-transform:uppercase;letter-spacing:.06em;padding:14px 16px 8px}
+.ex-row{display:grid;grid-template-columns:1.5fr .9fr 1.1fr auto;gap:10px;align-items:center;padding:9px 16px;border-top:1px solid var(--border);font-size:13.5px}
+.ex-row:first-of-type{border-top:none}
+.ex-row.alt{background:rgba(226,101,74,.06)}
+.ex-name{color:var(--text);font-weight:500}
+.ex-val{font-weight:700;color:var(--text)}
+.ex-val .ex-unit{font-weight:400;font-size:11px;color:var(--muted);margin-left:3px}
+.ex-ref{font-size:12px;color:var(--muted)}
+.ex-badge{justify-self:end;font-size:10.5px;font-weight:700;padding:3px 9px;border-radius:99px;white-space:nowrap;text-transform:uppercase;letter-spacing:.03em}
+.ex-b-ok{background:rgba(34,160,90,.14);color:var(--green)}
+.ex-b-high{background:rgba(220,60,60,.14);color:var(--red)}
+.ex-b-low{background:rgba(214,158,46,.16);color:var(--yellow)}
+.ex-b-alert{background:rgba(220,60,60,.14);color:var(--red)}
+.ex-b-neutral{background:var(--s3);color:var(--muted)}
+.ex-val.high,.ex-val.alert{color:var(--red)}
+.ex-val.low{color:var(--yellow)}
+@media(max-width:640px){.ex-row{grid-template-columns:1fr auto;row-gap:3px}.ex-ref{grid-column:1/2}.ex-badge{grid-row:1/3;align-self:center}}
+
 /* Scrollbar */
 ::-webkit-scrollbar{width:5px;height:5px}
 ::-webkit-scrollbar-thumb{background:var(--dim)}
@@ -1114,17 +1142,22 @@ tbody tr:hover{background:rgba(178,58,38,.035)}
 <!-- MINHA SAÚDE E EXAMES -->
 <div class="tab-panel" id="tab-saude">
   <div class="sec-header"><h2 class="sec-title">Minha Saúde e Exames</h2></div>
-  <div class="grid-2" style="align-items:start">
-    <div class="card" style="border:1.5px solid var(--border)">
-      <div class="card-title">🩸 Exames de Sangue</div>
-      <div style="font-size:12px;color:var(--muted);margin-bottom:12px">Registre resultados com a data. Ex: data, exame, valor e referência.</div>
-      <textarea id="nota-saude-exames" placeholder="Ex:&#10;14/06/2026&#10;– Hemoglobina: 15,1 (13–17)&#10;– Glicose: 89 (70–99)&#10;– Colesterol total: 178 (<190)&#10;– TSH: 2,1 (0,4–4,0)&#10;..." style="width:100%;min-height:420px;background:var(--s2);border:1px solid var(--border);border-radius:8px;color:var(--text);padding:14px;font-size:14px;font-family:inherit;line-height:1.75;resize:vertical;outline:none;transition:border-color .2s" oninput="saveNota('saudeExames',this.value)" onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'"></textarea>
+  <div class="card" style="border:1.5px solid var(--border);margin-bottom:18px">
+    <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;margin-bottom:4px">
+      <div class="card-title" style="margin-bottom:0">🩸 Exames de Sangue</div>
+      <div style="display:flex;gap:6px;flex-wrap:wrap">
+        <button class="btn btn-o btn-sm" onclick="showExImport()">Importar</button>
+        <button class="btn btn-p btn-sm" onclick="showExForm()">+ Adicionar resultado</button>
+      </div>
     </div>
-    <div class="card" style="border:1.5px solid var(--border)">
-      <div class="card-title">⌚ Registros do Apple Watch</div>
-      <div style="font-size:12px;color:var(--muted);margin-bottom:12px">Frequência cardíaca, sono, atividade, VO₂máx e o que quiser acompanhar.</div>
-      <textarea id="nota-saude-watch" placeholder="Ex:&#10;14/06/2026&#10;– FC repouso: 58 bpm&#10;– Sono: 7h20&#10;– Passos: 8.430&#10;– VO2máx: 47&#10;..." style="width:100%;min-height:420px;background:var(--s2);border:1px solid var(--border);border-radius:8px;color:var(--text);padding:14px;font-size:14px;font-family:inherit;line-height:1.75;resize:vertical;outline:none;transition:border-color .2s" oninput="saveNota('saudeWatch',this.value)" onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'"></textarea>
-    </div>
+    <div id="ex-summary"></div>
+    <div id="ex-main" style="margin-top:16px"></div>
+  </div>
+
+  <div class="card" style="border:1.5px solid var(--border)">
+    <div class="card-title">⌚ Registros do Apple Watch</div>
+    <div style="font-size:12px;color:var(--muted);margin-bottom:12px">Frequência cardíaca, sono, atividade, VO₂máx e o que quiser acompanhar.</div>
+    <textarea id="nota-saude-watch" placeholder="Ex:&#10;14/06/2026&#10;– FC repouso: 58 bpm&#10;– Sono: 7h20&#10;– Passos: 8.430&#10;– VO2máx: 47&#10;..." style="width:100%;min-height:360px;background:var(--s2);border:1px solid var(--border);border-radius:8px;color:var(--text);padding:14px;font-size:14px;font-family:inherit;line-height:1.75;resize:vertical;outline:none;transition:border-color .2s" oninput="saveNota('saudeWatch',this.value)" onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'"></textarea>
   </div>
 </div>
 
@@ -2103,10 +2136,9 @@ function renderIngles(){
   if(typeof renderIE==='function')renderIE();
 }
 function renderSaude(){
-  const e1=document.getElementById('nota-saude-exames');
   const e2=document.getElementById('nota-saude-watch');
-  if(e1)e1.value=getNotas().saudeExames||'';
   if(e2)e2.value=getNotas().saudeWatch||'';
+  if(typeof renderEx==='function')renderEx();
 }
 // ── CRITÉRIOS E ESCALAS ───────────────────────────────────────
 const ESC_KEY='medplanner26_escalas';
@@ -3651,6 +3683,165 @@ function showIEStats(){
     </div>`;
 }
 
+// ── EXAMES DE SANGUE ──────────────────────────────────────────
+const EX_KEY='medplanner26_exames';
+const getEX=()=>{try{const d=JSON.parse(localStorage.getItem(EX_KEY))||{panels:[]};if(!Array.isArray(d.panels))d.panels=[];return d;}catch{return{panels:[]};}};
+const setEX=d=>localStorage.setItem(EX_KEY,JSON.stringify(d));
+const exNewId=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,5);
+let exViewLocked=false;
+const EX_BADGE={ok:'Normal',high:'Alto',low:'Baixo',alert:'Atenção',neutral:''};
+
+function exFmtDate(iso){
+  if(!iso)return '';
+  const p=iso.split('-');
+  if(p.length!==3)return iso;
+  return p[2]+'/'+p[1]+'/'+p[0];
+}
+function exIsAlt(f){return f==='high'||f==='low'||f==='alert';}
+
+function renderEx(){
+  exViewLocked=false;
+  const main=document.getElementById('ex-main');
+  const sum=document.getElementById('ex-summary');
+  if(!main)return;
+  const panels=getEX().panels.slice().sort((a,b)=>(b.date||'').localeCompare(a.date||''));
+  let altCount=0;panels.forEach(p=>(p.groups||[]).forEach(g=>(g.items||[]).forEach(it=>{if(exIsAlt(it.f))altCount++;})));
+  if(sum){
+    if(!panels.length){sum.innerHTML='';}
+    else{
+      const dates=panels.map(p=>p.date).filter(Boolean).sort();
+      const periodo=dates.length>1?`${exFmtDate(dates[0])} – ${exFmtDate(dates[dates.length-1])}`:exFmtDate(dates[0]||'');
+      sum.innerHTML=`<div class="ex-chips">
+        <div class="ex-chip"><div class="ex-chip-val" style="color:var(--accent)">${panels.length}</div><div class="ex-chip-lbl">Coletas</div></div>
+        <div class="ex-chip"><div class="ex-chip-val" style="color:var(--blue)">${periodo}</div><div class="ex-chip-lbl">Período</div></div>
+        <div class="ex-chip"><div class="ex-chip-val" style="color:${altCount?'var(--red)':'var(--green)'}">${altCount}</div><div class="ex-chip-lbl">Fora da referência</div></div>
+      </div>`;
+    }
+  }
+  if(!panels.length){
+    main.innerHTML=`<div class="fc-empty"><div style="margin-bottom:12px;opacity:.3;font-size:40px">🩸</div><h3 style="font-size:16px;margin-bottom:6px;color:var(--text)">Nenhum exame ainda</h3><p>Clique em "+ Adicionar resultado" para registrar um exame, ou em "Importar" para carregar vários de uma vez.</p></div>`;
+    return;
+  }
+  main.innerHTML=panels.map(p=>{
+    const groups=(p.groups||[]).map(g=>{
+      const rows=(g.items||[]).map(it=>{
+        const f=it.f||'neutral';
+        const badge=EX_BADGE[f]?`<span class="ex-badge ex-b-${f}">${EX_BADGE[f]}</span>`:'<span class="ex-badge ex-b-neutral">—</span>';
+        return`<div class="ex-row${exIsAlt(f)?' alt':''}">
+          <div class="ex-name">${escapeHtml(it.n)}</div>
+          <div class="ex-val ${f}">${escapeHtml(it.v)}${it.u?`<span class="ex-unit">${escapeHtml(it.u)}</span>`:''}</div>
+          <div class="ex-ref">${it.ref?'Ref: '+escapeHtml(it.ref):''}</div>
+          ${badge}
+        </div>`;}).join('');
+      return`<div class="ex-group"><div class="ex-group-title">${escapeHtml(g.name)}</div>${rows}</div>`;
+    }).join('');
+    const meta=[p.doctor?'Solicitante: '+escapeHtml(p.doctor):'',p.lab?escapeHtml(p.lab):''].filter(Boolean).join(' · ');
+    return`<div class="ex-panel">
+      <div class="ex-panel-head">
+        <div class="ex-date">${exFmtDate(p.date)}</div>
+        ${meta?`<div class="ex-meta">${meta}</div>`:''}
+        <button class="btn btn-d btn-sm" style="margin-left:auto" onclick="deleteExPanel('${p.id}')">Excluir coleta</button>
+      </div>
+      ${groups}
+    </div>`;
+  }).join('');
+}
+
+function deleteExPanel(id){
+  if(!confirm('Excluir esta coleta inteira (todos os exames dessa data)?'))return;
+  const d=getEX();d.panels=d.panels.filter(p=>p.id!==id);setEX(d);renderEx();
+  toast('Coleta excluída.','info');
+}
+
+function showExForm(){
+  exViewLocked=true;
+  const main=document.getElementById('ex-main');
+  document.getElementById('ex-summary').innerHTML='';
+  const inp='background:var(--s2);border:1.5px solid var(--border);border-radius:8px;color:var(--text);padding:9px 12px;font-size:14px;width:100%;font-family:inherit';
+  main.innerHTML=`
+    <div class="card-title" style="margin-bottom:14px">Adicionar resultado</div>
+    <div class="grid-2" style="gap:12px">
+      <div class="fg"><label>Data da coleta</label><input type="date" id="ex-f-date" style="${inp}"></div>
+      <div class="fg"><label>Grupo / categoria</label><input type="text" id="ex-f-group" style="${inp}" placeholder="Ex: Hemograma, Bioquímica, Lipídico"></div>
+    </div>
+    <div class="grid-2" style="gap:12px">
+      <div class="fg"><label>Nome do exame</label><input type="text" id="ex-f-name" style="${inp}" placeholder="Ex: Hemoglobina"></div>
+      <div class="fg"><label>Resultado</label><input type="text" id="ex-f-val" style="${inp}" placeholder="Ex: 15,1"></div>
+    </div>
+    <div class="grid-2" style="gap:12px">
+      <div class="fg"><label>Unidade (opcional)</label><input type="text" id="ex-f-unit" style="${inp}" placeholder="Ex: g/dL"></div>
+      <div class="fg"><label>Valor de referência (opcional)</label><input type="text" id="ex-f-ref" style="${inp}" placeholder="Ex: 13,0–17,5"></div>
+    </div>
+    <div class="fg" style="margin-bottom:16px"><label>Situação</label>
+      <select id="ex-f-flag" style="${inp}">
+        <option value="ok">Normal</option>
+        <option value="high">Alto</option>
+        <option value="low">Baixo</option>
+        <option value="alert">Atenção</option>
+        <option value="neutral">Sem avaliação</option>
+      </select>
+    </div>
+    <div style="display:flex;gap:8px">
+      <button class="btn btn-p" onclick="saveExResult()">Salvar</button>
+      <button class="btn btn-o" onclick="renderEx()">Cancelar</button>
+    </div>`;
+  const t=document.getElementById('ex-f-date');if(t)t.value=today();
+}
+
+function saveExResult(){
+  const date=document.getElementById('ex-f-date')?.value;
+  const group=(document.getElementById('ex-f-group')?.value||'').trim()||'Geral';
+  const name=(document.getElementById('ex-f-name')?.value||'').trim();
+  const val=(document.getElementById('ex-f-val')?.value||'').trim();
+  const unit=(document.getElementById('ex-f-unit')?.value||'').trim();
+  const ref=(document.getElementById('ex-f-ref')?.value||'').trim();
+  const flag=document.getElementById('ex-f-flag')?.value||'neutral';
+  if(!date||!name||!val){toast('Preencha data, nome e resultado.','info');return;}
+  const d=getEX();
+  let panel=d.panels.find(p=>p.date===date);
+  if(!panel){panel={id:exNewId(),date,doctor:'',lab:'',groups:[]};d.panels.push(panel);}
+  let grp=panel.groups.find(g=>g.name.toLowerCase()===group.toLowerCase());
+  if(!grp){grp={name:group,items:[]};panel.groups.push(grp);}
+  grp.items.push({n:name,v:val,u:unit,ref,f:flag});
+  setEX(d);renderEx();toast('Resultado adicionado!','ok');
+}
+
+function showExImport(){
+  exViewLocked=true;
+  const main=document.getElementById('ex-main');
+  document.getElementById('ex-summary').innerHTML='';
+  main.innerHTML=`
+    <div class="card-title" style="margin-bottom:8px">Importar exames</div>
+    <div style="font-size:12.5px;color:var(--muted);margin-bottom:12px">Escolha um arquivo <strong>.json</strong> de exames ou cole o conteúdo abaixo. Isso <strong>substitui</strong> os exames atuais.</div>
+    <input type="file" id="ex-imp-file" accept=".json,application/json" style="margin-bottom:12px;font-size:13px" onchange="exImportFile(event)">
+    <textarea id="ex-imp-text" placeholder='Cole aqui o conteúdo JSON dos exames...' style="width:100%;min-height:160px;background:var(--s2);border:1px solid var(--border);border-radius:8px;color:var(--text);padding:12px;font-size:12px;font-family:monospace;line-height:1.5;resize:vertical;outline:none"></textarea>
+    <div style="display:flex;gap:8px;margin-top:12px">
+      <button class="btn btn-p" onclick="exImportText()">Importar colado</button>
+      <button class="btn btn-o" onclick="renderEx()">Cancelar</button>
+    </div>`;
+}
+
+function exApplyImport(raw){
+  let data;
+  try{data=JSON.parse(raw);}catch{toast('Conteúdo inválido (não é um JSON válido).','info');return false;}
+  let panels=Array.isArray(data)?data:data.panels;
+  if(!Array.isArray(panels)){toast('Formato não reconhecido (esperado "panels").','info');return false;}
+  panels.forEach(p=>{if(!p.id)p.id=exNewId();if(!Array.isArray(p.groups))p.groups=[];});
+  setEX({panels});renderEx();toast('Exames importados!','ok');return true;
+}
+function exImportText(){
+  const raw=(document.getElementById('ex-imp-text')?.value||'').trim();
+  if(!raw){toast('Cole o conteúdo primeiro.','info');return;}
+  exApplyImport(raw);
+}
+function exImportFile(ev){
+  const file=ev.target.files&&ev.target.files[0];
+  if(!file)return;
+  const r=new FileReader();
+  r.onload=()=>exApplyImport(String(r.result||''));
+  r.readAsText(file);
+}
+
 // ── DARK MODE ─────────────────────────────────────────────────
 function toggleDark(){
   const isDark=document.documentElement.hasAttribute('data-dark');
@@ -3806,7 +3997,7 @@ db.settings({experimentalForceLongPolling:true});
 auth.setPersistence(firebase.auth.Auth.Persistence.SESSION).catch(()=>{});
 
 // Chaves do localStorage que devem ser sincronizadas entre dispositivos
-const CLOUD_KEYS=['medplanner26','medplanner26_notas','medplanner26_cal','medplanner26_fc','medplanner26_fc_ingles','medplanner_resumos','medplanner26_escalas','medplanner_simulados','medplanner_sims_feitos','medplanner26_activity','medplanner26_goal'];
+const CLOUD_KEYS=['medplanner26','medplanner26_notas','medplanner26_cal','medplanner26_fc','medplanner26_fc_ingles','medplanner26_exames','medplanner_resumos','medplanner26_escalas','medplanner_simulados','medplanner_sims_feitos','medplanner26_activity','medplanner26_goal'];
 
 let cloudUid=null;
 let applyingRemote=false;
@@ -3853,6 +4044,7 @@ function reRenderAll(){
   // Não re-renderiza flashcards se há revisão/formulário aberto (não fechar no meio)
   if(activeTab==='flashcards'&&fcViewLocked)return;
   if(activeTab==='ingles'&&ieViewLocked)return;
+  if(activeTab==='saude'&&exViewLocked)return;
   if(TAB_FN[activeTab]&&activeTab!=='dashboard')TAB_FN[activeTab]();
 }
 
