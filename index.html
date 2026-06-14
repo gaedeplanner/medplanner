@@ -1090,6 +1090,20 @@ tbody tr:hover{background:rgba(178,58,38,.035)}
 <!-- INGLÊS -->
 <div class="tab-panel" id="tab-ingles">
   <div class="sec-header"><h2 class="sec-title">Inglês</h2></div>
+
+  <div class="card" style="border:1.5px solid var(--border);margin-bottom:18px">
+    <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;margin-bottom:14px">
+      <div class="card-title" style="margin-bottom:0">Flashcards de Inglês</div>
+      <div style="display:flex;gap:6px;flex-wrap:wrap">
+        <button class="btn btn-o btn-sm" onclick="showIEStats()">📊 Estatísticas</button>
+        <button class="btn btn-o btn-sm" onclick="showIEForm(null)">+ Novo card</button>
+        <button class="btn btn-p btn-sm" id="ie-btn-review" onclick="startIEReview()">▶ Revisar</button>
+      </div>
+    </div>
+    <div id="ie-stats" class="fc-stats"></div>
+    <div id="ie-main" style="margin-top:16px"></div>
+  </div>
+
   <div class="card" style="border:1.5px solid var(--border)">
     <div class="card-title">Anotações de Inglês</div>
     <div style="font-size:12px;color:var(--muted);margin-bottom:12px">Vocabulário, expressões, gramática e o que você quiser estudar de inglês.</div>
@@ -2086,6 +2100,7 @@ function renderOE(){
 function renderIngles(){
   const el=document.getElementById('nota-ingles');
   if(el)el.value=getNotas().ingles||'';
+  if(typeof renderIE==='function')renderIE();
 }
 function renderSaude(){
   const e1=document.getElementById('nota-saude-exames');
@@ -3435,6 +3450,207 @@ function rateFCCard(rating){
   nextFCCard();
 }
 
+// ── FLASHCARDS DE INGLÊS ──────────────────────────────────────
+// Sistema próprio, separado dos flashcards de medicina. Mesma revisão
+// espaçada (Errei=1min, Difícil=10min, Bom=1dia, Fácil=4dias).
+const IE_KEY='medplanner26_fc_ingles';
+const getIE=()=>{try{const d=JSON.parse(localStorage.getItem(IE_KEY))||{cards:[]};if(!Array.isArray(d.cards))d.cards=[];return d;}catch{return{cards:[]};}};
+const setIE=d=>localStorage.setItem(IE_KEY,JSON.stringify(d));
+const ieNewId=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,5);
+
+let ieSession=[];
+let ieCurrent=null;
+let ieFlipped=false;
+let ieViewLocked=false;
+let ieEditId=null;
+
+function ieDueCount(){return getIE().cards.filter(c=>isDueFc(c.nextTs)).length;}
+
+function renderIE(){
+  ieViewLocked=false;
+  const cards=getIE().cards;
+  const due=ieDueCount();
+  const done=cards.length-due;
+  const st=document.getElementById('ie-stats');
+  if(st)st.innerHTML=`
+    <div class="fc-stat"><div class="fc-stat-val" style="color:var(--accent)">${due}</div><div class="fc-stat-lbl">Pendentes</div></div>
+    <div class="fc-stat"><div class="fc-stat-val" style="color:var(--green)">${done}</div><div class="fc-stat-lbl">Em dia</div></div>
+    <div class="fc-stat"><div class="fc-stat-val" style="color:var(--blue)">${cards.length}</div><div class="fc-stat-lbl">Total de cards</div></div>`;
+  const btn=document.getElementById('ie-btn-review');
+  if(btn){btn.disabled=cards.length===0;btn.textContent=due>0?`▶ Revisar (${due})`:'▶ Revisar todos';}
+  showIEBrowse();
+}
+
+function showIEBrowse(){
+  const main=document.getElementById('ie-main');
+  if(!main)return;
+  const cards=getIE().cards;
+  if(!cards.length){
+    main.innerHTML=`<div class="fc-empty"><div style="margin-bottom:12px;opacity:.3"><svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg></div><h3 style="font-size:16px;margin-bottom:6px;color:var(--text)">Nenhum card de inglês ainda</h3><p>Clique em "+ Novo card" para criar seu primeiro flashcard.</p></div>`;
+    return;
+  }
+  main.innerHTML=`<div style="border:1px solid var(--border);border-radius:var(--r);overflow:hidden">${cards.map(c=>{
+    const pill=isDueFc(c.nextTs)
+      ?`<span class="fc-due-pill" style="background:rgba(79,70,229,.1);color:var(--accent)">Pendente</span>`
+      :`<span class="fc-due-pill" style="background:var(--s2);color:var(--muted)">${fmtNextTs(c.nextTs)}</span>`;
+    return`<div class="fc-browse-row">
+      <div class="fc-browse-front">${escapeHtml(c.front)}${c.tag?` <span style="font-size:11px;color:var(--muted);font-weight:400">· ${escapeHtml(c.tag)}</span>`:''}</div>
+      <div class="fc-browse-back">${escapeHtml(c.back)}</div>
+      ${pill}
+      <div style="display:flex;gap:4px;flex-shrink:0">
+        <button class="btn btn-o btn-sm" onclick="showIEForm('${c.id}')">Editar</button>
+        <button class="btn btn-d btn-sm" onclick="deleteIECard('${c.id}')">Excluir</button>
+      </div>
+    </div>`;}).join('')}</div>`;
+}
+
+function escapeHtml(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+
+function showIEForm(id){
+  ieViewLocked=true;ieEditId=id||null;
+  const card=id?getIE().cards.find(c=>c.id===id):null;
+  const main=document.getElementById('ie-main');
+  const inp='background:var(--s2);border:1.5px solid var(--border);border-radius:8px;color:var(--text);padding:9px 12px;font-size:14px;width:100%;font-family:inherit;transition:border-color .18s';
+  main.innerHTML=`
+    <div class="card-title" style="margin-bottom:14px">${card?'Editar card':'Novo card de inglês'}</div>
+    <div class="fg" style="margin-bottom:12px"><label>Frente (palavra / frase / pergunta)</label><input type="text" id="ie-front" style="${inp}" placeholder="Ex: shortness of breath" value="${card?escapeHtml(card.front):''}"></div>
+    <div class="fg" style="margin-bottom:12px"><label>Verso (significado / tradução / resposta)</label><input type="text" id="ie-back" style="${inp}" placeholder="Ex: dispneia / falta de ar" value="${card?escapeHtml(card.back):''}"></div>
+    <div class="fg" style="margin-bottom:16px"><label>Tag (opcional)</label><input type="text" id="ie-tag" style="${inp}" placeholder="Ex: Vocabulário médico · Phrasal verbs" value="${card?escapeHtml(card.tag||''):''}"></div>
+    <div style="display:flex;gap:8px">
+      <button class="btn btn-p" onclick="saveIECard()">Salvar</button>
+      <button class="btn btn-o" onclick="renderIE()">Cancelar</button>
+    </div>`;
+  setTimeout(()=>{const f=document.getElementById('ie-front');if(f)f.focus();},50);
+}
+
+function saveIECard(){
+  const front=(document.getElementById('ie-front')?.value||'').trim();
+  const back=(document.getElementById('ie-back')?.value||'').trim();
+  const tag=(document.getElementById('ie-tag')?.value||'').trim();
+  if(!front||!back){toast('Preencha a frente e o verso.','info');return;}
+  const d=getIE();
+  if(ieEditId){
+    const c=d.cards.find(x=>x.id===ieEditId);
+    if(c){c.front=front;c.back=back;c.tag=tag;}
+  }else{
+    d.cards.unshift({id:ieNewId(),front,back,tag,nextTs:null,st:{a:0,h:0,g:0,e:0}});
+  }
+  setIE(d);ieEditId=null;renderIE();
+  toast('Card salvo!','ok');
+}
+
+function deleteIECard(id){
+  if(!confirm('Excluir este card de inglês?'))return;
+  const d=getIE();d.cards=d.cards.filter(c=>c.id!==id);setIE(d);renderIE();
+  toast('Card excluído.','info');
+}
+
+function startIEReview(){
+  const cards=getIE().cards;
+  if(!cards.length){toast('Nenhum card para revisar!','info');return;}
+  const due=cards.filter(c=>isDueFc(c.nextTs));
+  const includeAll=due.length===0;
+  ieSession=(includeAll?[...cards]:due).map(c=>({...c}));
+  for(let i=ieSession.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[ieSession[i],ieSession[j]]=[ieSession[j],ieSession[i]];}
+  if(includeAll)toast('Sem pendentes — revisando todos os cards.','info');
+  ieViewLocked=true;ieFlipped=false;nextIECard();
+}
+
+function nextIECard(){
+  const main=document.getElementById('ie-main');
+  if(!ieSession.length){
+    main.innerHTML=`
+      <div class="fc-session-done">
+        <div style="margin-bottom:12px;opacity:.3"><svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg></div>
+        <h3>Sessão concluída!</h3>
+        <p style="margin-top:6px">Todos os cards foram revisados.</p>
+        <button class="btn btn-p" style="margin-top:20px" onclick="renderIE()">Voltar</button>
+      </div>`;
+    return;
+  }
+  ieCurrent=ieSession.shift();ieFlipped=false;renderIECard();
+}
+
+function renderIECard(){
+  const main=document.getElementById('ie-main');
+  const ratings=ieFlipped?`
+    <div style="text-align:center;margin-bottom:10px;font-size:12px;color:var(--muted)">Como foi?</div>
+    <div class="fc-ratings">
+      <button class="fc-btn-again" onclick="rateIECard(0)">Errei<div style="font-size:10px;opacity:.7;margin-top:2px">1 min</div></button>
+      <button class="fc-btn-hard" onclick="rateIECard(1)">Difícil<div style="font-size:10px;opacity:.7;margin-top:2px">10 min</div></button>
+      <button class="fc-btn-good" onclick="rateIECard(2)">Bom<div style="font-size:10px;opacity:.7;margin-top:2px">1 dia</div></button>
+      <button class="fc-btn-easy" onclick="rateIECard(3)">Fácil<div style="font-size:10px;opacity:.7;margin-top:2px">4 dias</div></button>
+    </div>`:'';
+  main.innerHTML=`
+    <div class="fc-progress">${ieSession.length+1} restante${ieSession.length+1!==1?'s':''}</div>
+    <div class="fc-card-wrap">
+      <div class="fc-card${ieFlipped?' fc-back':''}" onclick="${ieFlipped?'':'flipIECard()'}">
+        ${ieCurrent.tag?`<div class="fc-card-tag">${escapeHtml(ieCurrent.tag)}</div>`:''}
+        ${ieFlipped?`<div class="fc-card-side">FRENTE</div><div class="fc-card-text" style="font-size:19px;color:var(--muted);margin-bottom:22px">${escapeHtml(ieCurrent.front)}</div><div style="width:60%;max-width:280px;height:1px;background:var(--border);margin-bottom:22px"></div>`:''}
+        <div class="fc-card-side">${ieFlipped?'VERSO':'FRENTE'}</div>
+        <div class="fc-card-text">${ieFlipped?escapeHtml(ieCurrent.back):escapeHtml(ieCurrent.front)}</div>
+        ${!ieFlipped?`<div class="fc-card-hint">Clique para revelar</div>`:''}
+      </div>
+    </div>
+    ${ratings}
+    <div style="text-align:center"><button class="btn btn-o btn-sm" onclick="renderIE()">← Encerrar</button></div>`;
+}
+
+function flipIECard(){ieFlipped=true;renderIECard();}
+
+function rateIECard(rating){
+  const d=getIE();
+  const card=d.cards.find(c=>c.id===ieCurrent.id);
+  if(card){
+    card.nextTs=Date.now()+FC_INTERVALS[rating];
+    if(!card.st)card.st={a:0,h:0,g:0,e:0};
+    card.st[['a','h','g','e'][rating]]++;
+  }
+  setIE(d);
+  if(rating<=1){const pos=Math.min(ieSession.length,rating===0?3:6);ieSession.splice(pos,0,ieCurrent);}
+  nextIECard();
+}
+
+function showIEStats(){
+  ieViewLocked=true;
+  const main=document.getElementById('ie-main');
+  const tot=s=>s.a+s.h+s.g+s.e;
+  const units=getIE().cards.filter(c=>c.st&&tot(c.st)>0);
+  if(!units.length){
+    main.innerHTML=`<div class="fc-empty"><div style="margin-bottom:12px;opacity:.3;font-size:40px">📊</div><h3 style="font-size:16px;margin-bottom:6px;color:var(--text)">Sem estatísticas ainda</h3><p>Faça uma revisão (Errei / Difícil / Bom / Fácil) e os números aparecem aqui.</p><button class="btn btn-o" style="margin-top:16px" onclick="renderIE()">← Voltar</button></div>`;
+    return;
+  }
+  const sum=(arr,f)=>arr.reduce((n,x)=>n+f(x),0);
+  const acc=s=>s.g+s.e;
+  const gTot=sum(units,u=>tot(u.st)),gAcc=sum(units,u=>acc(u.st));
+  const pct=gTot?Math.round(gAcc/gTot*100):0;
+  const pctColor=p=>p>=80?'var(--green)':p>=60?'var(--yellow)':'var(--red)';
+  const box=(v,l,c)=>`<div class="fc-stat" style="flex:1;min-width:120px"><div class="fc-stat-val" style="color:${c}">${v}</div><div class="fc-stat-lbl">${l}</div></div>`;
+  const fracas=units.filter(u=>u.st.a>0).sort((x,y)=>(y.st.a-x.st.a)||(y.st.h-x.st.h)).slice(0,8);
+  main.innerHTML=`
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+      <div style="font-size:13px;color:var(--muted)">Estatísticas dos seus flashcards de inglês.</div>
+      <button class="btn btn-o btn-sm" onclick="renderIE()">← Voltar</button>
+    </div>
+    <div style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:20px">
+      ${box(pct+'%','Acerto geral',pctColor(pct))}
+      ${box(gTot,'Revisões feitas','var(--accent)')}
+      ${box(units.length,'Cartas estudadas','var(--blue)')}
+      ${box(gAcc,'Acertos (Bom+Fácil)','var(--green)')}
+    </div>
+    <div class="card">
+      <div class="card-title">⚠️ Cards que você mais erra</div>
+      ${fracas.length?fracas.map(u=>`
+        <div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border)">
+          <span class="badge bred" style="flex-shrink:0">${u.st.a} ✗</span>
+          <div style="flex:1;min-width:0">
+            <div style="font-size:13px;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${escapeHtml(u.front)}</div>
+            <div style="font-size:11px;color:var(--muted)">${escapeHtml(u.back)}</div>
+          </div>
+        </div>`).join(''):'<p style="color:var(--muted);font-size:13px;padding:8px 0">Nenhum card errado ainda. 👏</p>'}
+    </div>`;
+}
+
 // ── DARK MODE ─────────────────────────────────────────────────
 function toggleDark(){
   const isDark=document.documentElement.hasAttribute('data-dark');
@@ -3590,7 +3806,7 @@ db.settings({experimentalForceLongPolling:true});
 auth.setPersistence(firebase.auth.Auth.Persistence.SESSION).catch(()=>{});
 
 // Chaves do localStorage que devem ser sincronizadas entre dispositivos
-const CLOUD_KEYS=['medplanner26','medplanner26_notas','medplanner26_cal','medplanner26_fc','medplanner_resumos','medplanner26_escalas','medplanner_simulados','medplanner_sims_feitos','medplanner26_activity','medplanner26_goal'];
+const CLOUD_KEYS=['medplanner26','medplanner26_notas','medplanner26_cal','medplanner26_fc','medplanner26_fc_ingles','medplanner_resumos','medplanner26_escalas','medplanner_simulados','medplanner_sims_feitos','medplanner26_activity','medplanner26_goal'];
 
 let cloudUid=null;
 let applyingRemote=false;
@@ -3636,6 +3852,7 @@ function reRenderAll(){
   updateBellBadge();
   // Não re-renderiza flashcards se há revisão/formulário aberto (não fechar no meio)
   if(activeTab==='flashcards'&&fcViewLocked)return;
+  if(activeTab==='ingles'&&ieViewLocked)return;
   if(TAB_FN[activeTab]&&activeTab!=='dashboard')TAB_FN[activeTab]();
 }
 
