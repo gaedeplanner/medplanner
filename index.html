@@ -3298,7 +3298,14 @@ function rateFCCard(rating){
     }
     if(card)card.nextTs=nextTs;
   }
-  setFC(d);logActivity('fc',1);nextFCCard();
+  setFC(d);logActivity('fc',1);
+  // "Errei" (1 min) e "Difícil" (10 min) reaparecem ainda nesta sessão:
+  // recoloca a carta algumas posições à frente, pra ser revista antes de terminar.
+  if(rating<=1){
+    const pos=Math.min(fcSession.length, rating===0?3:6);
+    fcSession.splice(pos,0,fcCurrent);
+  }
+  nextFCCard();
 }
 
 // ── DARK MODE ─────────────────────────────────────────────────
