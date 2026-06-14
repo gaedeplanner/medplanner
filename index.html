@@ -28,8 +28,8 @@
   --teal:#0e7a6d;
   --text:#241d12;--muted:#6f6450;--dim:#a99a7e;
   --green:#1e7a4f;--yellow:#a86a10;--red:#c03524;
-  --blue:#1f5f8f;--purple:#6d4f9e;--pink:#a8456b;--orange:#bf5e1f;--r:6px;
-  --font-d:'Fraunces',Georgia,serif;
+  --blue:#1f5f8f;--purple:#6d4f9e;--pink:#a8456b;--orange:#bf5e1f;--r:4px;
+  --font-d:'Oswald',sans-serif;
   --font-m:'IBM Plex Mono',ui-monospace,monospace;
   --shadow-xs:2px 2px 0 rgba(36,29,18,.10);
   --shadow-sm:4px 4px 0 rgba(36,29,18,.13);
@@ -447,8 +447,7 @@ tbody tr:hover{background:var(--s2)}
 
 /* ═══════════ REDESIGN "ATLAS EDITORIAL" — camada de estilo ═══════════ */
 /* Grão de papel sobre tudo */
-body::after{content:'';position:fixed;inset:0;z-index:99999;pointer-events:none;opacity:.05;mix-blend-mode:multiply;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")}
-[data-dark] body::after{mix-blend-mode:screen;opacity:.035}
+body::after{content:none}
 ::selection{background:var(--accent);color:#fbf7ec}
 
 /* Tipografia editorial */
@@ -461,10 +460,12 @@ body::after{content:'';position:fixed;inset:0;z-index:99999;pointer-events:none;
 .card-title{text-transform:uppercase;letter-spacing:.1em;font-size:10.5px;font-weight:600;border-bottom:1.5px solid var(--border)}
 th{letter-spacing:.09em;border-bottom:2px solid var(--border)}
 
-/* ═══════════ "ENERGIA NIKE" — modo escuro ═══════════ */
-[data-dark] .sec-title,[data-dark] .login-title,[data-dark] .modal-title,[data-dark] .cal-month-title,[data-dark] .sidebar-logo-name,[data-dark] .dash-banner-name{font-style:normal;text-transform:uppercase;letter-spacing:.04em;font-weight:700}
-[data-dark] .btn{text-transform:uppercase;letter-spacing:.07em;font-weight:800;border-radius:4px}
-[data-dark] .login-btn{text-transform:uppercase;letter-spacing:.08em}
+/* ═══════════ "ENERGIA NIKE" — tipografia ousada (claro + escuro) ═══════════ */
+.sec-title,.login-title,.modal-title,.cal-month-title,.sidebar-logo-name,.dash-banner-name{font-family:var(--font-d)!important;font-style:normal!important;text-transform:uppercase;letter-spacing:.01em;font-weight:700}
+.sec-title{font-size:34px;line-height:1.05}
+.dash-banner-name{font-size:38px;font-weight:700;line-height:1}
+.login-title{font-size:36px;font-weight:700}
+.btn,.login-btn{text-transform:uppercase;letter-spacing:.07em;font-weight:700;border-radius:4px}
 [data-dark] .dash-banner{background:var(--s1);border-color:var(--border)}
 [data-dark] .dash-banner-name{color:var(--text)}
 [data-dark] .dash-banner-sub{color:var(--muted)}
@@ -551,7 +552,7 @@ tbody tr:hover{background:var(--accent-wash)}
 .fc-card{border:2px solid var(--text);border-radius:10px;box-shadow:8px 8px 0 rgba(36,29,18,.12)}
 [data-dark] .fc-card{box-shadow:8px 8px 0 rgba(0,0,0,.4)}
 .fc-card:hover{border-color:var(--accent);box-shadow:10px 10px 0 var(--accent-wash-strong)}
-.fc-card-text{font-family:var(--font-d);font-weight:500;font-size:26px;line-height:1.5}
+.fc-card-text{font-family:'Hanken Grotesk',sans-serif;font-weight:600;font-size:24px;line-height:1.5}
 .fc-back{border-color:var(--teal);background:rgba(14,122,109,.04)}
 .fc-btn-good{background:rgba(14,122,109,.1);color:#0b5d54;border:1.5px solid rgba(14,122,109,.3);border-radius:8px}
 .fc-btn-good:hover{background:rgba(14,122,109,.18)}
