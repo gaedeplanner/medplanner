@@ -3736,15 +3736,23 @@ function renderEx(){
       return`<div class="ex-group"><div class="ex-group-title">${escapeHtml(g.name)}</div>${rows}</div>`;
     }).join('');
     const meta=[p.doctor?'Solicitante: '+escapeHtml(p.doctor):'',p.lab?escapeHtml(p.lab):''].filter(Boolean).join(' · ');
+    const collapsed=!!p.collapsed;
     return`<div class="ex-panel">
-      <div class="ex-panel-head">
+      <div class="ex-panel-head" onclick="toggleExPanel('${p.id}')" style="cursor:pointer">
+        <span class="ex-arrow" style="font-size:12px;color:var(--muted);flex-shrink:0;transition:transform .15s;${collapsed?'':'transform:rotate(90deg)'}">▶</span>
         <div class="ex-date">${exFmtDate(p.date)}</div>
         ${meta?`<div class="ex-meta">${meta}</div>`:''}
-        <button class="btn btn-d btn-sm" style="margin-left:auto" onclick="deleteExPanel('${p.id}')">Excluir coleta</button>
+        <button class="btn btn-d btn-sm" style="margin-left:auto" onclick="event.stopPropagation();deleteExPanel('${p.id}')">Excluir coleta</button>
       </div>
-      ${groups}
+      ${collapsed?'':groups}
     </div>`;
   }).join('');
+}
+
+function toggleExPanel(id){
+  const d=getEX();
+  const p=d.panels.find(x=>x.id===id);
+  if(p){p.collapsed=!p.collapsed;setEX(d);renderEx();}
 }
 
 function deleteExPanel(id){
