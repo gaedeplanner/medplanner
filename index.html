@@ -1024,7 +1024,10 @@ tbody tr:hover{background:var(--accent-wash)}
 <div class="tab-panel" id="tab-resumos">
   <div class="sec-header">
     <h2 class="sec-title">Resumos</h2>
-    <button class="btn btn-p btn-sm" onclick="openResumoModal()">+ Adicionar Aula</button>
+    <div style="display:flex;gap:8px;flex-wrap:wrap">
+      <button class="btn btn-o btn-sm" onclick="importResumosFromCronograma()" title="Cria uma aula em Resumos para cada aula do seu Cronograma (semana 01 a 46)">↧ Importar do Cronograma</button>
+      <button class="btn btn-p btn-sm" onclick="openResumoModal()">+ Adicionar Aula</button>
+    </div>
   </div>
   <div class="toolbar" style="margin-bottom:16px">
     <input type="text" id="res-search" placeholder="Buscar aula..." style="min-width:200px" oninput="renderResumos()">
@@ -2182,6 +2185,30 @@ function saveResumoItem(){
   }
   arr.sort((a,b)=>a.semana.localeCompare(b.semana)||a.aula.localeCompare(b.aula));
   setResumos(arr);closeResumoModal();renderResumos();toast(resEditId?'Aula atualizada!':'Aula adicionada!','ok');
+}
+function importResumosFromCronograma(){
+  const{topics}=get();
+  if(!topics||!topics.length){toast('Seu Cronograma está vazio — nada para importar.','err');return;}
+  const numSem=s=>parseInt((s||'').replace(/\D/g,''))||0;
+  const norm=s=>(s||'').trim().toLowerCase().replace(/\s+/g,' ');
+  const existing=getResumos();
+  const sorted=[...topics].filter(t=>(t.ap||'').trim()&&(t.semana||'').trim())
+    .sort((a,b)=>numSem(a.semana)-numSem(b.semana));
+  const toAdd=[];
+  for(const t of sorted){
+    const sem=(t.semana||'').trim().toUpperCase();
+    const titulo=(t.ap||'').trim();
+    const aula='Aula '+String(numSem(sem)||0).padStart(2,'0');
+    const dup=existing.some(r=>norm(r.semana)===norm(sem)&&(norm(r.titulo)===norm(titulo)||norm(r.aula)===norm(aula)))
+            ||toAdd.some(r=>norm(r.semana)===norm(sem)&&norm(r.titulo)===norm(titulo));
+    if(dup)continue;
+    toAdd.push({id:Date.now().toString(36)+Math.random().toString(36).slice(2,5),semana:sem,aula,titulo,linkResumo:'',linkSlide:''});
+  }
+  if(!toAdd.length){toast('Tudo certo! As aulas do Cronograma já estão nos Resumos.','info');return;}
+  if(!confirm(`Importar ${toAdd.length} aula(s) do Cronograma para os Resumos?\n\nNão mexe nas aulas que você já criou.`))return;
+  const all=existing.concat(toAdd);
+  all.sort((a,b)=>(numSem(a.semana)-numSem(b.semana))||a.aula.localeCompare(b.aula));
+  setResumos(all);renderResumos();toast(`${toAdd.length} aula(s) importada(s) do Cronograma!`,'ok');
 }
 function deleteResumoItem(id){
   if(!confirm('Remover esta aula?'))return;
