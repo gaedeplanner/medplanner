@@ -117,7 +117,7 @@ body.sb-collapsed .nav-badge{display:none!important}
 .dash-banner-credit{font-size:11px;color:rgba(255,255,255,.3)}
 .dash-banner-credit strong{color:rgba(255,255,255,.55);font-weight:600}
 .dash-banner-right{position:relative;display:flex;align-items:center;justify-content:center;flex-shrink:0}
-.dash-ring-label{position:absolute;text-align:center;font-size:18px;font-weight:800;color:#fff;line-height:1}
+.dash-ring-label{position:absolute;text-align:center;font-size:18px;font-weight:800;color:var(--text);line-height:1}
 /* STAT CARDS */
 .stat-card{background:var(--s1);border:1px solid var(--border);border-radius:var(--r);padding:18px 20px;display:flex;align-items:flex-start;gap:14px;position:relative;overflow:hidden;box-shadow:var(--shadow-xs);transition:box-shadow .2s,transform .2s}
 .stat-card:hover{box-shadow:var(--shadow-sm);transform:translateY(-1px)}
@@ -466,11 +466,7 @@ th{letter-spacing:.09em;border-bottom:2px solid var(--border)}
 .dash-banner-name{font-size:38px;font-weight:700;line-height:1}
 .login-title{font-size:36px;font-weight:700}
 .btn,.login-btn{text-transform:uppercase;letter-spacing:.07em;font-weight:700;border-radius:4px}
-[data-dark] .dash-banner{background:var(--s1);border-color:var(--border)}
-[data-dark] .dash-banner-name{color:var(--text)}
-[data-dark] .dash-banner-sub{color:var(--muted)}
-[data-dark] .dash-banner-credit{color:var(--dim)}
-[data-dark] .dash-banner-credit strong{color:var(--muted)}
+/* (banner agora usa variáveis de tema direto, sem override por modo) */
 
 /* ═══════════ NIKE LIGHT — visual moderno limpo (modo claro padrão) ═══════════ */
 /* Tira as sombras "carimbo" do tema antigo e deixa tudo afiado e limpo */
@@ -487,14 +483,6 @@ th{letter-spacing:.09em;border-bottom:2px solid var(--border)}
 .fc-card{box-shadow:var(--shadow)}
 .fc-card:hover{box-shadow:var(--shadow-lg)}
 .modal{border:1px solid var(--border);box-shadow:var(--shadow-lg)}
-/* HERO preto estilo Nike — o elemento-assinatura */
-.dash-banner{background:#0b0b0d;border:none;box-shadow:var(--shadow)}
-.dash-banner::before{background:none}
-.dash-banner-name{color:#fff;font-size:46px;letter-spacing:.005em;line-height:.98}
-.dash-banner-sub{color:rgba(255,255,255,.6)}
-.dash-banner-badge{background:var(--accent);border:none;color:#fff;font-weight:600}
-.dash-banner-credit{color:rgba(255,255,255,.4)}
-.dash-banner-credit strong{color:rgba(255,255,255,.75)}
 /* Títulos e números maiores, com mais energia */
 .sec-title{font-size:38px;font-weight:700;letter-spacing:.005em;line-height:1.02}
 .stat-value,.counter-val,.fc-stat-val{font-weight:700;letter-spacing:.01em}
@@ -525,15 +513,15 @@ th{letter-spacing:.09em;border-bottom:2px solid var(--border)}
 .card.accent-border{border-color:var(--accent-wash-strong);background:var(--accent-wash)}
 
 /* Banner do dashboard = capa de atlas */
-.dash-banner{background:#241c12;border:1.5px solid #3c2f1d;border-radius:var(--r);box-shadow:var(--shadow-sm)}
-.dash-banner::before{right:auto;left:0;top:0;bottom:0;width:100%;height:100%;border-radius:0;background:repeating-linear-gradient(-45deg,var(--accent-wash) 0 2px,transparent 2px 16px)}
+/* Banner do dashboard — HERO "Nike Light": claro, afiado, energia esportiva */
+.dash-banner{background:var(--s1);border:1px solid var(--border);border-left:6px solid var(--accent);border-radius:var(--r);box-shadow:var(--shadow-sm)}
+.dash-banner::before{content:none}
 .dash-banner::after{content:none}
-.dash-banner-name{font-family:var(--font-d);font-style:italic;font-weight:550;font-size:30px;color:#f6ead2;letter-spacing:0}
-.dash-banner-sub{color:rgba(246,234,210,.55)}
-.dash-banner-badge{font-family:var(--font-m);background:var(--accent-wash-strong);border:1px solid var(--accent);border-radius:3px;color:#eba88f;font-size:10px;letter-spacing:.06em}
-[data-dark] .dash-banner-badge{color:var(--accent)}
-.dash-banner-credit{color:rgba(246,234,210,.3)}
-.dash-banner-credit strong{color:rgba(246,234,210,.6)}
+.dash-banner-badge{display:inline-flex;font-family:var(--font-m);background:var(--accent);border:none;border-radius:3px;color:#fff;font-size:10px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;padding:4px 10px;margin-bottom:12px}
+.dash-banner-name{font-family:var(--font-d);font-style:normal;font-weight:700;font-size:52px;color:var(--text);letter-spacing:.01em;text-transform:uppercase;line-height:.92;margin-bottom:6px}
+.dash-banner-sub{color:var(--muted);font-size:12.5px;font-weight:600;text-transform:uppercase;letter-spacing:.07em}
+.dash-banner-credit{color:var(--dim)}
+.dash-banner-credit strong{color:var(--muted)}
 
 /* Botões = tipos de imprensa (apertam ao clicar) */
 .btn{border-radius:8px}
@@ -1882,8 +1870,11 @@ function renderDashboard(){
     const cv=document.getElementById('c-ring');if(!cv)return;
     const ctx=cv.getContext('2d');const cx=45,cy=45,r=36,lw=8;
     ctx.clearRect(0,0,90,90);
-    ctx.beginPath();ctx.arc(cx,cy,r,-Math.PI/2,Math.PI*2-Math.PI/2);ctx.strokeStyle='rgba(255,255,255,0.15)';ctx.lineWidth=lw;ctx.lineCap='round';ctx.stroke();
-    if(ringPct>0){ctx.beginPath();ctx.arc(cx,cy,r,-Math.PI/2,(Math.PI*2*(ringPct/100))-Math.PI/2);ctx.strokeStyle='#38bdf8';ctx.lineWidth=lw;ctx.lineCap='round';ctx.stroke();}
+    const _cs=getComputedStyle(document.documentElement);
+    const _acc=_cs.getPropertyValue('--accent').trim()||'#ff3b2e';
+    const _trk=_cs.getPropertyValue('--s3').trim()||'rgba(0,0,0,.08)';
+    ctx.beginPath();ctx.arc(cx,cy,r,-Math.PI/2,Math.PI*2-Math.PI/2);ctx.strokeStyle=_trk;ctx.lineWidth=lw;ctx.lineCap='round';ctx.stroke();
+    if(ringPct>0){ctx.beginPath();ctx.arc(cx,cy,r,-Math.PI/2,(Math.PI*2*(ringPct/100))-Math.PI/2);ctx.strokeStyle=_acc;ctx.lineWidth=lw;ctx.lineCap='round';ctx.stroke();}
   })();
 
   const icoBook=`<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>`;
