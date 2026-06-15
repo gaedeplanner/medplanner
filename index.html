@@ -581,6 +581,10 @@ tbody tr:hover{background:var(--accent-wash)}
 
 /* Resumos / Simulados */
 .res-row{border-radius:6px}
+.res-attach-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.res-attach-tag{font-family:var(--font-m);font-size:10px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);min-width:54px}
+.res-attach-name{font-size:12px;color:var(--dim);font-family:var(--font-m)}
+.res-attach-ok{color:var(--green);font-weight:600}
 .res-btn{border-radius:5px;font-family:var(--font-m);font-size:11px}
 .res-btn-resumo{background:var(--accent-wash);border-color:var(--accent-wash-strong)}
 .res-btn-resumo:hover{background:var(--accent-wash-strong)}
@@ -1060,8 +1064,22 @@ tbody tr:hover{background:var(--accent-wash)}
       <label>Link dos Slides (opcional)</label>
       <input type="url" id="res-f-slide" placeholder="Cole aqui o link do Google Drive">
     </div>
+    <div class="fg" style="margin-bottom:12px">
+      <label>Ou anexe o PDF do computador (abre offline; fica só neste aparelho)</label>
+      <div class="res-attach-row">
+        <span class="res-attach-tag">Resumo</span>
+        <button type="button" class="btn btn-o btn-sm" onclick="attachPdf('resumo')">📎 Anexar PDF</button>
+        <span id="res-file-resumo" class="res-attach-name"></span>
+      </div>
+      <div class="res-attach-row" style="margin-top:8px">
+        <span class="res-attach-tag">Slides</span>
+        <button type="button" class="btn btn-o btn-sm" onclick="attachPdf('slide')">📎 Anexar PDF</button>
+        <span id="res-file-slide" class="res-attach-name"></span>
+      </div>
+    </div>
+    <input type="file" id="res-file-input" accept="application/pdf,.pdf" style="display:none" onchange="onPdfPicked()">
     <div style="background:var(--s2);border:1px solid var(--border);border-radius:8px;padding:10px 12px;margin-bottom:20px;font-size:12px;color:var(--muted);line-height:1.6">
-      💡 <strong>Como funciona:</strong> suba o PDF no <a href="https://drive.google.com" target="_blank" style="color:var(--accent);font-weight:600">Google Drive</a>, clique com o botão direito no arquivo → <strong>Compartilhar</strong> → <strong>Copiar link</strong>, e cole aqui. Assim o arquivo abre em qualquer dispositivo (PC, celular...).
+      💡 <strong>Duas formas:</strong> <strong>(1) Link do Google Drive</strong> — abre em qualquer aparelho (PC, celular), porque sincroniza. <strong>(2) Anexar PDF</strong> — abre na hora e offline, mas fica só neste computador/navegador. Pode usar as duas: no PC abre o anexo, no celular abre o link.
     </div>
     <div style="display:flex;gap:8px">
       <button class="btn btn-p" onclick="saveResumoItem()">Salvar</button>
@@ -2074,16 +2092,69 @@ const RES_KEY='medplanner_resumos';
 let resEditId=null;
 function getResumos(){try{return JSON.parse(localStorage.getItem(RES_KEY))||[];}catch{return[];}}
 function setResumos(arr){localStorage.setItem(RES_KEY,JSON.stringify(arr));}
+
+/* ---- PDFs anexados por aula (guardados no navegador via IndexedDB; NÃO sincronizam na nuvem) ---- */
+let resModalId=null, resAttachTipo=null, resPdfKeys=new Set(), _resPdfLoaded=false;
+function pdfKey(id,tipo){return id+'__'+tipo;}
+function _idb(){return new Promise((res,rej)=>{const r=indexedDB.open('medplannerPdf',1);r.onupgradeneeded=()=>{r.result.createObjectStore('pdfs');};r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error);});}
+async function idbPut(key,val){const db=await _idb();return new Promise((res,rej)=>{const t=db.transaction('pdfs','readwrite');t.objectStore('pdfs').put(val,key);t.oncomplete=()=>res();t.onerror=()=>rej(t.error);});}
+async function idbGet(key){const db=await _idb();return new Promise((res,rej)=>{const t=db.transaction('pdfs','readonly');const rq=t.objectStore('pdfs').get(key);rq.onsuccess=()=>res(rq.result);rq.onerror=()=>rej(rq.error);});}
+async function idbDel(key){const db=await _idb();return new Promise((res,rej)=>{const t=db.transaction('pdfs','readwrite');t.objectStore('pdfs').delete(key);t.oncomplete=()=>res();t.onerror=()=>rej(t.error);});}
+async function idbKeys(){const db=await _idb();return new Promise((res,rej)=>{const t=db.transaction('pdfs','readonly');const rq=t.objectStore('pdfs').getAllKeys();rq.onsuccess=()=>res(rq.result||[]);rq.onerror=()=>rej(rq.error);});}
+async function refreshPdfKeys(){try{resPdfKeys=new Set((await idbKeys()).map(String));}catch{resPdfKeys=new Set();}}
+function attachPdf(tipo){resAttachTipo=tipo;const inp=document.getElementById('res-file-input');if(!inp)return;inp.value='';inp.click();}
+async function onPdfPicked(){
+  const inp=document.getElementById('res-file-input');const f=inp&&inp.files&&inp.files[0];if(!f)return;
+  if(f.type!=='application/pdf'&&!/\.pdf$/i.test(f.name)){toast('Selecione um arquivo PDF.','err');return;}
+  const MAXMB=80;
+  if(f.size>MAXMB*1024*1024){toast('PDF muito grande (máximo '+MAXMB+'MB).','err');return;}
+  if(!resModalId)return;
+  try{
+    await idbPut(pdfKey(resModalId,resAttachTipo),{blob:f,name:f.name,size:f.size,ts:Date.now()});
+    await refreshPdfKeys();updateModalFileLabels();renderResumos();
+    toast('PDF anexado!','ok');
+  }catch(e){toast('Não consegui salvar o PDF neste navegador.','err');}
+}
+async function removeAttachedPdf(tipo){
+  if(!resModalId)return;
+  try{await idbDel(pdfKey(resModalId,tipo));}catch{}
+  await refreshPdfKeys();updateModalFileLabels();renderResumos();toast('PDF removido.','info');
+}
+async function openLocalPdf(id,tipo){
+  try{
+    const rec=await idbGet(pdfKey(id,tipo));
+    if(!rec||!rec.blob){toast('PDF não está neste aparelho. Se anexou em outro dispositivo, use o link do Drive.','err');return;}
+    const url=URL.createObjectURL(rec.blob);
+    window.open(url,'_blank');
+    setTimeout(()=>URL.revokeObjectURL(url),60000);
+  }catch(e){toast('Erro ao abrir o PDF.','err');}
+}
+async function updateModalFileLabels(){
+  for(const tipo of ['resumo','slide']){
+    const span=document.getElementById('res-file-'+tipo);
+    if(!span)continue;
+    let rec=null;
+    if(resModalId&&resPdfKeys.has(pdfKey(resModalId,tipo))){try{rec=await idbGet(pdfKey(resModalId,tipo));}catch{}}
+    span.textContent='';
+    if(rec){
+      const ok=document.createElement('span');ok.className='res-attach-ok';ok.textContent='✓ '+rec.name;
+      const rm=document.createElement('a');rm.href='javascript:void(0)';rm.textContent='remover';rm.style.color='var(--dim)';rm.style.marginLeft='8px';rm.onclick=()=>removeAttachedPdf(tipo);
+      span.appendChild(ok);span.appendChild(rm);
+    } else {span.style.color='var(--dim)';span.textContent='nenhum anexado';}
+  }
+}
 function openResumoModal(id){
   resEditId=id||null;
+  resModalId=id||('r'+Date.now().toString(36)+Math.random().toString(36).slice(2,4));
   const arr=getResumos();
   const item=id?arr.find(r=>r.id===id):null;
   document.getElementById('res-modal-title').textContent=id?'Editar Aula':'Adicionar Aula';
   document.getElementById('res-f-semana').value=item?item.semana:'';
   document.getElementById('res-f-aula').value=item?item.aula:'';
   document.getElementById('res-f-titulo').value=item?item.titulo:'';
-  document.getElementById('res-f-resumo').value=item?item.linkResumo:'';
-  document.getElementById('res-f-slide').value=item?item.linkSlide:'';
+  document.getElementById('res-f-resumo').value=item?(item.linkResumo||''):'';
+  document.getElementById('res-f-slide').value=item?(item.linkSlide||''):'';
+  refreshPdfKeys().then(updateModalFileLabels);
   document.getElementById('overlay-resumo').classList.add('open');
   setTimeout(()=>document.getElementById('res-f-semana').focus(),50);
 }
@@ -2107,16 +2178,19 @@ function saveResumoItem(){
     const i=arr.findIndex(r=>r.id===resEditId);
     if(i>=0)arr[i]={...arr[i],semana,aula,titulo,linkResumo,linkSlide};
   } else {
-    arr.push({id:Date.now().toString(36)+Math.random().toString(36).slice(2,4),semana,aula,titulo,linkResumo,linkSlide});
+    arr.push({id:resModalId||(Date.now().toString(36)+Math.random().toString(36).slice(2,4)),semana,aula,titulo,linkResumo,linkSlide});
   }
   arr.sort((a,b)=>a.semana.localeCompare(b.semana)||a.aula.localeCompare(b.aula));
   setResumos(arr);closeResumoModal();renderResumos();toast(resEditId?'Aula atualizada!':'Aula adicionada!','ok');
 }
 function deleteResumoItem(id){
   if(!confirm('Remover esta aula?'))return;
-  setResumos(getResumos().filter(r=>r.id!==id));renderResumos();toast('Aula removida.','info');
+  idbDel(pdfKey(id,'resumo')).catch(()=>{});idbDel(pdfKey(id,'slide')).catch(()=>{});
+  setResumos(getResumos().filter(r=>r.id!==id));
+  refreshPdfKeys().then(renderResumos);toast('Aula removida.','info');
 }
 function renderResumos(){
+  if(!_resPdfLoaded){_resPdfLoaded=true;refreshPdfKeys().then(renderResumos);}
   const arr=getResumos();
   const search=(document.getElementById('res-search')?.value||'').toLowerCase();
   const filtSem=document.getElementById('res-semana')?.value||'';
@@ -2150,13 +2224,14 @@ function renderResumos(){
       ${items.map(r=>{
         const icoRes=`<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>`;
         const icoSli=`<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>`;
-        const mkBtn=(link,cls,ico,txt)=>{
+        const mkBtn=(tipo,link,cls,ico,txt)=>{
+          if(resPdfKeys.has(pdfKey(r.id,tipo)))return`<span class="res-btn ${cls}" style="cursor:pointer" onclick="openLocalPdf('${r.id}','${tipo}')" title="PDF anexado neste aparelho (abre offline)">${ico} ${txt} 📎</span>`;
           if(!link)return`<span class="res-btn ${cls} res-btn-disabled">${ico} ${txt}</span>`;
           if(link.startsWith('file:'))return`<span class="res-btn ${cls}" style="cursor:pointer;opacity:.65" onclick="legacyFileLinkWarn()" title="Link antigo (arquivo do PC) — troque pelo link do Google Drive">${ico} ${txt} ⚠️</span>`;
           return`<a class="res-btn ${cls}" href="${link}" target="_blank">${ico} ${txt}</a>`;
         };
-        const btnResumo=mkBtn(r.linkResumo,'res-btn-resumo',icoRes,'Resumo');
-        const btnSlide=mkBtn(r.linkSlide,'res-btn-slide',icoSli,'Slides');
+        const btnResumo=mkBtn('resumo',r.linkResumo,'res-btn-resumo',icoRes,'Resumo');
+        const btnSlide=mkBtn('slide',r.linkSlide,'res-btn-slide',icoSli,'Slides');
         return`<div class="res-row">
           <span class="res-aula-tag">${r.aula}</span>
           <span class="res-titulo" title="${r.titulo}">${r.titulo}</span>
