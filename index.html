@@ -22,19 +22,19 @@
 <style>
 /* MEDPlanner 2026 — "Atlas Editorial": papel de prontuário, tinta quente, vermelho anatômico */
 :root{
-  --bg:#f2ecdf;--s1:#fbf7ec;--s2:#f3edde;--s3:#e9e0cb;
-  --border:#d9cdb2;--accent:#b23a26;--ah:#8f2d1c;
-  --accent-wash:rgba(178,58,38,.08);--accent-wash-strong:rgba(178,58,38,.16);
-  --teal:#0e7a6d;
-  --text:#241d12;--muted:#6f6450;--dim:#a99a7e;
-  --green:#1e7a4f;--yellow:#a86a10;--red:#c03524;
-  --blue:#1f5f8f;--purple:#6d4f9e;--pink:#a8456b;--orange:#bf5e1f;--r:4px;
+  --bg:#f4f4f5;--s1:#ffffff;--s2:#fafafa;--s3:#ededf0;
+  --border:#e3e3e8;--accent:#ff3b2e;--ah:#e22a1d;
+  --accent-wash:rgba(255,59,46,.08);--accent-wash-strong:rgba(255,59,46,.16);
+  --teal:#0d9488;
+  --text:#0b0b0d;--muted:#6b6b73;--dim:#a1a1aa;
+  --green:#16a34a;--yellow:#d97706;--red:#e11d2a;
+  --blue:#2563eb;--purple:#7c3aed;--pink:#db2777;--orange:#ea580c;--r:4px;
   --font-d:'Oswald',sans-serif;
   --font-m:'IBM Plex Mono',ui-monospace,monospace;
-  --shadow-xs:2px 2px 0 rgba(36,29,18,.10);
-  --shadow-sm:4px 4px 0 rgba(36,29,18,.13);
-  --shadow:6px 6px 0 rgba(36,29,18,.15);
-  --shadow-lg:10px 10px 0 rgba(36,29,18,.18);
+  --shadow-xs:0 1px 2px rgba(0,0,0,.06);
+  --shadow-sm:0 2px 8px rgba(0,0,0,.08);
+  --shadow:0 6px 20px rgba(0,0,0,.10);
+  --shadow-lg:0 16px 40px rgba(0,0,0,.14);
 }
 [data-dark]{
   --bg:#0d0d0f;--s1:#19191d;--s2:#222226;--s3:#2d2d33;
@@ -471,6 +471,34 @@ th{letter-spacing:.09em;border-bottom:2px solid var(--border)}
 [data-dark] .dash-banner-sub{color:var(--muted)}
 [data-dark] .dash-banner-credit{color:var(--dim)}
 [data-dark] .dash-banner-credit strong{color:var(--muted)}
+
+/* ═══════════ NIKE LIGHT — visual moderno limpo (modo claro padrão) ═══════════ */
+/* Tira as sombras "carimbo" do tema antigo e deixa tudo afiado e limpo */
+.btn-p{box-shadow:none;border:none}
+.btn-p:hover{box-shadow:0 6px 16px var(--accent-wash-strong);transform:translateY(-1px)}
+.btn-p:active{transform:translateY(0);box-shadow:none}
+.btn-o{border:1.5px solid var(--border)}
+.btn-o:hover{border-color:var(--text);background:var(--s2);transform:translateY(-1px)}
+.login-btn{box-shadow:none;border:none}
+.login-btn:hover{box-shadow:0 8px 20px var(--accent-wash-strong);transform:translateY(-1px)}
+.tab-btn.active{background:var(--text);color:#fff;box-shadow:none}
+.card,.stat-card,.counter-card,.fc-stat,.rev-card,.fc-form{border:1px solid var(--border)}
+.card:hover,.stat-card:hover{box-shadow:var(--shadow-sm);transform:translateY(-2px)}
+.fc-card{box-shadow:var(--shadow)}
+.fc-card:hover{box-shadow:var(--shadow-lg)}
+.modal{border:1px solid var(--border);box-shadow:var(--shadow-lg)}
+/* HERO preto estilo Nike — o elemento-assinatura */
+.dash-banner{background:#0b0b0d;border:none;box-shadow:var(--shadow)}
+.dash-banner::before{background:none}
+.dash-banner-name{color:#fff;font-size:46px;letter-spacing:.005em;line-height:.98}
+.dash-banner-sub{color:rgba(255,255,255,.6)}
+.dash-banner-badge{background:var(--accent);border:none;color:#fff;font-weight:600}
+.dash-banner-credit{color:rgba(255,255,255,.4)}
+.dash-banner-credit strong{color:rgba(255,255,255,.75)}
+/* Títulos e números maiores, com mais energia */
+.sec-title{font-size:38px;font-weight:700;letter-spacing:.005em;line-height:1.02}
+.stat-value,.counter-val,.fc-stat-val{font-weight:700;letter-spacing:.01em}
+::selection{background:var(--accent);color:#fff}
 
 /* Sidebar = índice de livro */
 .sidebar{border-right:1.5px solid var(--border);box-shadow:none}
@@ -3889,7 +3917,7 @@ function toggleDark(){
   setTimeout(()=>{if(charts['c-ring'])renderDashboard();},50);
 }
 (function initDark(){
-  if(localStorage.getItem('medplanner_dark')!=='0'){
+  if(localStorage.getItem('medplanner_dark')==='1'){
     document.documentElement.setAttribute('data-dark','');
     document.getElementById('icon-dark').style.display='none';
     document.getElementById('icon-light').style.display='';
