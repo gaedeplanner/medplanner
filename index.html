@@ -1026,9 +1026,11 @@ tbody tr:hover{background:var(--accent-wash)}
     <h2 class="sec-title">Resumos</h2>
     <div style="display:flex;gap:8px;flex-wrap:wrap">
       <button class="btn btn-o btn-sm" onclick="importResumosFromCronograma()" title="Cria uma aula em Resumos para cada aula do seu Cronograma (semana 01 a 46)">↧ Importar do Cronograma</button>
+      <button class="btn btn-o btn-sm" onclick="attachPdfsBulk()" title="Selecione vários PDFs de uma vez; o app encaixa cada um na aula certa pelo nome do arquivo (ex: 'Semana 16 - Leucemias.pdf')">📎 Anexar PDFs (lote)</button>
       <button class="btn btn-p btn-sm" onclick="openResumoModal()">+ Adicionar Aula</button>
     </div>
   </div>
+  <input type="file" id="res-files-input" accept="application/pdf,.pdf" multiple style="display:none" onchange="onPdfsBulkPicked()">
   <div class="toolbar" style="margin-bottom:16px">
     <input type="text" id="res-search" placeholder="Buscar aula..." style="min-width:200px" oninput="renderResumos()">
     <select id="res-semana" onchange="renderResumos()">
@@ -2106,6 +2108,69 @@ async function idbDel(key){const db=await _idb();return new Promise((res,rej)=>{
 async function idbKeys(){const db=await _idb();return new Promise((res,rej)=>{const t=db.transaction('pdfs','readonly');const rq=t.objectStore('pdfs').getAllKeys();rq.onsuccess=()=>res(rq.result||[]);rq.onerror=()=>rej(rq.error);});}
 async function refreshPdfKeys(){try{resPdfKeys=new Set((await idbKeys()).map(String));}catch{resPdfKeys=new Set();}}
 function attachPdf(tipo){resAttachTipo=tipo;const inp=document.getElementById('res-file-input');if(!inp)return;inp.value='';inp.click();}
+
+/* ---- Anexar vários PDFs de uma vez (encaixa pelo nome do arquivo) ---- */
+function _resNorm(s){return (s||'').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/[^a-z0-9 ]/g,' ').replace(/\s+/g,' ').trim();}
+function _resSim(a,b){
+  const tok=s=>new Set(_resNorm(s).split(' ').filter(x=>x.length>2));
+  const ta=tok(a),tb=tok(b);
+  if(!ta.size||!tb.size)return 0;
+  let inter=0;ta.forEach(t=>{if(tb.has(t))inter++;});
+  return inter/Math.min(ta.size,tb.size);
+}
+function _resAulaLabel(arr,sem,semNum){
+  const base='Aula '+String(semNum||0).padStart(2,'0');
+  const inSem=arr.filter(r=>_resNorm(r.semana)===_resNorm(sem));
+  if(!inSem.some(r=>r.aula===base))return base;
+  let k=2,label;do{label=base+' ('+k+')';k++;}while(inSem.some(r=>r.aula===label));
+  return label;
+}
+function attachPdfsBulk(){const inp=document.getElementById('res-files-input');if(!inp)return;inp.value='';inp.click();}
+async function onPdfsBulkPicked(){
+  const inp=document.getElementById('res-files-input');
+  const files=[...((inp&&inp.files)||[])].filter(f=>f.type==='application/pdf'||/\.pdf$/i.test(f.name));
+  if(!files.length)return;
+  files.sort((a,b)=>a.name.localeCompare(b.name,'pt'));
+  const MAXMB=80;
+  let arr=getResumos();
+  const used=new Set();
+  const plan=[],skipped=[];
+  for(const f of files){
+    if(f.size>MAXMB*1024*1024){skipped.push(f.name+' (maior que '+MAXMB+'MB)');continue;}
+    const base=f.name.replace(/\.pdf$/i,'');
+    const m=base.match(/semana\s*0*(\d+)/i);
+    const semNum=m?parseInt(m[1]):0;
+    const sem='SEMANA '+String(semNum||0).padStart(2,'0');
+    const titulo=base.replace(/^\s*semana\s*\d+\s*[-–—]\s*/i,'').trim()||base;
+    let best=null,bestScore=0;
+    for(const r of arr){
+      if(used.has(r.id)||_resNorm(r.semana)!==_resNorm(sem))continue;
+      const sc=_resSim(r.titulo,titulo);
+      if(sc>bestScore){bestScore=sc;best=r;}
+    }
+    if(best&&bestScore>=0.34){
+      used.add(best.id);
+      plan.push({file:f,aulaId:best.id,semana:best.semana,titulo:best.titulo,isNew:false});
+    }else{
+      const id=Date.now().toString(36)+Math.random().toString(36).slice(2,5);
+      const na={id,semana:sem,aula:_resAulaLabel(arr,sem,semNum),titulo,linkResumo:'',linkSlide:''};
+      arr=arr.concat([na]);used.add(id);
+      plan.push({file:f,aulaId:id,semana:sem,titulo,isNew:true});
+    }
+  }
+  if(!plan.length){toast(skipped.length?'Nenhum PDF anexado — '+skipped.join('; '):'Selecione arquivos PDF.','err');return;}
+  const summary=plan.map(p=>'• '+p.semana+' — '+p.titulo+(p.isNew?'  (cria aula nova)':'  (aula existente)')).join('\n');
+  const extra=skipped.length?('\n\nIgnorados: '+skipped.join('; ')):'';
+  if(!confirm('Anexar '+plan.length+' PDF(s) como RESUMO neste navegador?\n\n'+summary+extra+'\n\nOs PDFs ficam salvos só neste aparelho (não vão pro celular). Pro celular, use os links do Drive.')){return;}
+  if(plan.some(p=>p.isNew)){arr.sort((a,b)=>a.semana.localeCompare(b.semana)||a.aula.localeCompare(b.aula));setResumos(arr);}
+  let ok=0,fail=0;
+  for(const p of plan){
+    try{await idbPut(pdfKey(p.aulaId,'resumo'),{blob:p.file,name:p.file.name,size:p.file.size,ts:Date.now()});ok++;}
+    catch(e){fail++;}
+  }
+  await refreshPdfKeys();renderResumos();
+  toast(ok+' PDF(s) anexado(s)'+(fail?(' · '+fail+' falharam'):'')+'.','ok');
+}
 async function onPdfPicked(){
   const inp=document.getElementById('res-file-input');const f=inp&&inp.files&&inp.files[0];if(!f)return;
   if(f.type!=='application/pdf'&&!/\.pdf$/i.test(f.name)){toast('Selecione um arquivo PDF.','err');return;}
