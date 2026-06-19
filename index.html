@@ -326,6 +326,17 @@ tbody tr:hover{background:var(--s2)}
 .id-chip:hover{border-color:var(--accent)}
 .id-chip.on{background:var(--accent);border-color:var(--accent);color:#fff}
 .id-chip .id-chip-ct{font-size:11px;opacity:.85;font-weight:700}
+.id-bands{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:18px}
+.id-band{flex:1;min-width:150px;display:flex;align-items:center;gap:13px;padding:14px 18px;border:2px solid var(--border);border-radius:16px;background:var(--s1);cursor:pointer;color:var(--text);text-align:left;transition:border-color .15s,box-shadow .15s}
+.id-band:hover{border-color:var(--accent)}
+.id-band.on{border-color:var(--accent);box-shadow:var(--shadow-sm)}
+.id-band-letter{font-size:32px;font-weight:900;line-height:1;color:var(--muted);transition:color .15s}
+.id-band.on .id-band-letter{color:var(--accent)}
+.id-band-meta{display:flex;flex-direction:column;gap:2px}
+.id-band-name{font-size:14px;font-weight:800}
+.id-band-ct{font-size:11px;color:var(--muted);font-weight:600}
+.id-topic-row{display:flex;align-items:center;gap:13px;flex-wrap:wrap}
+.id-topic-lbl{font-size:11px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--dim)}
 .id-photo-wrap{width:300px;height:300px;max-width:72vw;max-height:72vw;border-radius:18px;overflow:hidden;display:flex;align-items:center;justify-content:center;background:var(--s2);border:1px solid var(--border)}
 .id-photo{width:100%;height:100%;object-fit:cover;display:block}
 .id-emoji-fb{font-size:140px;line-height:1}
@@ -1211,7 +1222,7 @@ tbody tr:hover{background:var(--accent-wash)}
       <div class="card-title" style="margin-bottom:0">🍓 Baralhos com Imagem</div>
       <button class="btn btn-o btn-sm" onclick="showIDStats()">📊 Progresso</button>
     </div>
-    <div style="font-size:12px;color:var(--muted);margin-bottom:14px">Veja a foto e tente lembrar o nome em inglês. Escolha o nível: <strong>A1</strong> (fácil) até <strong>C2</strong> (difícil).</div>
+    <div style="font-size:12px;color:var(--muted);margin-bottom:14px">Veja a foto e tente lembrar o nome em inglês. Escolha o nível: <strong>A</strong> (básico), <strong>B</strong> (intermediário) ou <strong>C</strong> (avançado).</div>
     <div id="id-main"></div>
   </div>
 
@@ -3934,20 +3945,27 @@ function showIEStats(){
 const FRUIT_CARDS=[{lv:"A1",en:"apple",pt:"maçã",em:"🍎",img:"https://upload.wikimedia.org/wikipedia/commons/thumb/a/a6/Pink_lady_and_cross_section.jpg/400px-Pink_lady_and_cross_section.jpg"},{lv:"A1",en:"banana",pt:"banana",em:"🍌",img:"https://upload.wikimedia.org/wikipedia/commons/thumb/d/de/Bananavarieties.jpg/400px-Bananavarieties.jpg"},{lv:"A1",en:"orange",pt:"laranja",em:"🍊",img:"https://upload.wikimedia.org/wikipedia/commons/thumb/e/e3/Oranges_-_whole-halved-segment.jpg/400px-Oranges_-_whole-halved-segment.jpg"},{lv:"A1",en:"grape",pt:"uva",em:"🍇",img:"https://upload.wikimedia.org/wikipedia/commons/thumb/5/53/Grapes%2C_Rostov-on-Don%2C_Russia.jpg/400px-Grapes%2C_Rostov-on-Don%2C_Russia.jpg"},{lv:"A1",en:"lemon",pt:"limão-siciliano",em:"🍋",img:"https://upload.wikimedia.org/wikipedia/commons/thumb/e/e4/P1030323.JPG/400px-P1030323.JPG"},{lv:"A1",en:"pear",pt:"pera",em:"🍐",img:"https://upload.wikimedia.org/wikipedia/commons/thumb/c/cf/Pears.jpg/400px-Pears.jpg"},{lv:"A1",en:"strawberry",pt:"morango",em:"🍓",img:"https://upload.wikimedia.org/wikipedia/commons/thumb/4/4c/Garden_strawberry_%28Fragaria_%C3%97_ananassa%29_single2.jpg/400px-Garden_strawberry_%28Fragaria_%C3%97_ananassa%29_single2.jpg"},{lv:"A2",en:"pineapple",pt:"abacaxi",em:"🍍",img:"https://upload.wikimedia.org/wikipedia/commons/thumb/7/74/%E0%B4%95%E0%B5%88%E0%B4%A4%E0%B4%9A%E0%B5%8D%E0%B4%9A%E0%B4%95%E0%B5%8D%E0%B4%95.jpg/400px-%E0%B4%95%E0%B5%88%E0%B4%A4%E0%B4%9A%E0%B5%8D%E0%B4%9A%E0%B4%95%E0%B5%8D%E0%B4%95.jpg"},{lv:"A2",en:"watermelon",pt:"melancia",em:"🍉",img:"https://upload.wikimedia.org/wikipedia/commons/thumb/4/47/Taiwan_2009_Tainan_City_Organic_Farm_Watermelon_FRD_7962.jpg/400px-Taiwan_2009_Tainan_City_Organic_Farm_Watermelon_FRD_7962.jpg"},{lv:"A2",en:"cherry",pt:"cereja",em:"🍒",img:"https://upload.wikimedia.org/wikipedia/commons/thumb/f/f6/Cherry_season_%2848216568227%29.jpg/400px-Cherry_season_%2848216568227%29.jpg"},{lv:"A2",en:"peach",pt:"pêssego",em:"🍑",img:"https://commons.wikimedia.org/wiki/Special:FilePath/Autumn_Red_peaches.jpg?width=400"},{lv:"A2",en:"melon",pt:"melão",em:"🍈",img:"https://upload.wikimedia.org/wikipedia/commons/thumb/e/e7/Cantaloupe_and_canary_melon.jpg/400px-Cantaloupe_and_canary_melon.jpg"},{lv:"A2",en:"coconut",pt:"coco",em:"🥥",img:"https://commons.wikimedia.org/wiki/Special:FilePath/Coconut_on_white_background.jpg?width=400"},{lv:"A2",en:"mango",pt:"manga",em:"🥭",img:"https://upload.wikimedia.org/wikipedia/commons/thumb/7/74/Mangos_-_single_and_halved.jpg/400px-Mangos_-_single_and_halved.jpg"},{lv:"B1",en:"kiwi",pt:"kiwi",em:"🥝",img:"https://upload.wikimedia.org/wikipedia/commons/thumb/0/0a/Actinidia_fruits.jpg/400px-Actinidia_fruits.jpg"},{lv:"B1",en:"blueberry",pt:"mirtilo",em:"🫐",img:"https://upload.wikimedia.org/wikipedia/commons/thumb/1/15/Blueberries.jpg/400px-Blueberries.jpg"},{lv:"B1",en:"raspberry",pt:"framboesa",em:"🍓",img:"https://upload.wikimedia.org/wikipedia/commons/thumb/a/a7/Raspberry_-_halved_%28Rubus_idaeus%29.jpg/400px-Raspberry_-_halved_%28Rubus_idaeus%29.jpg"},{lv:"B1",en:"blackberry",pt:"amora-preta",em:"🫐",img:"https://upload.wikimedia.org/wikipedia/commons/thumb/7/78/Ripe%2C_ripening%2C_and_green_blackberries.jpg/400px-Ripe%2C_ripening%2C_and_green_blackberries.jpg"},{lv:"B1",en:"apricot",pt:"damasco",em:"🍑",img:"https://upload.wikimedia.org/wikipedia/commons/thumb/2/2a/Apricot_and_cross_section.jpg/400px-Apricot_and_cross_section.jpg"},{lv:"B1",en:"fig",pt:"figo",em:"🫐",img:"https://commons.wikimedia.org/wiki/Special:FilePath/Figs.jpg?width=400"},{lv:"B1",en:"plum",pt:"ameixa",em:"🫐",img:"https://upload.wikimedia.org/wikipedia/commons/thumb/e/ec/Plums_African_Rose_-_whole%2C_halved_and_slice.jpg/400px-Plums_African_Rose_-_whole%2C_halved_and_slice.jpg"},{lv:"B2",en:"pomegranate",pt:"romã",em:"🍎",img:"https://upload.wikimedia.org/wikipedia/commons/thumb/6/6a/Pomegranate_Juice_%282019%29.jpg/400px-Pomegranate_Juice_%282019%29.jpg"},{lv:"B2",en:"papaya",pt:"mamão",em:"🥭",img:"https://commons.wikimedia.org/wiki/Special:FilePath/Papaya_cross_section_BNC.jpg?width=400"},{lv:"B2",en:"passion fruit",pt:"maracujá",em:"🥭",img:"https://upload.wikimedia.org/wikipedia/commons/thumb/9/91/Passiflora_edulis_forma_flavicarpa.jpg/400px-Passiflora_edulis_forma_flavicarpa.jpg"},{lv:"B2",en:"guava",pt:"goiaba",em:"🍐",img:"https://upload.wikimedia.org/wikipedia/commons/thumb/8/88/Guava_pink_fruit.jpg/400px-Guava_pink_fruit.jpg"},{lv:"B2",en:"lime",pt:"lima / limão-taiti",em:"🍋",img:"https://commons.wikimedia.org/wiki/Special:FilePath/Limes.jpg?width=400"},{lv:"B2",en:"nectarine",pt:"nectarina",em:"🍑",img:"https://commons.wikimedia.org/wiki/Special:FilePath/Nectarines.jpg?width=400"},{lv:"B2",en:"cranberry",pt:"oxicoco / cranberry",em:"🍒",img:"https://upload.wikimedia.org/wikipedia/commons/thumb/3/3a/Cranberry_bog.jpg/400px-Cranberry_bog.jpg"},{lv:"C1",en:"lychee",pt:"lichia",em:"🍒",img:"https://upload.wikimedia.org/wikipedia/commons/thumb/4/46/Litchi_chinensis_fruits.JPG/400px-Litchi_chinensis_fruits.JPG"},{lv:"C1",en:"persimmon",pt:"caqui",em:"🍊",img:"https://upload.wikimedia.org/wikipedia/commons/thumb/7/78/Fuyu_persimmon_fruits%2C_one_cut_open.jpg/400px-Fuyu_persimmon_fruits%2C_one_cut_open.jpg"},{lv:"C1",en:"dragon fruit",pt:"pitaia",em:"🐉",img:"https://upload.wikimedia.org/wikipedia/commons/thumb/4/43/Pitaya_cross_section_ed2.jpg/400px-Pitaya_cross_section_ed2.jpg"},{lv:"C1",en:"gooseberry",pt:"groselha",em:"🍈",img:"https://upload.wikimedia.org/wikipedia/commons/thumb/1/1f/Stachelbeeren.jpg/400px-Stachelbeeren.jpg"},{lv:"C1",en:"mulberry",pt:"amora",em:"🫐",img:"https://upload.wikimedia.org/wikipedia/commons/thumb/a/ad/Morus_alba_FrJPG.jpg/400px-Morus_alba_FrJPG.jpg"},{lv:"C1",en:"date",pt:"tâmara",em:"🌴",img:"https://upload.wikimedia.org/wikipedia/commons/thumb/4/45/Dates005.jpg/400px-Dates005.jpg"},{lv:"C1",en:"tangerine",pt:"tangerina / mexerica",em:"🍊",img:"https://upload.wikimedia.org/wikipedia/commons/thumb/1/10/Citrus_reticulata_April_2013_Nordbaden.JPG/400px-Citrus_reticulata_April_2013_Nordbaden.JPG"},{lv:"C2",en:"rambutan",pt:"rambutã",em:"🍒",img:"https://upload.wikimedia.org/wikipedia/commons/thumb/8/83/Rambutan_white_background_alt.jpg/400px-Rambutan_white_background_alt.jpg"},{lv:"C2",en:"jackfruit",pt:"jaca",em:"🍈",img:"https://upload.wikimedia.org/wikipedia/commons/thumb/3/3b/The_jackfruit_is_holding_on_to_the_tree.jpg/400px-The_jackfruit_is_holding_on_to_the_tree.jpg"},{lv:"C2",en:"soursop",pt:"graviola",em:"🍈",img:"https://upload.wikimedia.org/wikipedia/commons/thumb/6/6d/Annona_muricata_1.jpg/400px-Annona_muricata_1.jpg"},{lv:"C2",en:"kumquat",pt:"kumquat / laranja-anã",em:"🍊",img:"https://upload.wikimedia.org/wikipedia/commons/thumb/7/72/Kumquat_from_Spain.jpg/400px-Kumquat_from_Spain.jpg"},{lv:"C2",en:"durian",pt:"durian",em:"🍈",img:"https://upload.wikimedia.org/wikipedia/commons/thumb/b/bc/Durian_in_black.jpg/400px-Durian_in_black.jpg"},{lv:"C2",en:"starfruit",pt:"carambola",em:"⭐",img:"https://upload.wikimedia.org/wikipedia/commons/thumb/6/62/Averrhoa_carambola_ARS_k5735-7.jpg/400px-Averrhoa_carambola_ARS_k5735-7.jpg"},{lv:"C2",en:"elderberry",pt:"sabugueiro",em:"🫐",img:"https://upload.wikimedia.org/wikipedia/commons/thumb/a/a9/Sambucus-berries.jpg/400px-Sambucus-berries.jpg"}];
 const IMG_DECKS=[{id:'frutas',name:'Frutas',ico:'🍓',cards:FRUIT_CARDS}];
 const ID_LEVELS=['A1','A2','B1','B2','C1','C2'];
+const ID_BANDS=[
+  {id:'A',name:'Básico',levels:['A1','A2']},
+  {id:'B',name:'Intermediário',levels:['B1','B2']},
+  {id:'C',name:'Avançado',levels:['C1','C2']},
+];
 const ID_KEY='medplanner26_imgdeck';
 const getID=()=>{try{return JSON.parse(localStorage.getItem(ID_KEY))||{};}catch{return{};}};
 const setID=d=>localStorage.setItem(ID_KEY,JSON.stringify(d));
 const idKeyOf=(deckId,en)=>deckId+'/'+en;
 
 let idDeckId='frutas';
-let idLevel='A1';
+let idBand='A';
 let idSession=[];
 let idCurrent=null;
 let idFlipped=false;
 let idViewLocked=false;
 
 function idDeck(){return IMG_DECKS.find(d=>d.id===idDeckId)||IMG_DECKS[0];}
+function idBandObj(){return ID_BANDS.find(b=>b.id===idBand)||ID_BANDS[0];}
 function idCardsAtLevel(deck,level){return deck.cards.filter(c=>level==='all'||c.lv===level);}
+function idCardsInBand(deck,bandId){const b=ID_BANDS.find(x=>x.id===bandId)||ID_BANDS[0];return deck.cards.filter(c=>b.levels.includes(c.lv));}
 function idStateFor(deck,c){return getID()[idKeyOf(deck.id,c.en)]||null;}
 function idIsDue(deck,c){const s=idStateFor(deck,c);return !s||!s.nextTs||s.nextTs<=Date.now();}
 function idIsLearned(deck,c){const s=idStateFor(deck,c);return !!(s&&s.nextTs&&s.nextTs>Date.now());}
@@ -3969,22 +3987,31 @@ function renderImgDecks(){
   const main=document.getElementById('id-main');
   if(!main)return;
   const deck=idDeck();
-  const decksHtml=IMG_DECKS.map(d=>`<button class="id-deckbtn${d.id===idDeckId?' on':''}" onclick="idSelectDeck('${d.id}')"><span class="id-deck-ico">${d.ico}</span>${escapeHtml(d.name)} <span style="color:var(--muted);font-weight:600;font-size:12px">${d.cards.length}</span></button>`).join('');
-  const chips=['all',...ID_LEVELS].map(lv=>{
-    const cs=idCardsAtLevel(deck,lv);
+  const band=idBandObj();
+  // Abas principais por nível: A (A1+A2), B (B1+B2), C (C1+C2)
+  const bandsHtml=ID_BANDS.map(b=>{
+    const cs=deck.cards.filter(c=>b.levels.includes(c.lv));
     const learned=cs.filter(c=>idIsLearned(deck,c)).length;
-    return `<button class="id-chip${lv===idLevel?' on':''}" onclick="idSelectLevel('${lv}')">${lv==='all'?'Todos':lv}<span class="id-chip-ct">${learned}/${cs.length}</span></button>`;
+    return `<button class="id-band${b.id===idBand?' on':''}" onclick="idSelectBand('${b.id}')">
+      <span class="id-band-letter">${b.id}</span>
+      <span class="id-band-meta"><span class="id-band-name">${escapeHtml(b.name)}</span><span class="id-band-ct">${learned}/${cs.length} na memória</span></span>
+    </button>`;
   }).join('');
-  const cards=idCardsAtLevel(deck,idLevel);
+  // Tópicos dentro da aba (contagem relativa ao nível selecionado)
+  const topicsHtml=IMG_DECKS.map(d=>{
+    const cs=d.cards.filter(c=>band.levels.includes(c.lv));
+    return `<button class="id-deckbtn${d.id===idDeckId?' on':''}" onclick="idSelectDeck('${d.id}')"><span class="id-deck-ico">${d.ico}</span>${escapeHtml(d.name)} <span style="color:var(--muted);font-weight:600;font-size:12px">${cs.length}</span></button>`;
+  }).join('');
+  const cards=idCardsInBand(deck,idBand);
   const due=cards.filter(c=>idIsDue(deck,c)).length;
   const learned=cards.filter(c=>idIsLearned(deck,c)).length;
   const grid=cards.map(c=>idCellHtml(deck,c)).join('');
   main.innerHTML=`
-    <div class="id-decks">${decksHtml}</div>
-    <div class="id-chips">${chips}</div>
-    <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;margin-bottom:12px">
-      <div style="font-size:13px;color:var(--muted)">${cards.length} cards${idLevel!=='all'?' · nível '+idLevel:''} · <strong style="color:var(--green)">${learned}</strong> na memória · <strong style="color:var(--accent)">${due}</strong> pra revisar</div>
-      <button class="btn btn-p btn-sm" onclick="startIDReview()">▶ Estudar ${idLevel==='all'?'tudo':idLevel} (${cards.length})</button>
+    <div class="id-bands">${bandsHtml}</div>
+    <div class="id-topic-row"><span class="id-topic-lbl">Tópicos</span><div class="id-decks" style="margin-bottom:0">${topicsHtml}</div></div>
+    <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;margin:16px 0 12px">
+      <div style="font-size:13px;color:var(--muted)">Nível <strong>${band.id}</strong> (${band.levels.join(' + ')}) · ${cards.length} cards · <strong style="color:var(--green)">${learned}</strong> na memória · <strong style="color:var(--accent)">${due}</strong> pra revisar</div>
+      <button class="btn btn-p btn-sm" onclick="startIDReview()">▶ Estudar nível ${band.id} (${cards.length})</button>
     </div>
     <div style="font-size:11px;color:var(--dim);margin-bottom:10px">👁️ Passe o mouse (ou toque) para revelar o nome.</div>
     <div class="id-grid">${grid}</div>`;
@@ -3999,11 +4026,11 @@ function idCellHtml(deck,c){
 }
 
 function idSelectDeck(id){idDeckId=id;renderImgDecks();}
-function idSelectLevel(lv){idLevel=lv;renderImgDecks();}
+function idSelectBand(b){idBand=b;renderImgDecks();}
 
 function startIDReview(){
   const deck=idDeck();
-  const pool=idCardsAtLevel(deck,idLevel);
+  const pool=idCardsInBand(deck,idBand);
   if(!pool.length){toast('Nenhum card neste nível.','info');return;}
   const due=pool.filter(c=>idIsDue(deck,c));
   const includeAll=due.length===0;
@@ -4019,8 +4046,8 @@ function nextIDCard(){
     main.innerHTML=`
       <div class="fc-session-done">
         <div style="margin-bottom:12px;opacity:.3"><svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg></div>
-        <h3>Sessão concluída! 🍓</h3>
-        <p style="margin-top:6px">Você revisou todas as frutas deste nível.</p>
+        <h3>Sessão concluída! 🎉</h3>
+        <p style="margin-top:6px">Você revisou todos os cards deste nível.</p>
         <button class="btn btn-p" style="margin-top:20px" onclick="renderImgDecks()">Voltar</button>
       </div>`;
     return;
@@ -4084,12 +4111,12 @@ function showIDStats(){
   const acc=studied.reduce((n,x)=>n+x.s.st.g+x.s.st.e,0);
   const pct=revs?Math.round(acc/revs*100):0;
   const pctColor=p=>p>=80?'var(--green)':p>=60?'var(--yellow)':'var(--red)';
-  const bars=ID_LEVELS.map(lv=>{
-    const cs=idCardsAtLevel(deck,lv);
+  const bars=ID_BANDS.map(b=>{
+    const cs=idCardsInBand(deck,b.id);
     const learned=cs.filter(c=>idIsLearned(deck,c)).length;
     const p=cs.length?Math.round(learned/cs.length*100):0;
     return `<div style="margin-bottom:11px">
-      <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:4px"><strong>${lv}</strong><span style="color:var(--muted)">${learned}/${cs.length}</span></div>
+      <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:4px"><strong>${b.id} · ${escapeHtml(b.name)}</strong><span style="color:var(--muted)">${learned}/${cs.length}</span></div>
       <div style="height:9px;background:var(--s2);border-radius:999px;overflow:hidden"><div style="height:100%;width:${p}%;background:var(--accent);border-radius:999px;transition:width .3s"></div></div>
     </div>`;
   }).join('');
@@ -4101,7 +4128,7 @@ function showIDStats(){
       <button class="btn btn-o btn-sm" onclick="renderImgDecks()">← Voltar</button>
     </div>
     <div style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:20px">
-      ${box(totLearned+'/'+all.length,'Frutas na memória','var(--green)')}
+      ${box(totLearned+'/'+all.length,'Cards na memória','var(--green)')}
       ${box(pct+'%','Acerto geral',pctColor(pct))}
       ${box(revs,'Revisões feitas','var(--accent)')}
     </div>
@@ -4110,7 +4137,7 @@ function showIDStats(){
       ${bars}
     </div>
     <div class="card">
-      <div class="card-title">⚠️ Frutas que você mais erra</div>
+      <div class="card-title">⚠️ Cards que você mais erra</div>
       ${missed.length?missed.map(x=>`
         <div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border)">
           <span class="badge bred" style="flex-shrink:0">${x.s.st.a} ✗</span>
