@@ -22,34 +22,34 @@
 <style>
 /* MEDPlanner 2026 — "Atlas Editorial": papel de prontuário, tinta quente, vermelho anatômico */
 :root{
-  --bg:#f4f4f5;--s1:#ffffff;--s2:#fafafa;--s3:#ededf0;
-  --border:#e3e3e8;--accent:#ff3b2e;--ah:#e22a1d;
-  --accent-wash:rgba(255,59,46,.08);--accent-wash-strong:rgba(255,59,46,.16);
+  --bg:#f3eee6;--s1:#ffffff;--s2:#f7f2ea;--s3:#ece4d7;
+  --border:#e7ded0;--accent:#1b1916;--ah:#000000;
+  --accent-wash:rgba(27,25,22,.05);--accent-wash-strong:rgba(27,25,22,.11);
   --teal:#0d9488;
-  --text:#0b0b0d;--muted:#6b6b73;--dim:#a1a1aa;
-  --green:#16a34a;--yellow:#d97706;--red:#e11d2a;
-  --blue:#2563eb;--purple:#7c3aed;--pink:#db2777;--orange:#ea580c;--r:4px;
-  --font-d:'Oswald',sans-serif;
+  --text:#211d17;--muted:#6f685c;--dim:#a99f8e;
+  --green:#2f8f5b;--yellow:#bd8327;--red:#cf4a3e;
+  --blue:#5b62e6;--purple:#7c3aed;--pink:#db2777;--orange:#ea580c;--r:14px;
+  --font-d:'Fraunces',serif;
   --font-m:'IBM Plex Mono',ui-monospace,monospace;
-  --shadow-xs:0 1px 2px rgba(0,0,0,.06);
-  --shadow-sm:0 2px 8px rgba(0,0,0,.08);
-  --shadow:0 6px 20px rgba(0,0,0,.10);
-  --shadow-lg:0 16px 40px rgba(0,0,0,.14);
+  --shadow-xs:0 1px 2px rgba(60,48,28,.05);
+  --shadow-sm:0 4px 16px rgba(60,48,28,.07);
+  --shadow:0 12px 32px rgba(60,48,28,.09);
+  --shadow-lg:0 24px 60px rgba(60,48,28,.14);
 }
 [data-dark]{
-  --bg:#0d0d0f;--s1:#19191d;--s2:#222226;--s3:#2d2d33;
-  --border:#3a3a42;--accent:#ff4433;--ah:#e6301f;
-  --accent-wash:rgba(255,68,51,.15);--accent-wash-strong:rgba(255,68,51,.28);
+  --bg:#16140f;--s1:#1e1b16;--s2:#262219;--s3:#322d22;
+  --border:#3a3429;--accent:#8b90ff;--ah:#7a80f5;
+  --accent-wash:rgba(139,144,255,.14);--accent-wash-strong:rgba(139,144,255,.26);
   --teal:#2dd4bf;
-  --text:#f5f5f2;--muted:#9a9aa3;--dim:#52525b;
-  --green:#3ddc84;--yellow:#ffc844;--red:#ff5c5c;
-  --blue:#4d9fff;--purple:#b388ff;--pink:#ff6fa8;--orange:#ff9d3d;
-  --r:4px;
-  --font-d:'Oswald',sans-serif;
-  --shadow-xs:2px 2px 0 rgba(0,0,0,.5);
-  --shadow-sm:4px 4px 0 rgba(0,0,0,.55);
-  --shadow:6px 6px 0 rgba(0,0,0,.6);
-  --shadow-lg:10px 10px 0 rgba(0,0,0,.65);
+  --text:#f3ece0;--muted:#a59c8c;--dim:#5d564a;
+  --green:#3ddc84;--yellow:#ffc844;--red:#ff6f63;
+  --blue:#8b90ff;--purple:#b388ff;--pink:#ff6fa8;--orange:#ff9d3d;
+  --r:14px;
+  --font-d:'Fraunces',serif;
+  --shadow-xs:0 1px 2px rgba(0,0,0,.4);
+  --shadow-sm:0 4px 16px rgba(0,0,0,.45);
+  --shadow:0 12px 32px rgba(0,0,0,.5);
+  --shadow-lg:0 24px 60px rgba(0,0,0,.6);
 }
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:'Hanken Grotesk','Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;font-size:14.5px;transition:background .25s,color .25s;-webkit-font-smoothing:antialiased}
@@ -59,7 +59,7 @@ body.sb-expanded{--sidebar-w:212px}
 /* SIDEBAR */
 .sidebar{position:fixed;left:0;top:0;bottom:0;width:var(--sidebar-w);background:#0d0e12;border-right:1px solid rgba(255,255,255,.07);z-index:200;display:flex;flex-direction:column;overflow:hidden;transition:width .25s cubic-bezier(.4,0,.2,1)}
 .sidebar-logo{display:flex;flex-direction:column;align-items:center;gap:6px;padding:13px 4px;flex-shrink:0;overflow:hidden}
-.sidebar-logo-icon{width:38px;height:38px;border-radius:12px;display:flex;align-items:center;justify-content:center;background:var(--accent);line-height:1;flex-shrink:0;box-shadow:0 4px 14px rgba(220,38,38,.4)}
+.sidebar-logo-icon{width:38px;height:38px;border-radius:12px;display:flex;align-items:center;justify-content:center;background:var(--blue);line-height:1;flex-shrink:0;box-shadow:0 4px 14px rgba(91,98,230,.4)}
 .sidebar-logo-text{text-align:center;overflow:hidden;white-space:nowrap;transition:opacity .2s}
 .sidebar-logo-name{font-size:9.5px;font-weight:800;color:#fff;letter-spacing:.02em}
 .sidebar-logo-sub{display:none}
@@ -73,9 +73,9 @@ body.sb-expanded{--sidebar-w:212px}
 .nav-icon{position:relative;width:44px;height:34px;border-radius:11px;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:background .15s,color .15s}
 .tab-btn:hover .nav-icon{background:rgba(255,255,255,.09)}
 .tab-btn.active{color:#fff;font-weight:700}
-.tab-btn.active .nav-icon,[data-dark] .tab-btn.active .nav-icon{background:var(--accent);color:#fff;box-shadow:0 4px 12px rgba(220,38,38,.45)}
+.tab-btn.active .nav-icon,[data-dark] .tab-btn.active .nav-icon{background:var(--blue);color:#fff;box-shadow:0 4px 12px rgba(91,98,230,.45)}
 .nav-label{width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;line-height:1.1;transition:opacity .2s}
-.nav-badge{position:absolute;top:-4px;right:-3px;background:var(--accent);color:#fff;font-size:9px;font-weight:700;border-radius:99px;min-width:16px;height:16px;display:flex;align-items:center;justify-content:center;padding:0 3px;line-height:1;border:2px solid #0d0e12}
+.nav-badge{position:absolute;top:-4px;right:-3px;background:var(--blue);color:#fff;font-size:9px;font-weight:700;border-radius:99px;min-width:16px;height:16px;display:flex;align-items:center;justify-content:center;padding:0 3px;line-height:1;border:2px solid #0d0e12}
 /* SIDEBAR EXPANDIDA — ao clicar nas 3 barras: nome AO LADO do ícone */
 body.sb-expanded .sidebar-logo{flex-direction:row;justify-content:flex-start;gap:11px;padding:13px 18px}
 body.sb-expanded .sidebar-logo-name{font-size:13px}
@@ -526,7 +526,7 @@ body::after{content:none}
 th{letter-spacing:.09em;border-bottom:2px solid var(--border)}
 
 /* ═══════════ "ENERGIA NIKE" — tipografia ousada (claro + escuro) ═══════════ */
-.sec-title,.login-title,.modal-title,.cal-month-title,.sidebar-logo-name,.dash-banner-name{font-family:var(--font-d)!important;font-style:normal!important;text-transform:uppercase;letter-spacing:.01em;font-weight:700}
+.sec-title,.login-title,.modal-title,.cal-month-title,.dash-banner-name{font-family:var(--font-d)!important;font-style:normal!important;text-transform:none!important;letter-spacing:-.015em;font-weight:600}
 .sec-title{font-size:34px;line-height:1.05}
 .dash-banner-name{font-size:38px;font-weight:700;line-height:1}
 .login-title{font-size:36px;font-weight:700}
@@ -755,7 +755,66 @@ tbody tr:hover{background:var(--accent-wash)}
 /* Scrollbar */
 ::-webkit-scrollbar{width:5px;height:5px}
 ::-webkit-scrollbar-thumb{background:var(--dim)}
-::-webkit-scrollbar-thumb:hover{background:var(--accent)}
+::-webkit-scrollbar-thumb:hover{background:var(--muted)}
+
+/* ═══════════ CREME EDITORIAL — visual inspirado no modelo (camada final) ═══════════ */
+/* Fundo creme quente com leve degradê lavanda no topo */
+body{background:#f3eee6;background-image:linear-gradient(180deg,#ece4f1 0%,#f0e9ee 16%,#f3eee6 44%);background-attachment:fixed}
+[data-dark] body{background:#16140f;background-image:none}
+
+/* Títulos editoriais em serifada, caixa normal */
+.sec-title{font-size:42px;font-weight:600;letter-spacing:-.025em;line-height:1.03}
+@media(max-width:640px){.sec-title{font-size:32px}}
+.card-title{font-family:var(--font-m);text-transform:uppercase;letter-spacing:.12em;font-size:10px;font-weight:600;color:var(--muted);border-bottom:none;padding-bottom:0;margin-bottom:14px}
+
+/* Cartões arredondados, borda discreta, sombra suave */
+.card,.stat-card,.counter-card,.fc-stat,.rev-card,.fc-form{border:1px solid var(--border);border-radius:18px;box-shadow:var(--shadow-sm)}
+.card{padding:22px 24px}
+.card:hover,.stat-card:hover{box-shadow:var(--shadow);transform:translateY(-3px)}
+.card.accent-border{border-color:var(--accent-wash-strong);background:var(--accent-wash)}
+.modal{border:1px solid var(--border);border-radius:22px;box-shadow:var(--shadow-lg)}
+
+/* Botões pretos arredondados, texto em caixa normal (estilo modelo) */
+.btn,.login-btn{text-transform:none;letter-spacing:0;font-weight:600;border-radius:11px}
+.btn-p{background:var(--accent);color:#fff;border:none;box-shadow:0 6px 18px rgba(27,25,22,.18)}
+.btn-p:hover{background:#000;transform:translateY(-2px);box-shadow:0 10px 26px rgba(27,25,22,.26)}
+.btn-p:active{transform:translateY(0);box-shadow:0 4px 12px rgba(27,25,22,.2)}
+.btn-o{border:1.5px solid var(--border);color:var(--text);box-shadow:none}
+.btn-o:hover{background:var(--s2);border-color:var(--text);transform:translateY(-2px);box-shadow:var(--shadow-xs)}
+[data-dark] .btn-p{box-shadow:0 6px 18px rgba(0,0,0,.4)}
+[data-dark] .btn-p:hover{box-shadow:0 10px 26px rgba(0,0,0,.5)}
+
+/* Banner do dashboard = capa editorial creme */
+.dash-banner{background:linear-gradient(135deg,#ffffff 0%,#f6efe3 100%);border:1px solid var(--border);border-left:1px solid var(--border);border-radius:22px;box-shadow:var(--shadow-sm);padding:34px 36px}
+[data-dark] .dash-banner{background:linear-gradient(135deg,var(--s1) 0%,var(--s2) 100%)}
+.dash-banner-name{font-family:var(--font-d);text-transform:none!important;font-style:normal;font-weight:600;font-size:48px;letter-spacing:-.025em;line-height:1.02;color:var(--text)}
+@media(max-width:640px){.dash-banner-name{font-size:34px}}
+.dash-banner-badge{background:var(--accent);color:#fff;border-radius:99px;text-transform:uppercase;letter-spacing:.1em;font-size:9.5px;font-weight:600;padding:5px 12px}
+.dash-banner-sub{text-transform:none;letter-spacing:0;font-weight:500;font-size:13.5px;color:var(--muted)}
+
+/* Inputs e células suaves */
+.fg input,.fg select,.toolbar select,.toolbar input[type=text],.day-add-input,.fc-textarea,.cnt-input,.login-fg input{border-radius:10px}
+.cal-day{border-radius:12px}
+.cal-nav{border-radius:10px}
+
+/* Flashcards = ficha suave (sem carimbo) */
+.fc-card{border:1px solid var(--border);border-radius:20px;box-shadow:var(--shadow)}
+.fc-card:hover{border-color:var(--blue);box-shadow:var(--shadow-lg)}
+
+/* Login limpo */
+#login-screen::before{content:none}
+.login-card{border:1px solid var(--border);border-radius:24px;box-shadow:var(--shadow-lg)}
+.login-title{font-family:var(--font-d);font-style:normal;font-weight:600;font-size:34px;letter-spacing:-.02em}
+.login-btn{border-radius:11px;box-shadow:0 6px 18px rgba(27,25,22,.2);border:none;font-weight:600;letter-spacing:0;text-transform:none}
+.login-btn:hover{background:#000;transform:translateY(-2px);box-shadow:0 10px 26px rgba(27,25,22,.28)}
+
+/* Pomodoro / toast / modais suaves */
+.pomo-panel{border:1px solid var(--border);border-radius:18px;box-shadow:var(--shadow)}
+.pomo-btn-main{box-shadow:var(--shadow-xs)}
+.toast{border-radius:12px}
+
+/* Seleção de texto em azul suave */
+::selection{background:var(--blue);color:#fff}
 </style>
 </head>
 <body>
