@@ -282,6 +282,34 @@ tbody tr:hover{background:var(--s2)}
 [data-dark] .cp0{color:#a5b4fc}[data-dark] .cp1{background:rgba(76,195,138,.18);color:#8de0b8}
 [data-dark] .cp2{background:rgba(227,169,60,.18);color:#f0c878}[data-dark] .cp3{background:rgba(234,106,90,.18);color:#f3a89c}[data-dark] .cp4{background:rgba(176,138,224,.18);color:#d4c2ef}
 .cal-more{font-size:10px;color:var(--muted);margin-top:2px}
+/* CALENDAR — controles e modos (Dia/Semana/Mês) */
+.cal-header{flex-wrap:wrap;gap:12px}
+.cal-nav-group{display:flex;align-items:center;gap:7px}
+.cal-today-btn{background:var(--s2);border:1.5px solid var(--border);border-radius:10px;padding:7px 16px;cursor:pointer;font-size:13px;font-weight:700;color:var(--text);transition:all .15s}
+.cal-today-btn:hover{border-color:var(--accent);color:var(--accent)}
+.cal-seg{display:inline-flex;background:var(--s2);border:1.5px solid var(--border);border-radius:11px;padding:3px;gap:2px}
+.cal-seg-btn{background:none;border:none;border-radius:8px;padding:6px 16px;cursor:pointer;font-size:13px;font-weight:700;color:var(--muted);transition:all .15s}
+.cal-seg-btn:hover{color:var(--text)}
+.cal-seg-btn.on,[data-dark] .cal-seg-btn.on{background:var(--accent);color:#fff}
+.cal-dow-row{margin-bottom:6px}
+/* Modo Semana */
+.cal-week-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:6px}
+.cal-week-col{background:var(--s1);border:1px solid var(--border);border-radius:12px;min-height:340px;padding-bottom:8px;cursor:pointer;transition:all .15s;overflow:hidden;display:flex;flex-direction:column;box-shadow:var(--shadow-xs)}
+.cal-week-col:hover{border-color:var(--accent);box-shadow:var(--shadow-sm)}
+.cal-week-col.today{border-color:var(--accent);background:var(--accent-wash)}
+.cal-week-col.missed{border-color:rgba(220,38,38,.5);background:rgba(220,38,38,.05)}
+.cal-week-head{display:flex;flex-direction:column;align-items:center;gap:3px;padding:10px 4px 8px;border-bottom:1px solid var(--border);margin-bottom:6px}
+.cal-week-dow{font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
+.cal-week-date{font-size:17px;font-weight:800;color:var(--text);line-height:1;width:30px;height:30px;display:flex;align-items:center;justify-content:center;border-radius:50%}
+.cal-week-date.today{background:var(--accent);color:#fff}
+.cal-week-body{flex:1;padding:0 6px;overflow-y:auto}
+.cal-week-body .cal-task-pill{white-space:normal;line-height:1.3}
+.cal-col-empty{text-align:center;color:var(--dim);font-size:16px;margin-top:6px}
+/* Modo Dia */
+.cal-dayview{max-width:680px;margin:0 auto;padding-top:6px}
+.cal-dayview-list{margin-bottom:14px;min-height:60px}
+.cal-dayadd{display:flex;gap:8px}
+.cal-empty-day{text-align:center;color:var(--muted);font-size:14px;padding:34px 0}
 /* DAY MODAL */
 .day-task-row{display:flex;align-items:center;gap:10px;padding:10px 12px;background:var(--s2);border-radius:10px;margin-bottom:6px;transition:background .12s}
 .day-task-row:hover{background:var(--s3)}
@@ -1001,15 +1029,19 @@ tbody tr:hover{background:var(--accent-wash)}
   </div>
   <div class="card">
     <div class="cal-header">
-      <button class="cal-nav" onclick="calPrev()">‹</button>
+      <div class="cal-nav-group">
+        <button class="cal-nav" onclick="calPrev()" title="Anterior">‹</button>
+        <button class="cal-nav" onclick="calNext()" title="Próximo">›</button>
+        <button class="cal-today-btn" onclick="calToday()">Hoje</button>
+      </div>
       <div class="cal-month-title" id="cal-month-title"></div>
-      <button class="cal-nav" onclick="calNext()">›</button>
+      <div class="cal-seg" id="cal-view-seg">
+        <button class="cal-seg-btn" data-view="day" onclick="setCalView('day')">Dia</button>
+        <button class="cal-seg-btn" data-view="week" onclick="setCalView('week')">Semana</button>
+        <button class="cal-seg-btn on" data-view="month" onclick="setCalView('month')">Mês</button>
+      </div>
     </div>
-    <div class="cal-grid" style="margin-bottom:6px">
-      <div class="cal-dow">Dom</div><div class="cal-dow">Seg</div><div class="cal-dow">Ter</div>
-      <div class="cal-dow">Qua</div><div class="cal-dow">Qui</div><div class="cal-dow">Sex</div><div class="cal-dow">Sáb</div>
-    </div>
-    <div class="cal-grid" id="cal-body"></div>
+    <div id="cal-body"></div>
   </div>
 </div>
 
@@ -2753,42 +2785,115 @@ const setCal=d=>localStorage.setItem(CAL_KEY,JSON.stringify(d));
 
 const MONTHS_PT=['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
 const CP=['cp0','cp1','cp2','cp3','cp4'];
-let calYear=new Date().getFullYear();
-let calMonth=new Date().getMonth();
+let calView=localStorage.getItem('medplanner_calview')||'month';
+let calCursor=calStartOfDay(new Date());
 let calActiveDay=null;
 
-function calPrev(){calMonth--;if(calMonth<0){calMonth=11;calYear--;}renderCalendar();}
-function calNext(){calMonth++;if(calMonth>11){calMonth=0;calYear++;}renderCalendar();}
+function calStartOfDay(d){return new Date(d.getFullYear(),d.getMonth(),d.getDate());}
+function calDs(d){return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;}
+
+function setCalView(v){calView=v;localStorage.setItem('medplanner_calview',v);renderCalendar();}
+function calToday(){calCursor=calStartOfDay(new Date());renderCalendar();}
+function calPrev(){calShift(-1);}
+function calNext(){calShift(1);}
+function calShift(dir){
+  if(calView==='week')calCursor=new Date(calCursor.getFullYear(),calCursor.getMonth(),calCursor.getDate()+7*dir);
+  else if(calView==='day')calCursor=new Date(calCursor.getFullYear(),calCursor.getMonth(),calCursor.getDate()+dir);
+  else calCursor=new Date(calCursor.getFullYear(),calCursor.getMonth()+dir,1);
+  renderCalendar();
+}
 
 function renderCalendar(){
+  const seg=document.getElementById('cal-view-seg');
+  if(seg)seg.querySelectorAll('.cal-seg-btn').forEach(b=>b.classList.toggle('on',b.dataset.view===calView));
+  if(calView==='week')renderCalWeek();
+  else if(calView==='day')renderCalDay();
+  else renderCalMonth();
+}
+
+function renderCalMonth(){
   const ev=getCal();
   const T=today();
-  document.getElementById('cal-month-title').textContent=`${MONTHS_PT[calMonth]} ${calYear}`;
-  const firstDOW=new Date(calYear,calMonth,1).getDay();
-  const daysInMonth=new Date(calYear,calMonth+1,0).getDate();
-  const prevDays=new Date(calYear,calMonth,0).getDate();
-  let html='';
-  for(let i=firstDOW-1;i>=0;i--){
-    html+=`<div class="cal-day other-month"><div class="cal-day-num">${prevDays-i}</div></div>`;
-  }
+  const y=calCursor.getFullYear(),m=calCursor.getMonth();
+  document.getElementById('cal-month-title').textContent=`${MONTHS_PT[m]} ${y}`;
+  const firstDOW=new Date(y,m,1).getDay();
+  const daysInMonth=new Date(y,m+1,0).getDate();
+  const prevDays=new Date(y,m,0).getDate();
+  const DOW=['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
+  let cells='';
+  for(let i=firstDOW-1;i>=0;i--)cells+=`<div class="cal-day other-month"><div class="cal-day-num">${prevDays-i}</div></div>`;
   for(let d=1;d<=daysInMonth;d++){
-    const ds=`${calYear}-${String(calMonth+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    const ds=`${y}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
     const tasks=ev[ds]||[];
     const isT=ds===T;
     const isMissed=ds<T&&tasks.length>0&&tasks.some(t=>!t.done);
     const shown=tasks.slice(0,3);
     const more=tasks.length-3;
-    const pills=shown.map((t,i)=>`<div class="cal-task-pill ${CP[i%5]} ${t.done?'done':''}">${t.text}</div>`).join('');
-    html+=`<div class="cal-day${isT?' today':''}${isMissed?' missed':''}" onclick="openDayModal('${ds}')">
-      <div class="cal-day-num">${d}</div>${pills}${more>0?`<div class="cal-more">+${more} mais</div>`:''}
-    </div>`;
+    const pills=shown.map((t,i)=>`<div class="cal-task-pill ${CP[i%5]} ${t.done?'done':''}">${escapeHtml(t.text)}</div>`).join('');
+    cells+=`<div class="cal-day${isT?' today':''}${isMissed?' missed':''}" onclick="openDayModal('${ds}')"><div class="cal-day-num">${d}</div>${pills}${more>0?`<div class="cal-more">+${more} mais</div>`:''}</div>`;
   }
   const total=firstDOW+daysInMonth;
   const trail=total%7===0?0:7-(total%7);
-  for(let d=1;d<=trail;d++){
-    html+=`<div class="cal-day other-month"><div class="cal-day-num">${d}</div></div>`;
-  }
-  document.getElementById('cal-body').innerHTML=html;
+  for(let d=1;d<=trail;d++)cells+=`<div class="cal-day other-month"><div class="cal-day-num">${d}</div></div>`;
+  document.getElementById('cal-body').innerHTML=
+    `<div class="cal-grid cal-dow-row">${DOW.map(x=>`<div class="cal-dow">${x}</div>`).join('')}</div>`+
+    `<div class="cal-grid">${cells}</div>`;
+}
+
+function renderCalWeek(){
+  const ev=getCal();
+  const T=today();
+  const start=new Date(calCursor);start.setDate(start.getDate()-start.getDay());
+  const days=[...Array(7)].map((_,i)=>{const d=new Date(start);d.setDate(start.getDate()+i);return d;});
+  const last=days[6];
+  let title;
+  if(start.getMonth()===last.getMonth())title=`${start.getDate()}–${last.getDate()} de ${MONTHS_PT[start.getMonth()]} ${start.getFullYear()}`;
+  else title=`${start.getDate()} ${MONTHS_PT[start.getMonth()].slice(0,3)} – ${last.getDate()} ${MONTHS_PT[last.getMonth()].slice(0,3)} ${last.getFullYear()}`;
+  document.getElementById('cal-month-title').textContent=title;
+  const DOW=['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
+  const cols=days.map((d,i)=>{
+    const ds=calDs(d);
+    const tasks=ev[ds]||[];
+    const isT=ds===T;
+    const isMissed=ds<T&&tasks.length>0&&tasks.some(t=>!t.done);
+    const pills=tasks.length?tasks.map((t,j)=>`<div class="cal-task-pill ${CP[j%5]} ${t.done?'done':''}">${escapeHtml(t.text)}</div>`).join(''):'<div class="cal-col-empty">·</div>';
+    return `<div class="cal-week-col${isT?' today':''}${isMissed?' missed':''}" onclick="openDayModal('${ds}')"><div class="cal-week-head"><span class="cal-week-dow">${DOW[i]}</span><span class="cal-week-date${isT?' today':''}">${d.getDate()}</span></div><div class="cal-week-body">${pills}</div></div>`;
+  }).join('');
+  document.getElementById('cal-body').innerHTML=`<div class="cal-week-grid">${cols}</div>`;
+}
+
+function renderCalDay(){
+  const T=today();
+  const d=calCursor;
+  const ds=calDs(d);
+  calActiveDay=ds;
+  const weekDays=['Domingo','Segunda','Terça','Quarta','Quinta','Sexta','Sábado'];
+  const isT=ds===T;
+  document.getElementById('cal-month-title').textContent=`${weekDays[d.getDay()]}, ${d.getDate()} de ${MONTHS_PT[d.getMonth()]}${isT?' · Hoje':''}`;
+  const ev=getCal();
+  const tasks=ev[ds]||[];
+  const rows=tasks.length?tasks.map(t=>`<div class="day-task-row${t.auto?' auto-task':''}">
+      ${t.auto?'<span style="font-size:16px;flex-shrink:0">📚</span>':'<input type="checkbox" '+(t.done?'checked':'')+' onchange="toggleCalTask(\''+t.id+'\')">'}
+      <span class="day-task-text${t.done?' done':''}" style="${t.auto?'font-size:13px;color:var(--muted)':''}">${t.auto?escapeHtml(t.text.replace('📚 ','')):escapeHtml(t.text)}</span>
+      ${t.auto?'<span style="font-size:10px;color:var(--dim);flex-shrink:0;font-weight:600">AUTO</span>':'<button class="day-task-del" onclick="delCalTask(\''+t.id+'\')" title="Remover">×</button>'}
+    </div>`).join(''):'<div class="cal-empty-day">Nenhuma tarefa neste dia. Adicione uma abaixo!</div>';
+  document.getElementById('cal-body').innerHTML=`
+    <div class="cal-dayview">
+      <div class="cal-dayview-list">${rows}</div>
+      <div class="cal-dayadd">
+        <input type="text" class="day-add-input" id="cal-day-input" placeholder="Nova tarefa para este dia..." onkeydown="if(event.key==='Enter')calDayAdd()">
+        <button class="btn btn-p" onclick="calDayAdd()">Adicionar</button>
+      </div>
+    </div>`;
+}
+
+function calDayAdd(){
+  const inp=document.getElementById('cal-day-input');
+  const text=inp.value.trim();if(!text)return;
+  const ev=getCal();
+  if(!ev[calActiveDay])ev[calActiveDay]=[];
+  ev[calActiveDay].push({id:Date.now().toString(36)+Math.random().toString(36).slice(2,5),text,done:false});
+  setCal(ev);inp.value='';renderCalDay();
 }
 
 function openDayModal(ds){
@@ -2855,16 +2960,23 @@ function addCalTask(){
   setCal(ev);inp.value='';renderDayTasks();
 }
 
+function refreshDayUI(){
+  const ov=document.getElementById('day-overlay');
+  if(ov&&ov.classList.contains('open'))renderDayTasks();
+  else if(calView==='day')renderCalDay();
+  else renderCalendar();
+}
+
 function toggleCalTask(id){
   const ev=getCal();
   const t=(ev[calActiveDay]||[]).find(x=>x.id===id);
-  if(t){t.done=!t.done;setCal(ev);renderDayTasks();}
+  if(t){t.done=!t.done;setCal(ev);refreshDayUI();}
 }
 
 function delCalTask(id){
   const ev=getCal();
   if(ev[calActiveDay])ev[calActiveDay]=ev[calActiveDay].filter(t=>t.id!==id);
-  setCal(ev);renderDayTasks();
+  setCal(ev);refreshDayUI();
 }
 
 // (sincronização inicial das revisões é disparada por startApp(), após o login)
