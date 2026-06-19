@@ -55,20 +55,18 @@
 body{font-family:'Hanken Grotesk','Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;font-size:14.5px;transition:background .25s,color .25s;-webkit-font-smoothing:antialiased}
 /* LAYOUT */
 :root{--sidebar-w:86px;--topbar-h:52px}
-body.sb-collapsed{--sidebar-w:60px}
+body.sb-expanded{--sidebar-w:212px}
 /* SIDEBAR */
 .sidebar{position:fixed;left:0;top:0;bottom:0;width:var(--sidebar-w);background:#0d0e12;border-right:1px solid rgba(255,255,255,.07);z-index:200;display:flex;flex-direction:column;overflow:hidden;transition:width .25s cubic-bezier(.4,0,.2,1)}
 .sidebar-logo{display:flex;flex-direction:column;align-items:center;gap:6px;padding:13px 4px;flex-shrink:0;overflow:hidden}
 .sidebar-logo-icon{width:38px;height:38px;border-radius:12px;display:flex;align-items:center;justify-content:center;background:var(--accent);line-height:1;flex-shrink:0;box-shadow:0 4px 14px rgba(220,38,38,.4)}
 .sidebar-logo-text{text-align:center;overflow:hidden;white-space:nowrap;transition:opacity .2s}
-body.sb-collapsed .sidebar-logo-text{display:none}
 .sidebar-logo-name{font-size:9.5px;font-weight:800;color:#fff;letter-spacing:.02em}
 .sidebar-logo-sub{display:none}
 .sidebar-nav{flex:1;overflow-y:auto;overflow-x:hidden;padding:4px 6px 12px}
 .sidebar-nav::-webkit-scrollbar{width:0}
 .nav-group{height:1px;background:rgba(255,255,255,.08);margin:7px 16px;padding:0;font-size:0;overflow:hidden;border:none;display:block}
 .nav-group::after{display:none}
-body.sb-collapsed .nav-group{margin:7px 12px}
 /* TAB BUTTONS — trilho escuro estreito (ícone em cima, nome embaixo) */
 .tab-btn{display:flex;flex-direction:column;align-items:center;gap:5px;width:100%;padding:7px 2px;border-radius:12px;border:none;background:none;color:#878d96;font-size:9.5px;font-weight:600;cursor:pointer;transition:color .15s;text-align:center;overflow:hidden;margin-bottom:2px;letter-spacing:0}
 .tab-btn:hover{color:#fff}
@@ -77,9 +75,14 @@ body.sb-collapsed .nav-group{margin:7px 12px}
 .tab-btn.active{color:#fff;font-weight:700}
 .tab-btn.active .nav-icon,[data-dark] .tab-btn.active .nav-icon{background:var(--accent);color:#fff;box-shadow:0 4px 12px rgba(220,38,38,.45)}
 .nav-label{width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;line-height:1.1;transition:opacity .2s}
-body.sb-collapsed .nav-label{display:none}
 .nav-badge{position:absolute;top:-4px;right:-3px;background:var(--accent);color:#fff;font-size:9px;font-weight:700;border-radius:99px;min-width:16px;height:16px;display:flex;align-items:center;justify-content:center;padding:0 3px;line-height:1;border:2px solid #0d0e12}
-body.sb-collapsed .nav-badge{display:flex!important}
+/* SIDEBAR EXPANDIDA — ao clicar nas 3 barras: nome AO LADO do ícone */
+body.sb-expanded .sidebar-logo{flex-direction:row;justify-content:flex-start;gap:11px;padding:13px 18px}
+body.sb-expanded .sidebar-logo-name{font-size:13px}
+body.sb-expanded .nav-group{height:auto;background:none;margin:0;padding:15px 16px 5px;font-size:9px;font-weight:700;color:#5f6570;letter-spacing:.14em;text-transform:uppercase;overflow:visible}
+body.sb-expanded .tab-btn{flex-direction:row;align-items:center;justify-content:flex-start;gap:13px;padding:8px 12px;font-size:13px;text-align:left}
+body.sb-expanded .nav-icon{width:36px;height:36px}
+body.sb-expanded .nav-label{width:auto;flex:1;text-align:left}
 /* TOPBAR */
 .topbar{position:fixed;left:var(--sidebar-w);right:0;top:0;height:var(--topbar-h);background:var(--s1);border-bottom:1px solid var(--border);z-index:150;display:flex;align-items:center;padding:0 16px;gap:10px;box-shadow:var(--shadow-xs);transition:left .25s cubic-bezier(.4,0,.2,1)}
 .topbar-toggle{background:none;border:none;color:var(--muted);padding:7px;border-radius:9px;cursor:pointer;display:flex;align-items:center;transition:all .18s;flex-shrink:0}
@@ -786,7 +789,7 @@ tbody tr:hover{background:var(--accent-wash)}
 </aside>
 
 <header class="topbar">
-  <button class="topbar-toggle" onclick="toggleSidebar()" title="Recolher menu">
+  <button class="topbar-toggle" onclick="toggleSidebar()" title="Abrir / recolher menu">
     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
   </button>
   <div class="topbar-title" id="topbar-title">Dashboard</div>
@@ -1759,10 +1762,10 @@ document.querySelectorAll('.tab-btn').forEach(b=>{
 });
 
 function toggleSidebar(){
-  document.body.classList.toggle('sb-collapsed');
-  localStorage.setItem('medplanner_sb',document.body.classList.contains('sb-collapsed')?'1':'0');
+  document.body.classList.toggle('sb-expanded');
+  localStorage.setItem('medplanner_sb',document.body.classList.contains('sb-expanded')?'exp':'min');
 }
-if(localStorage.getItem('medplanner_sb')==='1')document.body.classList.add('sb-collapsed');
+if(localStorage.getItem('medplanner_sb')==='exp')document.body.classList.add('sb-expanded');
 
 function updateBellBadge(){
   const{topics}=get();const T=today();
