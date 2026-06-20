@@ -3886,12 +3886,8 @@ function rateFCCard(rating){
     if(card){card.nextTs=nextTs;bumpFcStat(card,rating);}
   }
   setFC(d);logActivity('fc',1);
-  // "Errei" (1 min) e "Difícil" (10 min) reaparecem ainda nesta sessão:
-  // recoloca a carta algumas posições à frente, pra ser revista antes de terminar.
-  if(rating<=1){
-    const pos=Math.min(fcSession.length, rating===0?3:6);
-    fcSession.splice(pos,0,fcCurrent);
-  }
+  // O card sai da sessão e só reaparece depois do tempo do botão (nextTs):
+  // Errei=1min, Difícil=10min, Bom=1dia, Fácil=4dias. Sem voltar no meio da sessão.
   nextFCCard();
 }
 
@@ -4052,7 +4048,7 @@ function rateIECard(rating){
     card.st[['a','h','g','e'][rating]]++;
   }
   setIE(d);
-  if(rating<=1){const pos=Math.min(ieSession.length,rating===0?3:6);ieSession.splice(pos,0,ieCurrent);}
+  // Sem reinjeção na sessão: o card só volta depois do tempo do botão (nextTs).
   nextIECard();
 }
 
@@ -4252,7 +4248,7 @@ function rateIDCard(rating){
   s.nextTs=Date.now()+FC_INTERVALS[rating];
   s.st[['a','h','g','e'][rating]]++;
   d[k]=s;setID(d);
-  if(rating<=1){const pos=Math.min(idSession.length,rating===0?3:6);idSession.splice(pos,0,idCurrent);}
+  // Sem reinjeção na sessão: o card só volta depois do tempo do botão (nextTs).
   nextIDCard();
 }
 
