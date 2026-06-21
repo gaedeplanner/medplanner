@@ -1309,7 +1309,8 @@ body{background:#f3eee6;background-image:linear-gradient(180deg,#ece4f1 0%,#f0e9
       <div class="card-title" style="margin-bottom:0">Flashcards de Inglês</div>
       <div style="display:flex;gap:6px;flex-wrap:wrap">
         <button class="btn btn-o btn-sm" onclick="showIEStats()">📊 Estatísticas</button>
-        <button class="btn btn-o btn-sm" onclick="showIEForm(null)">+ Novo card</button>
+        <button class="btn btn-o btn-sm" onclick="showIEAdd()">+ Novo card</button>
+        <button class="btn btn-o btn-sm" onclick="showIEAddCategory()">+ Nova Categoria</button>
         <button class="btn btn-p btn-sm" id="ie-btn-review" onclick="startIEReview()">▶ Revisar</button>
       </div>
     </div>
@@ -3904,94 +3905,593 @@ let ieCurrent=null;
 let ieFlipped=false;
 let ieViewLocked=false;
 let ieEditId=null;
+let ieDeckSubs=[];
+let ieCurrentCatId=null;
 
-function ieDueCount(){return getIE().cards.filter(c=>isDueFc(c.nextTs)).length;}
+// Pendentes contando categorias, subtemas e cards avulsos (igual aos de medicina)
+function ieCountDue(){
+  let n=0;
+  for(const c of getIE().cards){
+    if(c.type==='category'){
+      for(const ch of(c.children||[])){
+        if(ch.type==='deck')n+=ch.subs.filter(s=>isDueFc(s.nextTs)).length;
+        else if(isDueFc(ch.nextTs))n++;
+      }
+    } else if(c.type==='deck'){
+      n+=c.subs.filter(s=>isDueFc(s.nextTs)).length;
+    } else if(isDueFc(c.nextTs)){n++;}
+  }
+  return n;
+}
+function ieCatDueCount(cat){
+  return(cat.children||[]).reduce((n,ch)=>{
+    if(ch.type==='deck')return n+ch.subs.filter(s=>isDueFc(s.nextTs)).length;
+    return n+(isDueFc(ch.nextTs)?1:0);
+  },0);
+}
+function ieCatTotalCards(cat){
+  return(cat.children||[]).reduce((n,ch)=>ch.type==='deck'?n+ch.subs.length:n+1,0);
+}
+function ieFindCardInData(d,id){
+  for(const c of d.cards){
+    if(c.id===id)return{card:c,parent:null};
+    if(c.type==='category'){
+      const ch=(c.children||[]).find(x=>x.id===id);
+      if(ch)return{card:ch,parent:c};
+    }
+  }
+  return null;
+}
 
 function renderIE(){
   ieViewLocked=false;
-  const cards=getIE().cards;
-  const due=ieDueCount();
-  const done=cards.length-due;
+  const d=getIE();
+  const cats=d.cards.filter(c=>c.type==='category');
+  const due=ieCountDue();
+  const totalQ=d.cards.reduce((n,c)=>{
+    if(c.type==='category')return n+ieCatTotalCards(c);
+    if(c.type==='deck')return n+c.subs.length;
+    return n+1;
+  },0);
+  const doneQ=totalQ-due;
   const st=document.getElementById('ie-stats');
   if(st)st.innerHTML=`
     <div class="fc-stat"><div class="fc-stat-val" style="color:var(--accent)">${due}</div><div class="fc-stat-lbl">Pendentes</div></div>
-    <div class="fc-stat"><div class="fc-stat-val" style="color:var(--green)">${done}</div><div class="fc-stat-lbl">Em dia</div></div>
-    <div class="fc-stat"><div class="fc-stat-val" style="color:var(--blue)">${cards.length}</div><div class="fc-stat-lbl">Total de cards</div></div>`;
+    <div class="fc-stat"><div class="fc-stat-val" style="color:var(--green)">${doneQ}</div><div class="fc-stat-lbl">Em dia</div></div>
+    <div class="fc-stat"><div class="fc-stat-val" style="color:var(--muted)">${cats.length}</div><div class="fc-stat-lbl">Categorias</div></div>
+    <div class="fc-stat"><div class="fc-stat-val" style="color:var(--blue)">${totalQ}</div><div class="fc-stat-lbl">Total de cards</div></div>`;
   const btn=document.getElementById('ie-btn-review');
-  if(btn){btn.disabled=cards.length===0;btn.textContent=due>0?`▶ Revisar (${due})`:'▶ Revisar todos';}
+  if(btn){btn.disabled=totalQ===0;btn.textContent=due>0?`▶ Revisar (${due})`:'▶ Revisar todos';}
   showIEBrowse();
+}
+
+function ieToggleCat(id){
+  const d=getIE();const cat=d.cards.find(c=>c.id===id&&c.type==='category');
+  if(cat)cat.collapsed=!cat.collapsed;setIE(d);showIEBrowse();
+}
+function ieToggleDeck(catId,deckId){
+  const d=getIE();const cat=d.cards.find(c=>c.id===catId&&c.type==='category');
+  if(cat){const deck=(cat.children||[]).find(c=>c.id===deckId);if(deck)deck.collapsed=!deck.collapsed;}
+  setIE(d);showIEBrowse();
+}
+function ieToggleOrphanDeck(id){
+  const d=getIE();const deck=d.cards.find(c=>c.id===id&&c.type==='deck');
+  if(deck)deck.collapsed=!deck.collapsed;setIE(d);showIEBrowse();
+}
+
+function ieRenderDeckRow(ch,catId){
+  if(ch.type==='deck'){
+    const dueCnt=ch.subs.filter(s=>isDueFc(s.nextTs)).length;
+    const pill=dueCnt>0
+      ?`<span class="fc-due-pill" style="background:var(--accent-wash);color:var(--accent)">${dueCnt} pendente${dueCnt>1?'s':''}</span>`
+      :`<span class="fc-due-pill" style="background:var(--s2);color:var(--muted)">Em dia</span>`;
+    const collapsed=ch.collapsed!==false;
+    const arrow=collapsed?'▶':'▼';
+    const toggleFn=catId?`ieToggleDeck('${catId}','${ch.id}')`:`ieToggleOrphanDeck('${ch.id}')`;
+    const subRows=!collapsed?ch.subs.map(s=>{
+      const reo=catId?`draggable="true" ondragstart="ieReoStart(event,'card','${catId}','${ch.id}','${s.id}')" ondragend="ieReoEnd(event)" ondragover="ieReoOver(event,'card','${catId}','${ch.id}')" ondrop="ieReoDrop(event,'card','${catId}','${ch.id}','${s.id}')"`:'';
+      return`
+      <div class="fc-reo-row" ${reo} style="display:flex;align-items:center;gap:10px;padding:8px 12px 8px 40px;border-top:1px solid var(--border);font-size:12.5px;background:var(--s2)${catId?';cursor:grab':''}">
+        <span style="color:var(--dim);flex-shrink:0;font-size:11px">${catId?'⠿':'↳'}</span>
+        <div style="flex:1;color:var(--text);font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${escapeHtml(s.q)}</div>
+        <div style="flex:1;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${escapeHtml(s.a)}</div>
+        <span class="fc-due-pill" style="background:${isDueFc(s.nextTs)?'var(--accent-wash)':'var(--s3)'};color:${isDueFc(s.nextTs)?'var(--accent)':'var(--muted)'}">${isDueFc(s.nextTs)?'Pendente':fmtNextTs(s.nextTs)}</span>
+        ${catId?`<button class="btn btn-d btn-sm" style="padding:3px 7px" onclick="deleteIECardFromSubtema('${catId}','${ch.id}','${s.id}')">×</button>`:'<div style="width:32px"></div>'}
+      </div>`;}).join(''):'';
+    const addCardBtn=(catId&&!collapsed)?`
+      <div style="padding:8px 12px 8px 40px;border-top:1px solid var(--border);background:var(--s2);display:flex;gap:6px">
+        <button class="btn btn-o btn-sm" onclick="showIEAddCardInSubtema('${catId}','${ch.id}')">+ Adicionar card</button>
+        <button class="btn btn-o btn-sm" onclick="showIEBulkImport('${catId}','${ch.id}')">Importar em massa</button>
+      </div>`:'';
+    const dropAttrs=catId?`ondragover="onIEDragOver(event,this)" ondragleave="onIEDragLeave(this)" ondrop="onIEDrop(event,'${catId}','${ch.id}')"`:'';
+    const reoDeck=catId?`draggable="true" ondragstart="ieReoStart(event,'deck','${catId}','','${ch.id}')" ondragend="ieReoEnd(event)" ondragover="ieReoOver(event,'deck','${catId}','')" ondrop="ieReoDrop(event,'deck','${catId}','','${ch.id}')"`:'';
+    return`<div class="fc-drop-zone" ${dropAttrs} style="border-radius:0">
+      <div class="fc-browse-row fc-reo-row" ${reoDeck} style="padding-left:20px${catId?';cursor:grab':''}">
+        <span onclick="event.stopPropagation();${toggleFn}" style="cursor:pointer;font-size:11px;color:var(--muted);margin-right:2px;flex-shrink:0;min-width:14px">${arrow}</span>
+        <div class="fc-browse-front" style="font-weight:600">${escapeHtml(ch.front)}${ch.tag?` <span style="font-size:11px;color:var(--muted);font-weight:400">· ${escapeHtml(ch.tag)}</span>`:''}</div>
+        <div class="fc-browse-back" style="font-size:11px">${ch.subs.length} card${ch.subs.length!==1?'s':''}</div>
+        ${pill}
+        <div style="display:flex;gap:4px;flex-shrink:0">
+          ${catId&&ch.subs.length>0?`<button class="btn btn-p btn-sm" onclick="event.stopPropagation();ieStartReviewScoped('${catId}','${ch.id}')">▶ Revisar</button>`:''}
+          <button class="btn btn-o btn-sm" onclick="showIEAdd('${ch.id}')">Editar</button>
+          <button class="btn btn-d btn-sm" onclick="deleteIECard('${ch.id}')">Excluir</button>
+        </div>
+      </div>
+      ${subRows}
+      ${addCardBtn}
+    </div>`;
+  } else {
+    const pill=isDueFc(ch.nextTs)
+      ?`<span class="fc-due-pill" style="background:var(--accent-wash);color:var(--accent)">Pendente</span>`
+      :`<span class="fc-due-pill" style="background:var(--s2);color:var(--muted)">${fmtNextTs(ch.nextTs)}</span>`;
+    const isOrphan=!catId;
+    const dragAttrs=isOrphan?`draggable="true" data-drag-id="${ch.id}" class="fc-browse-row fc-draggable" ondragstart="onIEDragStart(event,'${ch.id}')" ondragend="onIEDragEnd()" style="padding-left:34px"`:`class="fc-browse-row" style="padding-left:34px"`;
+    const dragHint=isOrphan?`<span style="font-size:10px;color:var(--dim);margin-right:4px;flex-shrink:0" title="Arraste para uma pasta">⠿</span>`:'';
+    return`<div ${dragAttrs}>
+      ${dragHint}
+      <div class="fc-browse-front">${escapeHtml(ch.front)}${ch.tag?` <span style="font-size:11px;color:var(--muted);font-weight:400">· ${escapeHtml(ch.tag)}</span>`:''}</div>
+      <div class="fc-browse-back">${escapeHtml(ch.back)}</div>
+      ${pill}
+      <div style="display:flex;gap:4px;flex-shrink:0">
+        <button class="btn btn-o btn-sm" onclick="showIEAdd('${ch.id}')">Editar</button>
+        <button class="btn btn-d btn-sm" onclick="deleteIECard('${ch.id}')">Excluir</button>
+      </div>
+    </div>`;
+  }
 }
 
 function showIEBrowse(){
   const main=document.getElementById('ie-main');
   if(!main)return;
-  const cards=getIE().cards;
-  if(!cards.length){
-    main.innerHTML=`<div class="fc-empty"><div style="margin-bottom:12px;opacity:.3"><svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg></div><h3 style="font-size:16px;margin-bottom:6px;color:var(--text)">Nenhum card de inglês ainda</h3><p>Clique em "+ Novo card" para criar seu primeiro flashcard.</p></div>`;
+  const d=getIE();
+  const cats=d.cards.filter(c=>c.type==='category');
+  const orphans=d.cards.filter(c=>c.type!=='category');
+  if(!cats.length&&!orphans.length){
+    main.innerHTML=`<div class="fc-empty"><div style="margin-bottom:12px;opacity:.3"><svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg></div><h3 style="font-size:16px;margin-bottom:6px;color:var(--text)">Nenhum card de inglês ainda</h3><p>Clique em "+ Nova Categoria" para organizar em pastas, ou "+ Novo card" para um card avulso.</p></div>`;
     return;
   }
-  main.innerHTML=`<div style="border:1px solid var(--border);border-radius:var(--r);overflow:hidden">${cards.map(c=>{
-    const pill=isDueFc(c.nextTs)
-      ?`<span class="fc-due-pill" style="background:var(--accent-wash);color:var(--accent)">Pendente</span>`
-      :`<span class="fc-due-pill" style="background:var(--s2);color:var(--muted)">${fmtNextTs(c.nextTs)}</span>`;
-    return`<div class="fc-browse-row">
-      <div class="fc-browse-front">${escapeHtml(c.front)}${c.tag?` <span style="font-size:11px;color:var(--muted);font-weight:400">· ${escapeHtml(c.tag)}</span>`:''}</div>
-      <div class="fc-browse-back">${escapeHtml(c.back)}</div>
-      ${pill}
-      <div style="display:flex;gap:4px;flex-shrink:0">
-        <button class="btn btn-o btn-sm" onclick="showIEForm('${c.id}')">Editar</button>
-        <button class="btn btn-d btn-sm" onclick="deleteIECard('${c.id}')">Excluir</button>
+  const catsHtml=cats.map(cat=>{
+    const due=ieCatDueCount(cat);
+    const total=ieCatTotalCards(cat);
+    const pill=due>0
+      ?`<span class="fc-due-pill" style="background:var(--accent-wash);color:var(--accent)">${due} pendente${due>1?'s':''}</span>`
+      :`<span class="fc-due-pill" style="background:var(--s2);color:var(--muted)">Em dia</span>`;
+    const collapsed=!!cat.collapsed;
+    const arrow=collapsed?'▶':'▼';
+    const childrenHtml=!collapsed?(cat.children||[]).map(ch=>ieRenderDeckRow(ch,cat.id)).join(''):'';
+    const addBtn=!collapsed?`<div style="padding:10px 16px;background:var(--s2);border-top:1px solid var(--border)">
+      <button class="btn btn-o btn-sm" onclick="showIEAddInCat('${cat.id}')">+ Adicionar subtema</button>
+    </div>`:'';
+    return`<div style="border:1.5px solid var(--border);border-radius:12px;overflow:hidden;margin-bottom:12px">
+      <div class="fc-cat-header fc-reo-row" draggable="true" ondragstart="ieReoStart(event,'cat','','','${cat.id}')" ondragend="ieReoEnd(event)" ondragover="ieReoOver(event,'cat','','')" ondrop="ieReoDrop(event,'cat','','','${cat.id}')" onclick="ieToggleCat('${cat.id}')" style="cursor:grab">
+        <em class="fc-cat-arrow">${arrow}</em>
+        <div style="flex:1;font-size:14px;font-weight:700;color:var(--text)">${escapeHtml(cat.name)}</div>
+        <div style="font-size:12px;color:var(--muted);margin-right:8px">${(cat.children||[]).length} subtema${(cat.children||[]).length!==1?'s':''} · ${total} card${total!==1?'s':''}</div>
+        ${pill}
+        <div style="display:flex;gap:4px;flex-shrink:0" onclick="event.stopPropagation()">
+          ${total>0?`<button class="btn btn-p btn-sm" onclick="ieStartReviewScoped('${cat.id}',null)">▶ Revisar</button>`:''}
+          <button class="btn btn-o btn-sm" onclick="showIEAddCategory('${cat.id}')">Editar</button>
+          <button class="btn btn-d btn-sm" onclick="deleteIECategory('${cat.id}')">Excluir</button>
+        </div>
       </div>
-    </div>`;}).join('')}</div>`;
+      <div class="fc-cat-body">
+        ${childrenHtml}
+        ${addBtn}
+      </div>
+    </div>`;
+  }).join('');
+  const orphansHtml=orphans.length?`
+    <div style="margin-top:8px">
+      <div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px">Cards avulsos</div>
+      <div style="border:1px solid var(--border);border-radius:var(--r);overflow:hidden">
+        ${orphans.map(ch=>ieRenderDeckRow(ch,null)).join('')}
+      </div>
+    </div>`:'';
+  main.innerHTML=catsHtml+orphansHtml;
 }
 
 function escapeHtml(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
 
-function showIEForm(id){
-  ieViewLocked=true;ieEditId=id||null;
-  const card=id?getIE().cards.find(c=>c.id===id):null;
-  const main=document.getElementById('ie-main');
-  const inp='background:var(--s2);border:1.5px solid var(--border);border-radius:8px;color:var(--text);padding:9px 12px;font-size:14px;width:100%;font-family:inherit;transition:border-color .18s';
-  main.innerHTML=`
-    <div class="card-title" style="margin-bottom:14px">${card?'Editar card':'Novo card de inglês'}</div>
-    <div class="fg" style="margin-bottom:12px"><label>Frente (palavra / frase / pergunta)</label><input type="text" id="ie-front" style="${inp}" placeholder="Ex: shortness of breath" value="${card?escapeHtml(card.front):''}"></div>
-    <div class="fg" style="margin-bottom:12px"><label>Verso (significado / tradução / resposta)</label><input type="text" id="ie-back" style="${inp}" placeholder="Ex: dispneia / falta de ar" value="${card?escapeHtml(card.back):''}"></div>
-    <div class="fg" style="margin-bottom:16px"><label>Tag (opcional)</label><input type="text" id="ie-tag" style="${inp}" placeholder="Ex: Vocabulário médico · Phrasal verbs" value="${card?escapeHtml(card.tag||''):''}"></div>
-    <div style="display:flex;gap:8px">
-      <button class="btn btn-p" onclick="saveIECard()">Salvar</button>
-      <button class="btn btn-o" onclick="renderIE()">Cancelar</button>
-    </div>`;
-  setTimeout(()=>{const f=document.getElementById('ie-front');if(f)f.focus();},50);
+function showIEAdd(id){
+  ieEditId=id||null;ieCurrentCatId=null;ieDeckSubs=[];
+  if(!id){
+    document.getElementById('ie-main').innerHTML=`
+      <div class="fc-form">
+        <div class="card-title" style="margin-bottom:16px">Que tipo de card?</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px">
+          <button onclick="renderIEForm('simple')" class="fc-type-btn"><div style="margin-bottom:8px;opacity:.6"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg></div><div style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:3px">Card Simples</div><div style="font-size:12px;color:var(--muted)">Uma palavra/frase, um significado</div></button>
+          <button onclick="renderIEForm('deck')" class="fc-type-btn"><div style="margin-bottom:8px;opacity:.6"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg></div><div style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:3px">Conjunto</div><div style="font-size:12px;color:var(--muted)">Um tema com vários cards</div></button>
+        </div>
+        <button class="btn btn-o btn-sm" onclick="renderIE()">Cancelar</button>
+      </div>`;
+    return;
+  }
+  const found=ieFindCardInData(getIE(),id);
+  if(!found)return;
+  const card=found.card;
+  if(found.parent)ieCurrentCatId=found.parent.id;
+  if(card.type==='deck'){ieDeckSubs=card.subs.map(s=>({...s}));renderIEForm('deck',card);}
+  else{renderIEForm('simple',card);}
 }
 
-function saveIECard(){
-  const front=(document.getElementById('ie-front')?.value||'').trim();
-  const back=(document.getElementById('ie-back')?.value||'').trim();
-  const tag=(document.getElementById('ie-tag')?.value||'').trim();
-  if(!front||!back){toast('Preencha a frente e o verso.','info');return;}
-  const d=getIE();
-  if(ieEditId){
-    const c=d.cards.find(x=>x.id===ieEditId);
-    if(c){c.front=front;c.back=back;c.tag=tag;}
-  }else{
-    d.cards.unshift({id:ieNewId(),front,back,tag,nextTs:null,st:{a:0,h:0,g:0,e:0}});
+function renderIEForm(type,card){
+  ieViewLocked=true;
+  const inp='background:var(--s2);border:1.5px solid var(--border);border-radius:8px;color:var(--text);padding:9px 12px;font-size:14px;width:100%;font-family:inherit;transition:border-color .18s';
+  if(type==='deck'){
+    const subsHtml=ieDeckSubs.map((s,i)=>`
+      <div style="background:var(--s2);border:1px solid var(--border);border-radius:10px;padding:14px;margin-bottom:8px">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+          <span style="font-size:11px;font-weight:600;color:var(--muted)">Card ${i+1}</span>
+          <button onclick="removeIESub(${i})" style="background:none;border:none;color:var(--dim);cursor:pointer;font-size:18px;line-height:1;padding:0 4px;border-radius:5px" onmouseover="this.style.color='var(--red)'" onmouseout="this.style.color='var(--dim)'">×</button>
+        </div>
+        <div class="fg" style="margin-bottom:8px"><label>Frente (inglês)</label><textarea class="fc-textarea" style="min-height:52px" id="ie-sub-q-${i}" placeholder="Ex: shortness of breath">${escapeHtml(s.q||'')}</textarea></div>
+        <div class="fg"><label>Verso (significado)</label><textarea class="fc-textarea" style="min-height:52px" id="ie-sub-a-${i}" placeholder="Ex: dispneia / falta de ar">${escapeHtml(s.a||'')}</textarea></div>
+      </div>`).join('');
+    document.getElementById('ie-main').innerHTML=`
+      <div class="fc-form">
+        <div class="card-title" style="margin-bottom:14px">${card?'Editar Conjunto':'Novo Conjunto de Cards'}</div>
+        <div class="fg" style="margin-bottom:12px"><label>Tema / Contexto</label><input type="text" style="${inp}" id="ie-deck-front" placeholder="Ex: Vocabulário médico, Phrasal verbs..." value="${card?escapeHtml(card.front||''):''}"></div>
+        <div class="fg" style="margin-bottom:16px"><label>Tag (opcional)</label><input type="text" style="${inp}" id="ie-deck-tag" placeholder="Ex: Nível B1 · Hospital" value="${card?escapeHtml(card.tag||''):''}"></div>
+        <div style="font-size:12px;font-weight:600;color:var(--muted);margin-bottom:10px">Cards (${ieDeckSubs.length})</div>
+        <div id="ie-subs-wrap">${subsHtml}</div>
+        <button onclick="addIESub()" class="btn btn-o btn-sm" style="margin-bottom:18px;width:100%">+ Adicionar card</button>
+        <div style="display:flex;gap:8px">
+          <button class="btn btn-p" onclick="saveIECard('deck')">Salvar</button>
+          <button class="btn btn-o" onclick="renderIE()">Cancelar</button>
+        </div>
+      </div>`;
+  } else {
+    document.getElementById('ie-main').innerHTML=`
+      <div class="fc-form">
+        <div class="card-title" style="margin-bottom:14px">${card?'Editar card':'Novo card de inglês'}</div>
+        <div class="fg" style="margin-bottom:12px"><label>Frente (palavra / frase / pergunta)</label><textarea class="fc-textarea" id="ie-front" placeholder="Ex: shortness of breath">${card?escapeHtml(card.front||''):''}</textarea></div>
+        <div class="fg" style="margin-bottom:12px"><label>Verso (significado / tradução / resposta)</label><textarea class="fc-textarea" id="ie-back" placeholder="Ex: dispneia / falta de ar">${card?escapeHtml(card.back||''):''}</textarea></div>
+        <div class="fg" style="margin-bottom:16px"><label>Tag (opcional)</label><input type="text" style="${inp}" id="ie-tag" placeholder="Ex: Vocabulário médico · Phrasal verbs" value="${card?escapeHtml(card.tag||''):''}"></div>
+        <div style="display:flex;gap:8px">
+          <button class="btn btn-p" onclick="saveIECard('simple')">Salvar</button>
+          <button class="btn btn-o" onclick="renderIE()">Cancelar</button>
+        </div>
+      </div>`;
+    setTimeout(()=>document.getElementById('ie-front')?.focus(),50);
   }
-  setIE(d);ieEditId=null;renderIE();
-  toast('Card salvo!','ok');
+}
+
+function syncIESubValues(){
+  ieDeckSubs.forEach((s,i)=>{
+    const q=document.getElementById(`ie-sub-q-${i}`);
+    const a=document.getElementById(`ie-sub-a-${i}`);
+    if(q)s.q=q.value;if(a)s.a=a.value;
+  });
+}
+function addIESub(){
+  syncIESubValues();
+  ieDeckSubs.push({id:ieNewId(),q:'',a:'',nextTs:null});
+  const found=ieEditId?ieFindCardInData(getIE(),ieEditId):null;
+  renderIEForm('deck',found?found.card:null);
+  setTimeout(()=>{const w=document.getElementById('ie-subs-wrap');w?.lastElementChild?.scrollIntoView({behavior:'smooth'});},50);
+}
+function removeIESub(i){
+  syncIESubValues();ieDeckSubs.splice(i,1);
+  const found=ieEditId?ieFindCardInData(getIE(),ieEditId):null;
+  renderIEForm('deck',found?found.card:null);
+}
+
+function saveIECard(type){
+  const d=getIE();
+  if(type==='deck'){
+    syncIESubValues();
+    const front=(document.getElementById('ie-deck-front')?.value||'').trim();
+    const tag=(document.getElementById('ie-deck-tag')?.value||'').trim();
+    if(!front){toast('Preencha o tema do conjunto.','err');return;}
+    const valid=ieDeckSubs.filter(s=>s.q&&s.a);
+    if(!valid.length){toast('Adicione ao menos um card completo.','err');return;}
+    if(ieEditId){
+      const found=ieFindCardInData(d,ieEditId);
+      if(found){
+        const old=found.card.subs||[];
+        Object.assign(found.card,{front,tag,subs:valid.map(s=>{
+          const ex=old.find(o=>o.id===s.id);
+          return ex?{...ex,q:s.q,a:s.a}:{id:ieNewId(),q:s.q,a:s.a,nextTs:null};
+        })});
+      }
+    } else {
+      const card={id:ieNewId(),type:'deck',front,tag,subs:valid.map(s=>({id:ieNewId(),q:s.q,a:s.a,nextTs:null})),createdAt:today()};
+      if(ieCurrentCatId){
+        const cat=d.cards.find(c=>c.id===ieCurrentCatId&&c.type==='category');
+        if(cat){cat.children=cat.children||[];cat.children.push(card);}
+      } else {d.cards.push(card);}
+    }
+  } else {
+    const front=(document.getElementById('ie-front')?.value||'').trim();
+    const back=(document.getElementById('ie-back')?.value||'').trim();
+    const tag=(document.getElementById('ie-tag')?.value||'').trim();
+    if(!front||!back){toast('Preencha a frente e o verso.','err');return;}
+    if(ieEditId){
+      const found=ieFindCardInData(d,ieEditId);
+      if(found)Object.assign(found.card,{front,back,tag});
+    } else {
+      const card={id:ieNewId(),type:'simple',front,back,tag,nextTs:null,st:{a:0,h:0,g:0,e:0},createdAt:today()};
+      if(ieCurrentCatId){
+        const cat=d.cards.find(c=>c.id===ieCurrentCatId&&c.type==='category');
+        if(cat){cat.children=cat.children||[];cat.children.push(card);}
+      } else {d.cards.unshift(card);}
+    }
+  }
+  const wasEdit=!!ieEditId;setIE(d);ieEditId=null;ieCurrentCatId=null;ieDeckSubs=[];renderIE();toast(wasEdit?'Card atualizado!':'Card salvo!','ok');
+}
+
+// ── Categorias / subtemas (inglês) ────────────────────────────
+function showIEAddCategory(id){
+  ieViewLocked=true;
+  const d=getIE();
+  const cat=id?d.cards.find(c=>c.id===id&&c.type==='category'):null;
+  document.getElementById('ie-main').innerHTML=`
+    <div class="fc-form">
+      <div class="card-title" style="margin-bottom:16px">${cat?'Editar Categoria':'Nova Categoria'}</div>
+      <div class="fg" style="margin-bottom:16px">
+        <label>Nome da Categoria</label>
+        <input type="text" id="ie-cat-name" style="background:var(--s2);border:1.5px solid var(--border);border-radius:8px;color:var(--text);padding:9px 12px;font-size:14px;width:100%;font-family:inherit;transition:border-color .18s" placeholder="Ex: Vocabulário médico, Frutas, Phrasal verbs..." value="${cat?escapeHtml(cat.name):''}">
+      </div>
+      <div style="display:flex;gap:8px">
+        <button class="btn btn-p" onclick="saveIECategory('${id||''}')">Salvar</button>
+        <button class="btn btn-o" onclick="renderIE()">Cancelar</button>
+      </div>
+    </div>`;
+  setTimeout(()=>document.getElementById('ie-cat-name')?.focus(),50);
+}
+function saveIECategory(id){
+  const name=(document.getElementById('ie-cat-name')?.value||'').trim();
+  if(!name){toast('Preencha o nome da categoria.','err');return;}
+  const d=getIE();
+  if(id){
+    const cat=d.cards.find(c=>c.id===id&&c.type==='category');
+    if(cat)cat.name=name;
+  } else {
+    d.cards.unshift({id:ieNewId(),type:'category',name,collapsed:false,children:[],createdAt:today()});
+  }
+  setIE(d);renderIE();toast(id?'Categoria atualizada!':'Categoria criada!','ok');
+}
+function deleteIECategory(id){
+  if(!confirm('Excluir esta categoria e todos os cards dentro?'))return;
+  const d=getIE();d.cards=d.cards.filter(c=>c.id!==id);setIE(d);renderIE();toast('Categoria excluída.','info');
+}
+function showIEAddInCat(catId){
+  ieViewLocked=true;ieCurrentCatId=catId;ieEditId=null;ieDeckSubs=[];
+  document.getElementById('ie-main').innerHTML=`
+    <div class="fc-form">
+      <div class="card-title" style="margin-bottom:16px">Novo Subtema</div>
+      <div class="fg" style="margin-bottom:16px">
+        <label>Nome do subtema</label>
+        <input type="text" id="ie-sub-name" style="background:var(--s2);border:1.5px solid var(--border);border-radius:8px;color:var(--text);padding:9px 12px;font-size:14px;width:100%;font-family:inherit;transition:border-color .18s" placeholder="Ex: Sintomas, Verbos, Frutas...">
+      </div>
+      <div style="display:flex;gap:8px">
+        <button class="btn btn-p" onclick="saveIESubtema('${catId}')">Criar Subtema</button>
+        <button class="btn btn-o" onclick="renderIE()">Cancelar</button>
+      </div>
+    </div>`;
+  setTimeout(()=>document.getElementById('ie-sub-name')?.focus(),50);
+}
+function saveIESubtema(catId){
+  const name=(document.getElementById('ie-sub-name')?.value||'').trim();
+  if(!name){toast('Preencha o nome do subtema.','err');return;}
+  const d=getIE();
+  const cat=d.cards.find(c=>c.id===catId&&c.type==='category');
+  if(!cat){toast('Categoria não encontrada.','err');return;}
+  cat.children=cat.children||[];
+  cat.children.push({id:ieNewId(),type:'deck',front:name,tag:'',subs:[],collapsed:false,createdAt:today()});
+  setIE(d);renderIE();toast('Subtema criado!','ok');
+}
+function showIEAddCardInSubtema(catId,subId){
+  ieViewLocked=true;
+  document.getElementById('ie-main').innerHTML=`
+    <div class="fc-form">
+      <div class="card-title" style="margin-bottom:14px">Novo card de inglês</div>
+      <div class="fg" style="margin-bottom:12px"><label>Frente (inglês)</label><textarea class="fc-textarea" id="ie-card-q" placeholder="Ex: shortness of breath"></textarea></div>
+      <div class="fg" style="margin-bottom:16px"><label>Verso (significado)</label><textarea class="fc-textarea" id="ie-card-a" placeholder="Ex: dispneia / falta de ar"></textarea></div>
+      <div style="display:flex;gap:8px">
+        <button class="btn btn-p" onclick="saveIECardInSubtema('${catId}','${subId}')">Salvar</button>
+        <button class="btn btn-o" onclick="renderIE()">Cancelar</button>
+      </div>
+    </div>`;
+  setTimeout(()=>document.getElementById('ie-card-q')?.focus(),50);
+}
+function saveIECardInSubtema(catId,subId){
+  const q=(document.getElementById('ie-card-q')?.value||'').trim();
+  const a=(document.getElementById('ie-card-a')?.value||'').trim();
+  if(!q||!a){toast('Preencha a frente e o verso.','err');return;}
+  const d=getIE();
+  const cat=d.cards.find(c=>c.id===catId&&c.type==='category');
+  if(!cat)return;
+  const sub=(cat.children||[]).find(c=>c.id===subId&&c.type==='deck');
+  if(!sub)return;
+  sub.subs=sub.subs||[];
+  sub.subs.push({id:ieNewId(),q,a,nextTs:null});
+  setIE(d);renderIE();toast('Card adicionado!','ok');
+}
+function showIEBulkImport(catId,subId){
+  ieViewLocked=true;
+  document.getElementById('ie-main').innerHTML=`
+    <div class="fc-form">
+      <div class="card-title" style="margin-bottom:8px">Importar cards em massa</div>
+      <div style="font-size:12px;color:var(--muted);margin-bottom:14px;line-height:1.6">Cole o texto no formato abaixo. Use <strong>Q:</strong> para a frente (inglês) e <strong>R:</strong> para o verso (significado). Separe cada card com uma linha em branco.<br><span style="color:var(--dim)">Q: shortness of breath<br>R: dispneia / falta de ar</span></div>
+      <div class="fg" style="margin-bottom:14px"><label>Texto</label><textarea class="fc-textarea" id="ie-bulk-text" style="min-height:280px;font-family:ui-monospace,monospace;font-size:13px" placeholder="Q: word 1&#10;R: significado 1&#10;&#10;Q: word 2&#10;R: significado 2"></textarea></div>
+      <div id="ie-bulk-preview" style="font-size:12px;color:var(--muted);margin-bottom:14px"></div>
+      <div style="display:flex;gap:8px">
+        <button class="btn btn-p" onclick="saveIEBulkImport('${catId}','${subId}')">Importar</button>
+        <button class="btn btn-o" onclick="renderIE()">Cancelar</button>
+      </div>
+    </div>`;
+  const ta=document.getElementById('ie-bulk-text');
+  const upd=()=>{const n=parseFCBulk(ta.value).length;document.getElementById('ie-bulk-preview').innerHTML=n?`<span style="color:var(--green);font-weight:600">${n} card${n!==1?'s':''} detectado${n!==1?'s':''}</span>`:'Nenhum card detectado ainda.';};
+  ta.addEventListener('input',upd);
+  setTimeout(()=>ta.focus(),50);
+}
+function saveIEBulkImport(catId,subId){
+  const text=document.getElementById('ie-bulk-text')?.value||'';
+  const parsed=parseFCBulk(text);
+  if(!parsed.length){toast('Nenhum card detectado. Verifique o formato Q:/R:','err');return;}
+  const d=getIE();
+  const cat=d.cards.find(c=>c.id===catId&&c.type==='category');
+  if(!cat){toast('Categoria não encontrada.','err');return;}
+  const sub=(cat.children||[]).find(c=>c.id===subId&&c.type==='deck');
+  if(!sub){toast('Subtema não encontrado.','err');return;}
+  sub.subs=sub.subs||[];
+  parsed.forEach(p=>sub.subs.push({id:ieNewId()+Math.floor(Math.random()*1000),q:p.q,a:p.a,nextTs:null}));
+  setIE(d);renderIE();toast(`${parsed.length} cards importados!`,'ok');
+}
+function deleteIECardFromSubtema(catId,subId,cardId){
+  if(!confirm('Excluir este card?'))return;
+  const d=getIE();
+  const cat=d.cards.find(c=>c.id===catId&&c.type==='category');
+  if(!cat)return;
+  const sub=(cat.children||[]).find(c=>c.id===subId&&c.type==='deck');
+  if(!sub)return;
+  sub.subs=sub.subs.filter(s=>s.id!==cardId);
+  setIE(d);renderIE();toast('Card excluído.','info');
 }
 
 function deleteIECard(id){
   if(!confirm('Excluir este card de inglês?'))return;
-  const d=getIE();d.cards=d.cards.filter(c=>c.id!==id);setIE(d);renderIE();
-  toast('Card excluído.','info');
+  const d=getIE();
+  const oi=d.cards.findIndex(c=>c.id===id);
+  if(oi>=0){d.cards.splice(oi,1);}
+  else{
+    for(const cat of d.cards.filter(c=>c.type==='category')){
+      const ci=(cat.children||[]).findIndex(c=>c.id===id);
+      if(ci>=0){cat.children.splice(ci,1);break;}
+    }
+  }
+  setIE(d);renderIE();toast('Card excluído.','info');
 }
 
+// ── Reordenar arrastando (categorias/subtemas/cards) ──────────
+let ieReo=null;
+function ieReoStart(e,kind,catId,deckId,id){
+  ieReo={kind,catId,deckId,id};
+  e.dataTransfer.effectAllowed='move';
+  try{e.dataTransfer.setData('text/plain',id);}catch(_){}
+  e.stopPropagation();
+  const row=e.currentTarget;setTimeout(()=>row.classList.add('fc-dragging'),0);
+}
+function ieReoEnd(){document.querySelectorAll('.fc-dragging,.fc-reo-over').forEach(el=>el.classList.remove('fc-dragging','fc-reo-over'));ieReo=null;}
+function ieSameList(kind,catId,deckId){return ieReo&&ieReo.kind===kind&&ieReo.catId===catId&&ieReo.deckId===deckId;}
+function ieReoOver(e,kind,catId,deckId){
+  if(!ieSameList(kind,catId,deckId))return;
+  e.preventDefault();e.stopPropagation();e.dataTransfer.dropEffect='move';
+  const row=e.currentTarget;
+  document.querySelectorAll('.fc-reo-over').forEach(x=>x.classList.remove('fc-reo-over'));
+  row.classList.add('fc-reo-over');
+}
+function ieReoDrop(e,kind,catId,deckId,targetId){
+  if(!ieSameList(kind,catId,deckId))return;
+  e.preventDefault();e.stopPropagation();
+  const rect=e.currentTarget.getBoundingClientRect();
+  const after=(e.clientY-rect.top)>rect.height/2;
+  const fromId=ieReo.id;ieReo=null;
+  if(fromId===targetId){ieReoEnd();showIEBrowse();return;}
+  const d=getIE();let list=null;
+  if(kind==='cat')list=d.cards;
+  else if(kind==='deck'){const cat=d.cards.find(c=>c.id===catId&&c.type==='category');list=cat&&cat.children;}
+  else if(kind==='card'){const cat=d.cards.find(c=>c.id===catId&&c.type==='category');const deck=cat&&(cat.children||[]).find(c=>c.id===deckId);list=deck&&deck.subs;}
+  if(!list){ieReoEnd();return;}
+  arrMove(list,fromId,targetId,after);
+  setIE(d);showIEBrowse();
+}
+let ieDragId=null;
+function onIEDragStart(e,id){
+  ieDragId=id;
+  e.dataTransfer.effectAllowed='move';
+  e.dataTransfer.setData('text/plain',id);
+  setTimeout(()=>document.querySelector(`[data-drag-id="${id}"]`)?.classList.add('fc-dragging'),0);
+}
+function onIEDragEnd(){
+  document.querySelectorAll('.fc-dragging,.drag-over').forEach(el=>el.classList.remove('fc-dragging','drag-over'));
+  ieDragId=null;
+}
+function onIEDragOver(e,el){
+  if(!ieDragId)return;
+  e.preventDefault();e.dataTransfer.dropEffect='move';
+  document.querySelectorAll('.drag-over').forEach(x=>x.classList.remove('drag-over'));
+  el.classList.add('drag-over');
+}
+function onIEDragLeave(el){el.classList.remove('drag-over');}
+function onIEDrop(e,catId,subId){
+  e.preventDefault();
+  document.querySelectorAll('.drag-over,.fc-dragging').forEach(el=>el.classList.remove('drag-over','fc-dragging'));
+  if(!ieDragId)return;
+  const d=getIE();
+  const idx=d.cards.findIndex(c=>c.id===ieDragId&&c.type!=='category');
+  if(idx<0){toast('Apenas cards avulsos podem ser movidos.','info');ieDragId=null;return;}
+  const card=d.cards[idx];
+  const cat=d.cards.find(c=>c.id===catId&&c.type==='category');
+  if(!cat){ieDragId=null;return;}
+  const sub=(cat.children||[]).find(c=>c.id===subId&&c.type==='deck');
+  if(!sub){ieDragId=null;return;}
+  if(card.type==='deck'){toast('Mova cards avulsos, não conjuntos.','info');ieDragId=null;return;}
+  sub.subs=sub.subs||[];
+  sub.subs.push({id:ieNewId(),q:card.front,a:card.back,nextTs:card.nextTs||null});
+  d.cards.splice(idx,1);
+  setIE(d);ieDragId=null;renderIE();toast('Card movido para "'+sub.front+'"!','ok');
+}
+
+function ieBuildSession(includeAll){
+  const items=[];
+  function processCard(card,catName){
+    if(card.type==='deck'){
+      let subs=card.subs.filter(s=>isDueFc(s.nextTs));
+      if(!subs.length&&includeAll)subs=[...card.subs];
+      for(const s of subs)items.push({...s,_parentId:card.id,_parentFront:card.front,_parentTag:card.tag||'',_catName:catName||''});
+    } else {
+      if(isDueFc(card.nextTs)||includeAll)items.push({...card,_parentId:null,_catName:catName||''});
+    }
+  }
+  for(const c of getIE().cards){
+    if(c.type==='category'){for(const ch of(c.children||[]))processCard(ch,c.name);}
+    else processCard(c,null);
+  }
+  return items;
+}
+function ieBuildSessionScoped(catId,subId,includeAll){
+  const items=[];
+  function processCard(card,catName){
+    if(card.type==='deck'){
+      let subs=card.subs.filter(s=>isDueFc(s.nextTs));
+      if(!subs.length&&includeAll)subs=[...card.subs];
+      for(const s of subs)items.push({...s,_parentId:card.id,_parentFront:card.front,_parentTag:card.tag||'',_catName:catName||''});
+    } else {
+      if(isDueFc(card.nextTs)||includeAll)items.push({...card,_parentId:null,_catName:catName||''});
+    }
+  }
+  const cat=getIE().cards.find(c=>c.id===catId&&c.type==='category');
+  if(!cat)return items;
+  const children=cat.children||[];
+  if(subId){const sub=children.find(c=>c.id===subId);if(sub)processCard(sub,cat.name);}
+  else{for(const ch of children)processCard(ch,cat.name);}
+  return items;
+}
 function startIEReview(){
-  const cards=getIE().cards;
-  if(!cards.length){toast('Nenhum card para revisar!','info');return;}
-  const due=cards.filter(c=>isDueFc(c.nextTs));
-  const includeAll=due.length===0;
-  ieSession=(includeAll?[...cards]:due).map(c=>({...c}));
+  const due=ieCountDue();
+  const includeAll=due===0;
+  ieSession=ieBuildSession(includeAll);
+  if(!ieSession.length){toast('Nenhum card para revisar!','info');return;}
+  for(let i=ieSession.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[ieSession[i],ieSession[j]]=[ieSession[j],ieSession[i]];}
+  if(includeAll)toast('Sem pendentes — revisando todos os cards.','info');
+  ieViewLocked=true;ieFlipped=false;nextIECard();
+}
+function ieStartReviewScoped(catId,subId){
+  let dueCount=0;
+  const cat=getIE().cards.find(c=>c.id===catId&&c.type==='category');
+  if(cat){
+    const children=cat.children||[];
+    const scope=subId?children.filter(c=>c.id===subId):children;
+    for(const ch of scope){
+      if(ch.type==='deck')dueCount+=ch.subs.filter(s=>isDueFc(s.nextTs)).length;
+      else if(isDueFc(ch.nextTs))dueCount++;
+    }
+  }
+  const includeAll=dueCount===0;
+  ieSession=ieBuildSessionScoped(catId,subId,includeAll);
+  if(!ieSession.length){toast('Nenhum card para revisar!','info');return;}
   for(let i=ieSession.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[ieSession[i],ieSession[j]]=[ieSession[j],ieSession[i]];}
   if(includeAll)toast('Sem pendentes — revisando todos os cards.','info');
   ieViewLocked=true;ieFlipped=false;nextIECard();
@@ -4014,6 +4514,15 @@ function nextIECard(){
 
 function renderIECard(){
   const main=document.getElementById('ie-main');
+  const front=ieCurrent._parentId?ieCurrent.q:ieCurrent.front;
+  const back=ieCurrent._parentId?ieCurrent.a:ieCurrent.back;
+  const tag=!ieCurrent._parentId&&ieCurrent.tag?ieCurrent.tag:'';
+  const parentBar=ieCurrent._parentFront?`
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:14px;padding:8px 14px;background:var(--s2);border-radius:8px;border-left:3px solid var(--accent)">
+      <span style="font-size:11px;font-weight:600;color:var(--muted)">Tema:</span>
+      <span style="font-size:13px;font-weight:700;color:var(--text)">${escapeHtml(ieCurrent._parentFront)}</span>
+      ${ieCurrent._parentTag?`<span class="badge bg" style="margin-left:auto">${escapeHtml(ieCurrent._parentTag)}</span>`:''}
+    </div>`:'';
   const ratings=ieFlipped?`
     <div style="text-align:center;margin-bottom:10px;font-size:12px;color:var(--muted)">Como foi?</div>
     <div class="fc-ratings">
@@ -4024,12 +4533,13 @@ function renderIECard(){
     </div>`:'';
   main.innerHTML=`
     <div class="fc-progress">${ieSession.length+1} restante${ieSession.length+1!==1?'s':''}</div>
+    ${parentBar}
     <div class="fc-card-wrap">
       <div class="fc-card${ieFlipped?' fc-back':''}" onclick="${ieFlipped?'':'flipIECard()'}">
-        ${ieCurrent.tag?`<div class="fc-card-tag">${escapeHtml(ieCurrent.tag)}</div>`:''}
-        ${ieFlipped?`<div class="fc-card-side">FRENTE</div><div class="fc-card-text" style="font-size:19px;color:var(--muted);margin-bottom:22px">${escapeHtml(ieCurrent.front)}</div><div style="width:60%;max-width:280px;height:1px;background:var(--border);margin-bottom:22px"></div>`:''}
+        ${tag?`<div class="fc-card-tag">${escapeHtml(tag)}</div>`:''}
+        ${ieFlipped?`<div class="fc-card-side">FRENTE</div><div class="fc-card-text" style="font-size:19px;color:var(--muted);margin-bottom:22px">${escapeHtml(front)}</div><div style="width:60%;max-width:280px;height:1px;background:var(--border);margin-bottom:22px"></div>`:''}
         <div class="fc-card-side">${ieFlipped?'VERSO':'FRENTE'}</div>
-        <div class="fc-card-text">${ieFlipped?escapeHtml(ieCurrent.back):escapeHtml(ieCurrent.front)}</div>
+        <div class="fc-card-text">${ieFlipped?escapeHtml(back):escapeHtml(front)}</div>
         ${!ieFlipped?`<div class="fc-card-hint">Clique para revelar</div>`:''}
       </div>
     </div>
@@ -4041,22 +4551,51 @@ function flipIECard(){ieFlipped=true;renderIECard();}
 
 function rateIECard(rating){
   const d=getIE();
-  const card=d.cards.find(c=>c.id===ieCurrent.id);
-  if(card){
-    card.nextTs=Date.now()+FC_INTERVALS[rating];
-    if(!card.st)card.st={a:0,h:0,g:0,e:0};
-    card.st[['a','h','g','e'][rating]]++;
+  const nextTs=Date.now()+FC_INTERVALS[rating];
+  if(ieCurrent._parentId){
+    let parent=d.cards.find(c=>c.id===ieCurrent._parentId);
+    if(!parent){
+      for(const cat of d.cards.filter(c=>c.type==='category')){
+        parent=(cat.children||[]).find(c=>c.id===ieCurrent._parentId);
+        if(parent)break;
+      }
+    }
+    if(parent){const sub=parent.subs.find(s=>s.id===ieCurrent.id);if(sub){sub.nextTs=nextTs;bumpFcStat(sub,rating);}}
+  } else {
+    let card=d.cards.find(c=>c.id===ieCurrent.id);
+    if(!card){
+      for(const cat of d.cards.filter(c=>c.type==='category')){
+        card=(cat.children||[]).find(c=>c.id===ieCurrent.id);
+        if(card)break;
+      }
+    }
+    if(card){card.nextTs=nextTs;bumpFcStat(card,rating);}
   }
   setIE(d);
   // Sem reinjeção na sessão: o card só volta depois do tempo do botão (nextTs).
   nextIECard();
 }
 
+function ieCollectUnits(){
+  const d=getIE();const out=[];
+  const tot=s=>s.a+s.h+s.g+s.e;
+  for(const c of d.cards){
+    if(c.type==='category'){
+      for(const deck of(c.children||[])){
+        if(deck.type==='deck'){for(const s of(deck.subs||[]))if(s.st&&tot(s.st)>0)out.push({cat:c.name,front:s.q,back:s.a,st:s.st});}
+        else if(deck.st&&tot(deck.st)>0)out.push({cat:c.name,front:deck.front,back:deck.back,st:deck.st});
+      }
+    }else if(c.type==='deck'){
+      for(const s of(c.subs||[]))if(s.st&&tot(s.st)>0)out.push({cat:'Cards avulsos',front:s.q,back:s.a,st:s.st});
+    }else if(c.st&&tot(c.st)>0){out.push({cat:'Cards avulsos',front:c.front,back:c.back,st:c.st});}
+  }
+  return out;
+}
 function showIEStats(){
   ieViewLocked=true;
   const main=document.getElementById('ie-main');
   const tot=s=>s.a+s.h+s.g+s.e;
-  const units=getIE().cards.filter(c=>c.st&&tot(c.st)>0);
+  const units=ieCollectUnits();
   if(!units.length){
     main.innerHTML=`<div class="fc-empty"><div style="margin-bottom:12px;opacity:.3;font-size:40px">📊</div><h3 style="font-size:16px;margin-bottom:6px;color:var(--text)">Sem estatísticas ainda</h3><p>Faça uma revisão (Errei / Difícil / Bom / Fácil) e os números aparecem aqui.</p><button class="btn btn-o" style="margin-top:16px" onclick="renderIE()">← Voltar</button></div>`;
     return;
@@ -4067,6 +4606,9 @@ function showIEStats(){
   const pct=gTot?Math.round(gAcc/gTot*100):0;
   const pctColor=p=>p>=80?'var(--green)':p>=60?'var(--yellow)':'var(--red)';
   const box=(v,l,c)=>`<div class="fc-stat" style="flex:1;min-width:120px"><div class="fc-stat-val" style="color:${c}">${v}</div><div class="fc-stat-lbl">${l}</div></div>`;
+  const byCat={};
+  units.forEach(u=>{(byCat[u.cat]=byCat[u.cat]||{t:0,a:0});byCat[u.cat].t+=tot(u.st);byCat[u.cat].a+=acc(u.st);});
+  const cats=Object.entries(byCat).map(([name,v])=>({name,p:v.t?Math.round(v.a/v.t*100):0,rev:v.t})).sort((x,y)=>x.p-y.p);
   const fracas=units.filter(u=>u.st.a>0).sort((x,y)=>(y.st.a-x.st.a)||(y.st.h-x.st.h)).slice(0,8);
   main.innerHTML=`
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
@@ -4079,6 +4621,19 @@ function showIEStats(){
       ${box(units.length,'Cartas estudadas','var(--blue)')}
       ${box(gAcc,'Acertos (Bom+Fácil)','var(--green)')}
     </div>
+    ${cats.length>1?`<div class="card" style="margin-bottom:16px">
+      <div class="card-title">Acerto por categoria · pior → melhor</div>
+      ${cats.map(c=>`
+        <div style="margin-bottom:12px">
+          <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:5px">
+            <span style="font-weight:600;color:var(--text)">${escapeHtml(c.name)}</span>
+            <span style="color:var(--muted)">${c.p}% · ${c.rev} revisõe${c.rev!==1?'s':''}</span>
+          </div>
+          <div style="height:9px;background:var(--s3);border-radius:99px;overflow:hidden">
+            <div style="height:100%;width:${c.p}%;background:${pctColor(c.p)};border-radius:99px;transition:width .6s"></div>
+          </div>
+        </div>`).join('')}
+    </div>`:''}
     <div class="card">
       <div class="card-title">⚠️ Cards que você mais erra</div>
       ${fracas.length?fracas.map(u=>`
