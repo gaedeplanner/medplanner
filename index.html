@@ -390,6 +390,15 @@ tbody tr:hover{background:var(--s2)}
 .id-row-thumb{width:44px;height:44px;border-radius:9px;object-fit:cover;flex-shrink:0;background:var(--s2);border:1px solid var(--border)}
 .id-row-thumb-fb{width:44px;height:44px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:24px;background:var(--s2);border:1px solid var(--border);flex-shrink:0}
 .id-fruit-row{display:flex;align-items:center;gap:12px;padding:8px 14px 8px 40px;border-top:1px solid var(--border);background:var(--s2)}
+/* Cronograma CEFR */
+.crono-badge{font-size:14px;font-weight:900;color:var(--accent);background:var(--accent-wash);padding:3px 11px;border-radius:8px;letter-spacing:.02em;flex-shrink:0}
+.crono-sec-title{font-size:11px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--accent);margin:16px 0 5px;padding-left:4px}
+.crono-item{display:flex;align-items:flex-start;gap:10px;padding:6px 6px;font-size:13.5px;color:var(--text);cursor:pointer;border-radius:7px;transition:background .12s;line-height:1.45}
+.crono-item:hover{background:var(--s2)}
+.crono-item input{margin-top:2px;width:16px;height:16px;cursor:pointer;accent-color:var(--accent);flex-shrink:0}
+.crono-item.done span{text-decoration:line-through;color:var(--muted)}
+.crono-bar-wrap{height:7px;background:var(--s2);border-radius:999px;overflow:hidden;flex:1;min-width:90px;max-width:160px}
+.crono-bar{height:100%;background:var(--accent);border-radius:999px;transition:width .35s}
 .fc-type-btn{padding:20px;border:2px solid var(--border);border-radius:12px;background:var(--s1);cursor:pointer;text-align:left;transition:border-color .15s,box-shadow .15s;width:100%}
 .fc-type-btn:hover{border-color:var(--accent);box-shadow:var(--shadow-sm)}
 .fc-btn-good{background:rgba(31,95,143,.1);color:#1a4e76;border:1.5px solid rgba(31,95,143,.25);border-radius:12px;padding:10px 22px;font-size:13px;font-weight:700;cursor:pointer;transition:all .15s}
@@ -1342,6 +1351,7 @@ body{background:#f3eee6;background-image:linear-gradient(180deg,#ece4f1 0%,#f0e9
 
   <div class="ing-subtabs">
     <button class="ing-subtab on" id="ing-tab-flashcards" onclick="setIngSub('flashcards')">🃏 Flashcards</button>
+    <button class="ing-subtab" id="ing-tab-crono" onclick="setIngSub('crono')">🗺️ Cronograma</button>
     <button class="ing-subtab" id="ing-tab-tarefas" onclick="setIngSub('tarefas')">📚 Tarefas</button>
     <button class="ing-subtab" id="ing-tab-anotacoes" onclick="setIngSub('anotacoes')">📝 Anotações</button>
   </div>
@@ -1369,6 +1379,18 @@ body{background:#f3eee6;background-image:linear-gradient(180deg,#ece4f1 0%,#f0e9
       </div>
       <div id="ie-stats" class="fc-stats"></div>
       <div id="ie-main" style="margin-top:16px"></div>
+    </div>
+  </div>
+
+  <!-- SUB-ABA: CRONOGRAMA (CEFR A1-C2) -->
+  <div class="ing-subpanel" id="ing-sub-crono">
+    <div class="card" style="border:1.5px solid var(--border)">
+      <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;margin-bottom:6px">
+        <div class="card-title" style="margin-bottom:0">🗺️ Cronograma de Inglês (A1 → C2)</div>
+        <button class="btn btn-o btn-sm" onclick="resetCrono()">Limpar progresso</button>
+      </div>
+      <div style="font-size:12px;color:var(--muted);margin-bottom:14px">Tudo o que se aprende em cada nível do <strong>CEFR</strong> (Quadro Europeu). Abra um nível e <strong>marque</strong> o que você já domina — a barra mostra seu progresso.</div>
+      <div id="ing-crono-main"></div>
     </div>
   </div>
 
@@ -2537,9 +2559,10 @@ function setIngSub(name){
   ingSub=name;
   applyIngSub();
   if(name==='tarefas'&&typeof renderTarefas==='function')refreshPdfKeys().then(renderTarefas);
+  if(name==='crono'&&typeof renderCrono==='function')renderCrono();
 }
 function applyIngSub(){
-  ['flashcards','tarefas','anotacoes'].forEach(n=>{
+  ['flashcards','crono','tarefas','anotacoes'].forEach(n=>{
     const btn=document.getElementById('ing-tab-'+n);
     const pan=document.getElementById('ing-sub-'+n);
     if(btn)btn.classList.toggle('on',n===ingSub);
@@ -2552,7 +2575,103 @@ function renderIngles(){
   if(typeof renderImgDecks==='function')renderImgDecks();
   if(typeof renderIE==='function')renderIE();
   if(typeof renderTarefas==='function')refreshPdfKeys().then(renderTarefas);
+  if(typeof renderCrono==='function')renderCrono();
   applyIngSub();
+}
+
+// ── CRONOGRAMA DE INGLÊS (CEFR A1 → C2) ───────────────────────
+const CRONO_KEY='medplanner26_ingles_crono';
+function getCrono(){try{return JSON.parse(localStorage.getItem(CRONO_KEY))||{};}catch{return{};}}
+function setCrono(o){localStorage.setItem(CRONO_KEY,JSON.stringify(o));}
+let cronoOpen={};
+// chave estável p/ cada item (hash do texto), segura p/ embutir em onclick
+function cronoKey(lvId,txt){let h=0;for(let i=0;i<txt.length;i++){h=(h*31+txt.charCodeAt(i))|0;}return lvId+'_'+(h>>>0).toString(36);}
+
+const ING_CRONO=[
+ {id:'A1',name:'Iniciante',cor:'Beginner',cando:'Se apresenta, usa frases básicas do dia a dia e fala sobre si mesmo.',secs:[
+   {t:'Gramática',items:['Verbo to be (am / is / are)','Pronomes pessoais (I, you, he, she, it, we, they)','Artigos a / an / the','Plural dos substantivos (-s, -es)','this / that / these / those','Present Simple — afirmativa, negativa e perguntas','have got / have (possuir)','Adjetivos possessivos (my, your, his...)','there is / there are','can / can’t (habilidade e permissão)','Imperativo (Open the door!)','Preposições de lugar (in, on, under, next to)','Números, horas e datas']},
+   {t:'Vocabulário',items:['Cumprimentos e apresentações','Família','Números, cores e formas','Dias, meses e estações','Comida e bebida básica','Países e nacionalidades','Objetos do dia a dia e sala de aula','Partes do corpo e roupas']},
+   {t:'Habilidades & Funções',items:['Se apresentar e dar dados pessoais','Cumprimentar e se despedir','Pedir e dar informações simples','Falar sobre a rotina e o que gosta','Pedir comida e bebida','Soletrar nome e dizer o telefone']},
+ ]},
+ {id:'A2',name:'Básico',cor:'Elementary',cando:'Lida com situações simples do cotidiano e fala do passado e de planos.',secs:[
+   {t:'Gramática',items:['Present Continuous (am/is/are + -ing)','Present Simple x Continuous','Past Simple — verbos regulares e irregulares','was / were (passado de to be)','Comparativos e superlativos (-er, the -est)','going to (planos e futuro)','Advérbios de frequência (always, usually, never)','some / any / much / many / a lot of','Pronomes objeto (me, him, them...)','like / love / hate + -ing','have to / must (obrigação)','Preposições de tempo (at, in, on)','Conectivos (because, so, but, and)']},
+   {t:'Vocabulário',items:['Rotina e trabalho','Viagens e transporte','Compras e dinheiro','Tempo e clima','Hobbies e tempo livre','Casa e móveis','Saúde e corpo (sintomas básicos)','Comida e restaurante']},
+   {t:'Habilidades & Funções',items:['Falar sobre o passado e experiências','Fazer planos e combinar encontros','Comparar pessoas, lugares e coisas','Pedir e dar direções','Fazer compras e pedir num restaurante','Descrever pessoas, lugares e a rotina']},
+ ]},
+ {id:'B1',name:'Intermediário',cor:'Intermediate',cando:'Conversa sobre temas familiares, dá opiniões e se vira em viagens.',secs:[
+   {t:'Gramática',items:['Present Perfect (ever, never, just, already, yet)','Present Perfect x Past Simple','will x going to (futuro)','First Conditional (If + present, will)','Second Conditional (If + past, would)','Past Continuous (was/were + -ing)','used to (hábitos do passado)','Modais: should, might, could','as ... as (comparações)','Question tags (..., don’t you?)','Verbo + gerúndio ou infinitivo','Orações relativas (who, which, that)','Voz passiva (presente e passado simples)']},
+   {t:'Vocabulário',items:['Trabalho e carreira','Educação e estudos','Meio ambiente','Tecnologia e internet','Relacionamentos','Sentimentos e emoções','Phrasal verbs comuns','Collocations básicas (make/do/take/have)']},
+   {t:'Habilidades & Funções',items:['Dar opiniões e justificar','Narrar histórias e experiências','Fazer e responder convites','Falar de planos e hipóteses','Concordar e discordar educadamente','Escrever e-mails e mensagens informais']},
+ ]},
+ {id:'B2',name:'Intermediário Superior',cor:'Upper-Intermediate',cando:'Interage com fluência e naturalidade e discute temas abstratos.',secs:[
+   {t:'Gramática',items:['Present Perfect Continuous','Past Perfect (had + particípio)','Third Conditional (If + had, would have)','Condicionais mistas','Voz passiva em todos os tempos','Discurso indireto (Reported Speech)','Modais de dedução (must / can’t / might have)','Relativas restritivas e explicativas','wish / if only','Gerúndio x infinitivo (uso avançado)','Future Continuous e Future Perfect','Causativo (have / get something done)']},
+   {t:'Vocabulário',items:['Idioms e collocations','Linguagem formal x informal','Negócios e trabalho','Mídia e notícias','Política e sociedade','Phrasal verbs avançados','Palavras com prefixos e sufixos (word formation)']},
+   {t:'Habilidades & Funções',items:['Argumentar e debater','Expressar acordo/desacordo com nuances','Especular e fazer hipóteses','Resumir e parafrasear','Escrever textos estruturados (essays, reviews)','Entender filmes e podcasts sem legenda']},
+ ]},
+ {id:'C1',name:'Avançado',cor:'Advanced',cando:'Usa a língua com flexibilidade para fins sociais, acadêmicos e profissionais.',secs:[
+   {t:'Gramática',items:['Inversão (Hardly had I... / Not only...)','Cleft sentences (It was... / What I need is...)','Condicionais avançadas e mistas','Estruturas enfáticas (do/does para ênfase)','Participle clauses (Having finished..., Walking...)','Modais avançados e hedging (atenuação)','Future in the past (was going to)','Subjuntivo (I suggest he go...)','Discourse markers (nevertheless, henceforth...)','Elipse e substituição']},
+   {t:'Vocabulário',items:['Collocations avançadas e precisas','Linguagem acadêmica','Idioms e expressões idiomáticas','Registro e conotação','Sinônimos e nuances de sentido','Phrasal verbs idiomáticos','Vocabulário da sua área (ex.: médico)']},
+   {t:'Habilidades & Funções',items:['Discutir temas complexos e abstratos','Estruturar argumentos longos e coesos','Adaptar o registro ao contexto','Compreender textos longos e implícitos','Escrever relatórios e textos acadêmicos','Fazer apresentações e defender ideias']},
+ ]},
+ {id:'C2',name:'Proficiente',cor:'Proficiency',cando:'Compreende praticamente tudo e se expressa com naturalidade e precisão quase nativas.',secs:[
+   {t:'Gramática',items:['Domínio de todas as estruturas gramaticais','Nuances sutis entre tempos verbais','Estruturas idiomáticas complexas','Estilística e controle fino de registro','Reescrita e paráfrase sofisticadas']},
+   {t:'Vocabulário',items:['Idioms culturais e referências','Linguagem literária e técnica','Humor, ironia e trocadilhos','Vocabulário especializado (médico/acadêmico)','Collocations raras e precisas']},
+   {t:'Habilidades & Funções',items:['Expressar-se com precisão quase nativa','Compreender humor, ironia e subtexto','Argumentar e persuadir com sofisticação','Sintetizar informações de várias fontes','Produzir textos complexos e bem estruturados']},
+ ]},
+];
+
+function cronoLevelStats(lv){
+  const store=getCrono();let done=0,total=0;
+  lv.secs.forEach(s=>s.items.forEach(it=>{total++;if(store[cronoKey(lv.id,it)])done++;}));
+  return {done,total};
+}
+function renderCrono(){
+  const main=document.getElementById('ing-crono-main');
+  if(!main)return;
+  const store=getCrono();
+  let gDone=0,gTotal=0;
+  const cards=ING_CRONO.map(lv=>{
+    const{done,total}=cronoLevelStats(lv);gDone+=done;gTotal+=total;
+    const pct=total?Math.round(done/total*100):0;
+    const open=!!cronoOpen[lv.id];
+    const arrow=open?'▼':'▶';
+    const body=open?lv.secs.map(s=>{
+      const rows=s.items.map(it=>{
+        const k=cronoKey(lv.id,it);const ck=!!store[k];
+        return `<label class="crono-item${ck?' done':''}"><input type="checkbox" ${ck?'checked':''} onclick="toggleCronoItem('${k}')"><span>${escapeHtml(it)}</span></label>`;
+      }).join('');
+      return `<div class="crono-sec-title">${escapeHtml(s.t)}</div>${rows}`;
+    }).join(''):'';
+    return `<div style="border:1.5px solid var(--border);border-radius:12px;overflow:hidden;margin-bottom:12px">
+      <div class="fc-cat-header" onclick="toggleCronoLevel('${lv.id}')" style="cursor:pointer;gap:12px">
+        <em class="fc-cat-arrow">${arrow}</em>
+        <span class="crono-badge">${lv.id}</span>
+        <div style="flex:1;min-width:0">
+          <div style="font-size:14px;font-weight:700;color:var(--text)">${escapeHtml(lv.name)} <span style="font-weight:400;color:var(--muted);font-size:12px">· ${escapeHtml(lv.cor)}</span></div>
+          <div style="font-size:12px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${escapeHtml(lv.cando)}</div>
+        </div>
+        <div class="crono-bar-wrap" title="${done}/${total}"><div class="crono-bar" style="width:${pct}%"></div></div>
+        <span style="font-size:12px;font-weight:700;color:${pct===100?'var(--green)':'var(--muted)'};flex-shrink:0;min-width:42px;text-align:right">${done}/${total}</span>
+      </div>
+      ${open?`<div class="fc-cat-body" style="padding:6px 16px 14px">${body}</div>`:''}
+    </div>`;
+  }).join('');
+  const gPct=gTotal?Math.round(gDone/gTotal*100):0;
+  const overview=`<div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;flex-wrap:wrap">
+    <div style="font-size:13px;color:var(--muted)">Progresso geral: <strong style="color:var(--text)">${gDone}/${gTotal}</strong> (${gPct}%)</div>
+    <div class="crono-bar-wrap" style="max-width:none;flex:1;min-width:140px"><div class="crono-bar" style="width:${gPct}%;background:${gPct===100?'var(--green)':'var(--accent)'}"></div></div>
+  </div>`;
+  main.innerHTML=overview+cards;
+}
+function toggleCronoLevel(id){cronoOpen[id]=!cronoOpen[id];renderCrono();}
+function toggleCronoItem(key){
+  const store=getCrono();
+  if(store[key])delete store[key];else store[key]=1;
+  setCrono(store);renderCrono();
+}
+function resetCrono(){
+  if(!confirm('Desmarcar TODO o progresso do cronograma de inglês?'))return;
+  setCrono({});renderCrono();toast('Progresso do cronograma zerado.','info');
 }
 
 // ── TAREFAS DE INGLÊS (deveres de casa: PDFs pra fazer) ───────
@@ -5436,7 +5555,7 @@ db.settings({experimentalForceLongPolling:true});
 auth.setPersistence(firebase.auth.Auth.Persistence.SESSION).catch(()=>{});
 
 // Chaves do localStorage que devem ser sincronizadas entre dispositivos
-const CLOUD_KEYS=['medplanner26','medplanner26_notas','medplanner26_cal','medplanner26_fc','medplanner26_fc_ingles','medplanner26_imgdeck','medplanner26_exames','medplanner_resumos','medplanner_ingles_tarefas','medplanner26_escalas','medplanner_simulados','medplanner_sims_feitos','medplanner26_activity','medplanner26_goal'];
+const CLOUD_KEYS=['medplanner26','medplanner26_notas','medplanner26_cal','medplanner26_fc','medplanner26_fc_ingles','medplanner26_imgdeck','medplanner26_exames','medplanner_resumos','medplanner_ingles_tarefas','medplanner26_ingles_crono','medplanner26_escalas','medplanner_simulados','medplanner_sims_feitos','medplanner26_activity','medplanner26_goal'];
 
 let cloudUid=null;
 let applyingRemote=false;
