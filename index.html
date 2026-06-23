@@ -3491,7 +3491,59 @@ function fmtNextTs(ts){
   return`${Math.ceil(diff/86400000)}d`;
 }
 
+// ── MOTOR DE SESSÃO ESTILO ANKI ───────────────────────────────
+// "Errei" (1min) e "Difícil" (10min) são passos curtos de aprendizado:
+// o card VOLTA na mesma sessão depois daquele tempo. "Bom" (1dia) e
+// "Fácil" (4dias) graduam o card e ele sai da sessão.
+// Cada item da sessão pode ter _dueAt (ms absolutos) = quando fica pronto.
+let sessWaitTimer=null;
+function clearSessWait(){if(sessWaitTimer){clearTimeout(sessWaitTimer);sessWaitTimer=null;}}
+// Índice do card que fica pronto mais cedo (menor _dueAt).
+function sessPickDueIdx(session){
+  let idx=0,best=Infinity;
+  for(let i=0;i<session.length;i++){const due=session[i]._dueAt||0;if(due<best){best=due;idx=i;}}
+  return idx;
+}
+// Reinjeta o card na sessão se for passo curto (rating 0 ou 1).
+function sessReinject(session,item,rating){
+  if(rating>1)return; // 1dia/4dias: gradua, não volta
+  session.push({...item,_dueAt:Date.now()+FC_INTERVALS[rating]});
+}
+// Tela de espera quando só restam cards de passo curto ainda não prontos.
+function sessionWait(mainId,session,resumeFn,backFn){
+  clearSessWait();
+  const main=document.getElementById(mainId);
+  if(!main)return;
+  const fmt=ms=>{const s=Math.max(0,Math.ceil(ms/1000));return s>=60?`${Math.floor(s/60)} min ${String(s%60).padStart(2,'0')}s`:`${s}s`;};
+  const soonest=()=>Math.min(...session.map(it=>it._dueAt||0));
+  main.innerHTML=`
+    <div class="fc-session-done">
+      <div style="margin-bottom:12px;font-size:42px;opacity:.35">⏳</div>
+      <h3>Quase lá…</h3>
+      <p style="margin-top:6px">O próximo card de revisão fica pronto em<br><b id="sess-cd" style="font-size:18px">${fmt(soonest()-Date.now())}</b>.</p>
+      <button class="btn btn-p" id="sess-skip" style="margin-top:20px">Revisar agora</button>
+      <div style="margin-top:10px"><button class="btn btn-o btn-sm" id="sess-end">← Encerrar</button></div>
+    </div>`;
+  const tick=()=>{
+    const cd=document.getElementById('sess-cd');
+    if(!cd){clearSessWait();return;} // saiu da tela
+    const left=soonest()-Date.now();
+    if(left<=0){clearSessWait();resumeFn();return;}
+    cd.textContent=fmt(left);
+    sessWaitTimer=setTimeout(tick,500);
+  };
+  document.getElementById('sess-skip').onclick=()=>{
+    clearSessWait();
+    const now=Date.now();
+    session.forEach(it=>{if((it._dueAt||0)>now)it._dueAt=0;}); // libera todos
+    resumeFn();
+  };
+  document.getElementById('sess-end').onclick=()=>{clearSessWait();backFn();};
+  sessWaitTimer=setTimeout(tick,500);
+}
+
 function renderFC(){
+  clearSessWait();
   fcViewLocked=false; // voltou pra lista de cards → libera re-render da nuvem
   const d=getFC();
   const cats=d.cards.filter(c=>c.type==='category');
@@ -4120,6 +4172,7 @@ function startFCReview(){
 }
 
 function nextFCCard(){
+  clearSessWait();
   if(!fcSession.length){
     document.getElementById('fc-main').innerHTML=`
       <div class="fc-session-done">
@@ -4130,7 +4183,9 @@ function nextFCCard(){
       </div>`;
     return;
   }
-  fcCurrent=fcSession.shift();
+  const idx=sessPickDueIdx(fcSession);
+  if((fcSession[idx]._dueAt||0)>Date.now()){sessionWait('fc-main',fcSession,nextFCCard,renderFC);return;}
+  fcCurrent=fcSession.splice(idx,1)[0];
   fcFlipped=false;
   renderFCCard();
 }
@@ -4194,8 +4249,9 @@ function rateFCCard(rating){
     if(card){card.nextTs=nextTs;bumpFcStat(card,rating);}
   }
   setFC(d);logActivity('fc',1);
-  // O card sai da sessão e só reaparece depois do tempo do botão (nextTs):
-  // Errei=1min, Difícil=10min, Bom=1dia, Fácil=4dias. Sem voltar no meio da sessão.
+  // Passo curto (Errei=1min / Difícil=10min): o card volta na mesma sessão
+  // depois do tempo. Bom=1dia / Fácil=4dias graduam e saem da sessão.
+  sessReinject(fcSession,fcCurrent,rating);
   nextFCCard();
 }
 
@@ -4251,6 +4307,7 @@ function ieFindCardInData(d,id){
 }
 
 function renderIE(){
+  clearSessWait();
   ieViewLocked=false;
   const d=getIE();
   const cats=d.cards.filter(c=>c.type==='category');
@@ -4805,6 +4862,7 @@ function ieStartReviewScoped(catId,subId){
 }
 
 function nextIECard(){
+  clearSessWait();
   const main=document.getElementById('ie-main');
   if(!ieSession.length){
     main.innerHTML=`
@@ -4816,7 +4874,9 @@ function nextIECard(){
       </div>`;
     return;
   }
-  ieCurrent=ieSession.shift();ieFlipped=false;renderIECard();
+  const idx=sessPickDueIdx(ieSession);
+  if((ieSession[idx]._dueAt||0)>Date.now()){sessionWait('ie-main',ieSession,nextIECard,renderIE);return;}
+  ieCurrent=ieSession.splice(idx,1)[0];ieFlipped=false;renderIECard();
 }
 
 function renderIECard(){
@@ -4879,7 +4939,8 @@ function rateIECard(rating){
     if(card){card.nextTs=nextTs;bumpFcStat(card,rating);}
   }
   setIE(d);
-  // Sem reinjeção na sessão: o card só volta depois do tempo do botão (nextTs).
+  // Passo curto (1min/10min) volta na mesma sessão; 1dia/4dias graduam.
+  sessReinject(ieSession,ieCurrent,rating);
   nextIECard();
 }
 
@@ -5011,6 +5072,7 @@ function idThumbTag(c){
 }
 
 function renderImgDecks(){
+  clearSessWait();
   idViewLocked=false;
   const main=document.getElementById('id-main');
   if(!main)return;
@@ -5128,6 +5190,7 @@ function startIDReview(){
 }
 
 function nextIDCard(){
+  clearSessWait();
   const main=document.getElementById('id-main');
   if(!idSession.length){
     main.innerHTML=`
@@ -5139,7 +5202,9 @@ function nextIDCard(){
       </div>`;
     return;
   }
-  idCurrent=idSession.shift();idFlipped=false;renderIDCard();
+  const idx=sessPickDueIdx(idSession);
+  if((idSession[idx]._dueAt||0)>Date.now()){sessionWait('id-main',idSession,nextIDCard,renderImgDecks);return;}
+  idCurrent=idSession.splice(idx,1)[0];idFlipped=false;renderIDCard();
 }
 
 function renderIDCard(){
@@ -5181,7 +5246,8 @@ function rateIDCard(rating){
   s.nextTs=Date.now()+FC_INTERVALS[rating];
   s.st[['a','h','g','e'][rating]]++;
   d[k]=s;setID(d);
-  // Sem reinjeção na sessão: o card só volta depois do tempo do botão (nextTs).
+  // Passo curto (1min/10min) volta na mesma sessão; 1dia/4dias graduam.
+  sessReinject(idSession,idCurrent,rating);
   nextIDCard();
 }
 
