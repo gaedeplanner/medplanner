@@ -3498,11 +3498,23 @@ function fmtNextTs(ts){
 // Cada item da sessão pode ter _dueAt (ms absolutos) = quando fica pronto.
 let sessWaitTimer=null;
 function clearSessWait(){if(sessWaitTimer){clearTimeout(sessWaitTimer);sessWaitTimer=null;}}
-// Índice do card que fica pronto mais cedo (menor _dueAt).
+// Escolhe o próximo card. Prioridade (estilo Anki):
+//  1) card de passo curto que JÁ ficou pronto (_dueAt>0 e já passou) — fura a fila;
+//  2) card novo da sessão (ainda não revisado, _dueAt 0);
+//  3) se só restam cards aguardando o tempo, devolve o que fica pronto mais cedo
+//     (nextXCard detecta _dueAt no futuro e abre a tela de espera).
 function sessPickDueIdx(session){
-  let idx=0,best=Infinity;
-  for(let i=0;i<session.length;i++){const due=session[i]._dueAt||0;if(due<best){best=due;idx=i;}}
-  return idx;
+  const now=Date.now();
+  let learnIdx=-1,learnBest=Infinity,freshIdx=-1,waitIdx=0,waitBest=Infinity;
+  for(let i=0;i<session.length;i++){
+    const due=session[i]._dueAt||0;
+    if(due>now){if(due<waitBest){waitBest=due;waitIdx=i;}continue;}
+    if(due>0){if(due<learnBest){learnBest=due;learnIdx=i;}}   // passo curto já pronto
+    else if(freshIdx<0){freshIdx=i;}                           // card novo da sessão
+  }
+  if(learnIdx>=0)return learnIdx;
+  if(freshIdx>=0)return freshIdx;
+  return waitIdx;
 }
 // Reinjeta o card na sessão se for passo curto (rating 0 ou 1).
 function sessReinject(session,item,rating){
