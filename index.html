@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <!-- PWA: instalar no celular como app -->
 <link rel="manifest" href="manifest.json">
-<meta name="theme-color" content="#171310">
+<meta name="theme-color" content="#F2F2F7">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="MEDPlanner">
@@ -841,6 +841,137 @@ body{background:#f3eee6;background-image:linear-gradient(180deg,#ece4f1 0%,#f0e9
 
 /* Seleção de texto em azul suave */
 ::selection{background:var(--blue);color:#fff}
+
+/* ═══════════════════════════════════════════════════════════════════════
+   APPLE — linguagem visual iOS/macOS (camada final, vence o cascade)
+   Redefine os tokens e reestiliza casca/cards/botões. Reversível: basta
+   apagar deste comentário até o fim do bloco para voltar ao tema anterior.
+   ═══════════════════════════════════════════════════════════════════════ */
+:root{
+  /* superfícies */
+  --bg:#F2F2F7; --s1:#FFFFFF; --s2:rgba(120,120,128,.10); --s3:rgba(120,120,128,.16);
+  --border:rgba(0,0,0,.07);
+  /* acento (Apple blue) */
+  --accent:#007AFF; --ah:#0062CC;
+  --accent-wash:rgba(0,122,255,.10); --accent-wash-strong:rgba(0,122,255,.18);
+  /* texto */
+  --text:#1C1C1E; --muted:#8E8E93; --dim:#C7C7CC;
+  /* cores do sistema (vivid Apple) */
+  --green:#34C759; --yellow:#FF9F0A; --red:#FF3B30; --blue:#007AFF;
+  --purple:#5E5CE6; --pink:#FF2D55; --orange:#FF9500; --teal:#30D158;
+  --r:18px;
+  /* tipografia do sistema (SF Pro nos Apple, Segoe UI no Windows) */
+  --font-d:-apple-system,'SF Pro Display','SF Pro Text','Helvetica Neue','Segoe UI',system-ui,sans-serif;
+  --font-m:-apple-system,'SF Pro Text','SF Pro Display','Helvetica Neue','Segoe UI',system-ui,sans-serif;
+  /* sombras suaves */
+  --shadow-xs:0 1px 2px rgba(0,0,0,.04);
+  --shadow-sm:0 1px 2px rgba(0,0,0,.04),0 10px 30px -22px rgba(0,0,0,.25);
+  --shadow:0 1px 2px rgba(0,0,0,.04),0 14px 40px -26px rgba(0,0,0,.3);
+  --shadow-lg:0 24px 70px -24px rgba(0,0,0,.38);
+  /* sidebar translúcida */
+  --sb-bg:rgba(252,252,254,.78); --sb-border:rgba(0,0,0,.08);
+  --sb-text:#3A3A3C; --sb-icon:#8E8E93; --sb-hover:rgba(120,120,128,.12); --sb-group:#8E8E93;
+}
+[data-dark]{
+  --bg:#000000; --s1:#1C1C1E; --s2:#2C2C2E; --s3:#3A3A3C;
+  --border:rgba(255,255,255,.10);
+  --accent:#0A84FF; --ah:#3D9BFF;
+  --accent-wash:rgba(10,132,255,.16); --accent-wash-strong:rgba(10,132,255,.28);
+  --text:#FFFFFF; --muted:#98989F; --dim:#636366;
+  --green:#30D158; --yellow:#FFD60A; --red:#FF453A; --blue:#0A84FF;
+  --purple:#5E5CE6; --pink:#FF375F; --orange:#FF9F0A; --teal:#30D158;
+  --shadow-xs:0 0 0 1px rgba(255,255,255,.06);
+  --shadow-sm:0 0 0 1px rgba(255,255,255,.07);
+  --shadow:0 0 0 1px rgba(255,255,255,.08),0 18px 50px -28px rgba(0,0,0,.8);
+  --shadow-lg:0 0 0 1px rgba(255,255,255,.08),0 30px 80px -24px rgba(0,0,0,.85);
+  --sb-bg:rgba(28,28,30,.72); --sb-border:rgba(255,255,255,.08);
+  --sb-text:#EBEBF0; --sb-icon:#98989F; --sb-hover:rgba(255,255,255,.08); --sb-group:#98989F;
+}
+
+/* fundo liso (sem degradê creme) + fonte do sistema */
+body{font-family:var(--font-m);background:var(--bg);background-image:none;background-attachment:initial;letter-spacing:-.01em;-webkit-font-smoothing:antialiased}
+[data-dark] body{background:#000;background-image:none}
+
+/* títulos limpos, sem itálico/serifa/caixa-alta */
+.sec-title{font-family:var(--font-d);font-style:normal;font-weight:700;font-size:34px;letter-spacing:-.022em;line-height:1.06}
+@media(max-width:640px){.sec-title{font-size:28px}}
+.topbar-title{font-family:var(--font-m);text-transform:none;font-size:15px;font-weight:600;letter-spacing:-.01em;color:var(--text)}
+.card-title{font-family:var(--font-d);text-transform:none;letter-spacing:-.01em;font-size:16px;font-weight:700;color:var(--text);border-bottom:none;padding-bottom:0;margin-bottom:14px}
+.modal-title,.cal-month-title{font-style:normal;font-weight:700;letter-spacing:-.01em}
+.stat-value,.counter-val,.fc-stat-val{font-weight:700;letter-spacing:-.02em}
+
+/* SIDEBAR translúcida estilo macOS */
+.sidebar{background:var(--sb-bg);backdrop-filter:blur(30px) saturate(180%);-webkit-backdrop-filter:blur(30px) saturate(180%);border-right:1px solid var(--sb-border)}
+.sidebar-logo{border-bottom:1px solid var(--sb-border)}
+.sidebar-logo-icon{background:linear-gradient(160deg,#0A84FF,#0040DD);box-shadow:0 4px 12px -2px rgba(0,122,255,.55)}
+.sidebar-logo-name{color:var(--text)}
+.nav-group{color:var(--sb-group)}
+body.sb-collapsed .nav-group{background:var(--sb-border)}
+.tab-btn{color:var(--sb-text);font-weight:500}
+.tab-btn .nav-icon{color:var(--sb-icon)}
+.tab-btn:hover{background:var(--sb-hover);color:var(--text)}
+.tab-btn:hover .nav-icon{color:var(--text)}
+.tab-btn.active{background:var(--accent);color:#fff;font-weight:600;box-shadow:0 4px 12px -4px rgba(0,122,255,.55)}
+.tab-btn.active .nav-icon,[data-dark] .tab-btn.active .nav-icon{color:#fff}
+.nav-badge{background:var(--red);border:2px solid var(--bg)}
+
+/* TOPBAR translúcida */
+.topbar{background:var(--sb-bg);backdrop-filter:blur(30px) saturate(180%);-webkit-backdrop-filter:blur(30px) saturate(180%);border-bottom:1px solid var(--sb-border);box-shadow:none}
+
+/* CARDS arredondados com sombra suave */
+.card,.stat-card,.counter-card,.fc-stat,.rev-card,.fc-form{border:1px solid var(--border);border-radius:20px;box-shadow:var(--shadow-sm)}
+.card{padding:22px 24px}
+.card:hover,.stat-card:hover{box-shadow:var(--shadow);transform:translateY(-2px)}
+.modal{border:1px solid var(--border);border-radius:22px;box-shadow:var(--shadow-lg)}
+
+/* BOTÕES estilo iOS */
+.btn,.login-btn{text-transform:none;letter-spacing:-.01em;font-weight:600;border-radius:11px}
+.btn-sm{border-radius:9px}
+.btn-p{background:var(--accent);color:#fff;border:none;box-shadow:0 4px 12px -3px rgba(0,122,255,.5)}
+.btn-p:hover{background:var(--ah);transform:translateY(-1px);box-shadow:0 6px 16px -3px rgba(0,122,255,.55)}
+.btn-p:active{transform:translateY(0);box-shadow:none}
+.btn-o{background:var(--s1);border:1.5px solid var(--border);color:var(--text);box-shadow:none}
+.btn-o:hover{background:var(--s3);border-color:var(--border);transform:translateY(-1px)}
+[data-dark] .btn-p{box-shadow:0 4px 14px -3px rgba(10,132,255,.6)}
+.login-btn{box-shadow:0 6px 18px -3px rgba(0,122,255,.5);border:none}
+.login-btn:hover{background:var(--ah);transform:translateY(-1px);box-shadow:0 8px 22px -3px rgba(0,122,255,.55)}
+
+/* PÍLULAS e badges arredondadas (não mais "carimbo" quadrado) */
+.badge,.tag,.fc-due-pill,.sim-badge{font-family:var(--font-m);border-radius:20px;font-size:11.5px;font-weight:600;letter-spacing:-.01em}
+.cal-task-pill{font-family:var(--font-m);border-radius:6px;font-size:10.5px;font-weight:600}
+
+/* CORES POR ÁREA/MATÉRIA (paleta Apple, consistente) */
+.tCLINICA{background:rgba(0,122,255,.12);color:#0062CC}
+.tCIRURGIA{background:rgba(255,59,48,.12);color:#C20E04}
+.tPEDIATRIA{background:rgba(255,149,0,.16);color:#A85C00}
+.tGO{background:rgba(255,45,85,.12);color:#C41E45}
+.tPREVENTIVA{background:rgba(52,199,89,.16);color:#1C7A3D}
+[data-dark] .tCLINICA{background:rgba(10,132,255,.20);color:#6CB6FF}
+[data-dark] .tCIRURGIA{background:rgba(255,69,58,.20);color:#FF8A82}
+[data-dark] .tPEDIATRIA{background:rgba(255,159,10,.20);color:#FFC062}
+[data-dark] .tGO{background:rgba(255,55,95,.20);color:#FF85A1}
+[data-dark] .tPREVENTIVA{background:rgba(48,209,88,.20);color:#74E08C}
+
+/* BANNER do dashboard = card branco limpo */
+.dash-banner{background:var(--s1);border:1px solid var(--border);border-left:1px solid var(--border);border-radius:22px;box-shadow:var(--shadow-sm);padding:30px 34px}
+[data-dark] .dash-banner{background:var(--s1)}
+.dash-banner-name{font-family:var(--font-d);text-transform:none;font-style:normal;font-weight:700;font-size:40px;letter-spacing:-.022em;line-height:1.04;color:var(--text)}
+@media(max-width:640px){.dash-banner-name{font-size:30px}}
+.dash-banner-badge{background:var(--accent);color:#fff;border-radius:20px;text-transform:none;letter-spacing:0;font-weight:600;font-size:11px;padding:4px 12px}
+.dash-banner-sub{text-transform:none;letter-spacing:0;font-weight:500;font-size:13.5px;color:var(--muted)}
+
+/* FLASHCARDS = ficha branca suave */
+.fc-card{border:1px solid var(--border);border-radius:22px;box-shadow:var(--shadow)}
+.fc-card:hover{border-color:var(--accent);box-shadow:var(--shadow-lg)}
+
+/* LOGIN limpo */
+.login-card{border:1px solid var(--border);border-radius:24px;box-shadow:var(--shadow-lg)}
+.login-title{font-family:var(--font-d);font-style:normal;font-weight:700;letter-spacing:-.02em}
+
+/* sub-abas do Inglês com acento azul */
+.ing-subtab.on{color:var(--accent);border-bottom-color:var(--accent)}
+
+::selection{background:var(--accent);color:#fff}
 </style>
 </head>
 <body>
