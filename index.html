@@ -386,6 +386,14 @@ tbody tr:hover{background:var(--s2)}
 .ing-subtab.on{color:var(--accent);border-bottom-color:var(--accent)}
 .ing-subpanel{display:none}
 .ing-subpanel.on{display:block}
+/* Tela de menu (escolher seção do Inglês) */
+.ing-menu-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:16px;margin-top:4px}
+.ing-menu-card{display:flex;flex-direction:column;align-items:flex-start;gap:10px;text-align:left;padding:26px 24px;border:1.5px solid var(--border);border-radius:16px;background:var(--s1);cursor:pointer;font-family:inherit;transition:border-color .15s,box-shadow .18s,transform .12s;box-shadow:var(--shadow-xs)}
+.ing-menu-card:hover{border-color:var(--accent);box-shadow:var(--shadow-sm);transform:translateY(-3px)}
+.ing-menu-ico{font-size:34px;line-height:1}
+.ing-menu-title{font-size:21px;font-weight:800;color:var(--text);letter-spacing:-.01em}
+.ing-menu-desc{font-size:13px;color:var(--muted);line-height:1.5}
+.ing-menu-go{margin-top:2px;font-size:13px;font-weight:800;color:var(--accent)}
 /* Frutas em lista (estilo medicina): miniatura + nome */
 .id-row-thumb{width:44px;height:44px;border-radius:9px;object-fit:cover;flex-shrink:0;background:var(--s2);border:1px solid var(--border)}
 .id-row-thumb-fb{width:44px;height:44px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:24px;background:var(--s2);border:1px solid var(--border);flex-shrink:0}
@@ -1350,14 +1358,48 @@ body{background:#f3eee6;background-image:linear-gradient(180deg,#ece4f1 0%,#f0e9
   <div class="sec-header"><h2 class="sec-title">Inglês</h2></div>
 
   <div class="ing-subtabs">
-    <button class="ing-subtab on" id="ing-tab-flashcards" onclick="setIngSub('flashcards')">🃏 Flashcards</button>
+    <button class="ing-subtab on" id="ing-tab-menu" onclick="setIngSub('menu')">🏠 Início</button>
+    <button class="ing-subtab" id="ing-tab-flashcards" onclick="setIngSub('flashcards')">🃏 Flashcards</button>
     <button class="ing-subtab" id="ing-tab-crono" onclick="setIngSub('crono')">🗺️ Cronograma</button>
     <button class="ing-subtab" id="ing-tab-tarefas" onclick="setIngSub('tarefas')">📚 Tarefas</button>
     <button class="ing-subtab" id="ing-tab-anotacoes" onclick="setIngSub('anotacoes')">📝 Anotações</button>
   </div>
 
+  <!-- SUB-ABA: MENU (escolher seção) -->
+  <div class="ing-subpanel on" id="ing-sub-menu">
+    <div style="margin-bottom:18px">
+      <div style="font-size:13px;color:var(--muted)">O que você quer estudar agora?</div>
+    </div>
+    <div class="ing-menu-grid">
+      <button class="ing-menu-card" onclick="setIngSub('flashcards')">
+        <div class="ing-menu-ico">🃏</div>
+        <div class="ing-menu-title">Flashcards</div>
+        <div class="ing-menu-desc">Baralhos com imagem e cards de vocabulário, revisão estilo Anki.</div>
+        <div class="ing-menu-go">Abrir →</div>
+      </button>
+      <button class="ing-menu-card" onclick="setIngSub('crono')">
+        <div class="ing-menu-ico">🗺️</div>
+        <div class="ing-menu-title">Cronograma</div>
+        <div class="ing-menu-desc">Tudo de cada nível (A1 → C2) com checklist do seu progresso.</div>
+        <div class="ing-menu-go">Abrir →</div>
+      </button>
+      <button class="ing-menu-card" onclick="setIngSub('tarefas')">
+        <div class="ing-menu-ico">📚</div>
+        <div class="ing-menu-title">Tarefas</div>
+        <div class="ing-menu-desc">Seus deveres de casa — apostilas e PDFs pra fazer e marcar.</div>
+        <div class="ing-menu-go">Abrir →</div>
+      </button>
+      <button class="ing-menu-card" onclick="setIngSub('anotacoes')">
+        <div class="ing-menu-ico">📝</div>
+        <div class="ing-menu-title">Anotações</div>
+        <div class="ing-menu-desc">Vocabulário, expressões e gramática num bloco livre.</div>
+        <div class="ing-menu-go">Abrir →</div>
+      </button>
+    </div>
+  </div>
+
   <!-- SUB-ABA: FLASHCARDS -->
-  <div class="ing-subpanel on" id="ing-sub-flashcards">
+  <div class="ing-subpanel" id="ing-sub-flashcards">
     <div class="card" style="border:1.5px solid var(--border);margin-bottom:18px">
       <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;margin-bottom:6px">
         <div class="card-title" style="margin-bottom:0">🍓 Baralhos com Imagem</div>
@@ -2554,15 +2596,21 @@ function renderOE(){
   const el=document.getElementById('nota-openevidence');
   if(el)el.value=getNotas().openevidence||'';
 }
-let ingSub='flashcards';
+let ingSub='menu';
 function setIngSub(name){
   ingSub=name;
   applyIngSub();
+  if(name==='flashcards'){
+    if(typeof ieCollapseAll==='function')ieCollapseAll();
+    if(typeof idOpenTopics!=='undefined'){idOpenTopics={};idOpenBands={};}
+    if(typeof renderImgDecks==='function')renderImgDecks();
+    if(typeof renderIE==='function')renderIE();
+  }
   if(name==='tarefas'&&typeof renderTarefas==='function')refreshPdfKeys().then(renderTarefas);
   if(name==='crono'&&typeof renderCrono==='function')renderCrono();
 }
 function applyIngSub(){
-  ['flashcards','crono','tarefas','anotacoes'].forEach(n=>{
+  ['menu','flashcards','crono','tarefas','anotacoes'].forEach(n=>{
     const btn=document.getElementById('ing-tab-'+n);
     const pan=document.getElementById('ing-sub-'+n);
     if(btn)btn.classList.toggle('on',n===ingSub);
@@ -2570,8 +2618,11 @@ function applyIngSub(){
   });
 }
 function renderIngles(){
+  ingSub='menu';                 // sempre abre na tela de menu
   const el=document.getElementById('nota-ingles');
   if(el)el.value=getNotas().ingles||'';
+  if(typeof ieCollapseAll==='function')ieCollapseAll();   // flashcards sempre minimizados
+  idOpenTopics={};idOpenBands={};
   if(typeof renderImgDecks==='function')renderImgDecks();
   if(typeof renderIE==='function')renderIE();
   if(typeof renderTarefas==='function')refreshPdfKeys().then(renderTarefas);
@@ -4341,6 +4392,14 @@ function renderIE(){
   showIEBrowse();
 }
 
+function ieCollapseAll(){
+  const d=getIE();let changed=false;
+  d.cards.forEach(c=>{
+    if(c.collapsed!==true){c.collapsed=true;changed=true;}
+    if(c.type==='category')(c.children||[]).forEach(ch=>{if(ch.collapsed!==true){ch.collapsed=true;changed=true;}});
+  });
+  if(changed)setIE(d);
+}
 function ieToggleCat(id){
   const d=getIE();const cat=d.cards.find(c=>c.id===id&&c.type==='category');
   if(cat)cat.collapsed=!cat.collapsed;setIE(d);showIEBrowse();
@@ -5107,7 +5166,7 @@ function renderImgDecks(){
 
 // Uma pasta (categoria) por baralho; dentro, um subtema por nível A/B/C
 function idDeckFolderHtml(deck){
-  const open=idOpenTopics[deck.id]!==false;
+  const open=idOpenTopics[deck.id]===true;
   const arrow=open?'▼':'▶';
   const total=deck.cards.length;
   const learned=deck.cards.filter(c=>idIsLearned(deck,c)).length;
@@ -5170,7 +5229,7 @@ function idBandRowHtml(deck,b){
   </div>`;
 }
 
-function idToggleTopic(id){idOpenTopics[id]=(idOpenTopics[id]!==false)?false:true;renderImgDecks();}
+function idToggleTopic(id){idOpenTopics[id]=!idOpenTopics[id];renderImgDecks();}
 function idToggleBand(key){idOpenBands[key]=!idOpenBands[key];renderImgDecks();}
 function startIDReviewBand(deckId,bandId){idDeckId=deckId;idBand=bandId;startIDReview();}
 function startIDReviewDeck(deckId){
