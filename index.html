@@ -971,6 +971,31 @@ body.sb-collapsed .nav-group{background:var(--sb-border)}
 /* sub-abas do Inglês com acento azul */
 .ing-subtab.on{color:var(--accent);border-bottom-color:var(--accent)}
 
+/* ═══ APPLE — SIDEBAR fiel à maquete (semáforos + logo degradê + card do usuário) ═══ */
+:root{--sidebar-w:248px}
+body.sb-collapsed{--sidebar-w:74px}
+.sidebar-traffic{display:flex;align-items:center;gap:8px;height:40px;padding:0 20px;flex-shrink:0}
+.sidebar-traffic span{width:12px;height:12px;border-radius:50%}
+.sidebar-traffic span:nth-child(1){background:#FF5F57}
+.sidebar-traffic span:nth-child(2){background:#FEBC2E}
+.sidebar-traffic span:nth-child(3){background:#28C840}
+body.sb-collapsed .sidebar-traffic{justify-content:center;padding:0}
+body.sb-collapsed .sidebar-traffic span:nth-child(2),body.sb-collapsed .sidebar-traffic span:nth-child(3){display:none}
+.sidebar-logo{border-bottom:none;padding:2px 16px 14px}
+.sidebar-logo-icon{background:linear-gradient(160deg,#FF6B6B,#FF2D55);box-shadow:0 4px 12px -2px rgba(255,45,85,.5);border-radius:10px}
+.sidebar-logo-sub{display:block;font-size:11.5px;color:var(--muted);font-weight:500;white-space:nowrap}
+body.sb-collapsed .sidebar-logo-sub{display:none}
+/* card do usuário no rodapé */
+.sidebar-user{display:flex;align-items:center;gap:11px;margin:8px 14px 14px;padding:9px;border-radius:14px;background:var(--s3);cursor:pointer;transition:background .15s;flex-shrink:0;overflow:hidden}
+.sidebar-user:hover{background:var(--sb-hover)}
+.sidebar-user-av{width:32px;height:32px;flex:0 0 32px;border-radius:50%;background:linear-gradient(160deg,var(--accent),#0040DD);color:#fff;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;line-height:1}
+.sidebar-user-text{flex:1;min-width:0;overflow:hidden}
+.sidebar-user-name{font-size:13px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sidebar-user-sub{font-size:11px;color:var(--muted);white-space:nowrap}
+.sidebar-user-chev{color:var(--dim);flex-shrink:0}
+body.sb-collapsed .sidebar-user{justify-content:center;padding:9px 0;margin:8px 6px 12px;gap:0}
+body.sb-collapsed .sidebar-user-text,body.sb-collapsed .sidebar-user-chev{display:none}
+
 ::selection{background:var(--accent);color:#fff}
 </style>
 </head>
@@ -1004,6 +1029,7 @@ body.sb-collapsed .nav-group{background:var(--sb-border)}
 
 <div id="app-root">
 <aside class="sidebar" id="sidebar">
+  <div class="sidebar-traffic"><span></span><span></span><span></span></div>
   <div class="sidebar-logo">
     <span class="sidebar-logo-icon"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg></span>
     <div class="sidebar-logo-text">
@@ -1030,6 +1056,14 @@ body.sb-collapsed .nav-group{background:var(--sb-border)}
     <div class="nav-group">Sistema</div>
     <button class="tab-btn" data-tab="dados" title="Dados"><span class="nav-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></span><span class="nav-label">Dados</span></button>
   </nav>
+  <div class="sidebar-user" onclick="switchToTab('dados')" title="Seus dados e configurações">
+    <span class="sidebar-user-av">L</span>
+    <div class="sidebar-user-text">
+      <div class="sidebar-user-name">Lucas</div>
+      <div class="sidebar-user-sub">Sincronizado</div>
+    </div>
+    <svg class="sidebar-user-chev" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg>
+  </div>
 </aside>
 
 <header class="topbar">
