@@ -996,6 +996,45 @@ body.sb-collapsed .sidebar-logo-sub{display:none}
 body.sb-collapsed .sidebar-user{justify-content:center;padding:9px 0;margin:8px 6px 12px;gap:0}
 body.sb-collapsed .sidebar-user-text,body.sb-collapsed .sidebar-user-chev{display:none}
 
+/* ═══ APPLE — DASHBOARD fiel à maquete (header + chips + anéis + listas) ═══ */
+.dash-head{display:flex;align-items:flex-end;justify-content:space-between;gap:20px;flex-wrap:wrap;margin-bottom:24px}
+.dash-head-date{font-size:14px;color:var(--muted);font-weight:500;margin-bottom:5px}
+.dash-head-title{font-family:var(--font-d);font-size:34px;font-weight:700;letter-spacing:-.022em;line-height:1.05;color:var(--text)}
+.dash-head-actions{display:flex;align-items:center;gap:10px}
+.dash-search{display:flex;align-items:center;gap:8px;background:var(--s3);border:none;border-radius:11px;padding:10px 14px;min-width:190px;cursor:pointer;color:var(--muted);font-size:13.5px;font-family:inherit;transition:background .15s}
+.dash-search:hover{background:var(--sb-hover)}
+@media(max-width:640px){.dash-search{display:none}}
+.dash-chips{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:18px}
+@media(max-width:760px){.dash-chips{grid-template-columns:1fr}}
+.dash-chip{background:var(--s1);border:1px solid var(--border);border-radius:20px;padding:18px 20px;box-shadow:var(--shadow-sm)}
+.dash-chip-lbl{display:flex;align-items:center;gap:8px;color:var(--muted);font-size:13px;font-weight:500;margin-bottom:10px}
+.dash-chip-val{font-size:30px;font-weight:700;letter-spacing:-.02em;color:var(--text)}
+.dash-chip-val small{font-size:16px;color:var(--dim);font-weight:600}
+.dash-grid{display:grid;grid-template-columns:1.32fr 1fr;gap:16px;align-items:start;margin-bottom:18px}
+@media(max-width:980px){.dash-grid{grid-template-columns:1fr}}
+.dash-col{display:flex;flex-direction:column;gap:16px}
+.dash-soft{border-radius:22px}
+.dash-card-head{display:flex;align-items:center;justify-content:space-between;padding:8px 8px 10px}
+.dash-card-title{font-size:17px;font-weight:700;letter-spacing:-.01em;color:var(--text)}
+.dash-card-sub{font-size:13px;color:var(--muted);font-weight:500}
+.dash-card-link{font-size:13px;color:var(--accent);font-weight:600;cursor:pointer}
+.dash-hoje-row{display:flex;align-items:center;gap:13px;width:100%;text-align:left;border:none;border-top:1px solid var(--border);background:none;cursor:pointer;font-family:inherit;padding:11px 8px;transition:background .12s}
+.dash-hoje-row:hover{background:var(--s2);border-radius:10px}
+.dash-hoje-check{width:23px;height:23px;flex:0 0 23px;border-radius:50%;border:2px solid var(--dim);display:flex;align-items:center;justify-content:center;transition:all .15s}
+.dash-hoje-row:hover .dash-hoje-check{border-color:var(--accent)}
+.dash-hoje-ttl{font-size:14.5px;font-weight:600;color:var(--text);letter-spacing:-.01em}
+.dash-hoje-sub{font-size:12.5px;color:var(--muted);margin-top:2px}
+.dash-rev-row{display:flex;align-items:center;gap:12px;padding:11px 8px;border-top:1px solid var(--border)}
+.dash-rev-dot{width:10px;height:10px;flex:0 0 10px;border-radius:50%}
+.dash-rev-ttl{font-size:14px;font-weight:600;letter-spacing:-.01em;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.dash-rev-sub{font-size:12px;color:var(--muted);margin-top:1px}
+.dash-rev-pill{font-size:12.5px;font-weight:600;padding:3px 10px;border-radius:20px;white-space:nowrap;flex-shrink:0}
+.dash-bar-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px}
+.dash-bar-name{font-size:13.5px;font-weight:600;letter-spacing:-.01em;color:var(--text)}
+.dash-bar-pct{font-size:13px;font-weight:700}
+.dash-bar-track{height:8px;border-radius:8px;background:var(--s3);overflow:hidden}
+.dash-bar-fill{height:100%;border-radius:8px;transition:width .6s ease}
+
 ::selection{background:var(--accent);color:#fff}
 </style>
 </head>
@@ -1096,29 +1135,37 @@ body.sb-collapsed .sidebar-user-text,body.sb-collapsed .sidebar-user-chev{displa
 
 <!-- DASHBOARD -->
 <div class="tab-panel active" id="tab-dashboard">
-  <!-- WELCOME BANNER -->
-  <div class="dash-banner">
-    <div class="dash-banner-left">
-      <div class="dash-banner-badge" id="dash-date">—</div>
-      <div class="dash-banner-name">Olá, Lucas</div>
-      <div class="dash-banner-sub">MEDCURSO 2026 — Residência Médica</div>
+  <!-- HEADER estilo maquete -->
+  <div class="dash-head">
+    <div>
+      <div class="dash-head-date" id="dash-date">—</div>
+      <h1 class="dash-head-title">Olá, Lucas</h1>
     </div>
-    <div class="dash-banner-right" id="dash-progress-ring">
-      <canvas id="c-ring" width="96" height="96"></canvas>
-      <div class="dash-ring-label" id="dash-ring-pct"></div>
+    <div class="dash-head-actions">
+      <button class="dash-search" onclick="switchToTab('cronograma')" title="Buscar no cronograma">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
+        Buscar tema…
+      </button>
+      <button class="btn btn-p" onclick="openModal()"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14"/><path d="M5 12h14"/></svg> Adicionar</button>
     </div>
   </div>
-  <!-- STATS -->
-  <div class="cards-grid" id="stats-cards"></div>
-  <!-- PROGRESSO + DISTRIBUIÇÃO -->
-  <div class="grid-2">
-    <div class="card">
-      <div class="card-title">Progresso por Área</div>
-      <div id="area-bars"></div>
+  <!-- CHIPS DE RESUMO -->
+  <div class="dash-chips" id="dash-chips"></div>
+  <!-- GRID PRINCIPAL (maquete) -->
+  <div class="dash-grid">
+    <div class="dash-col">
+      <div class="card dash-soft"><div class="card-title">Seu progresso</div><div id="dash-rings"></div></div>
+      <div class="card dash-soft" style="padding:10px 10px 8px">
+        <div class="dash-card-head"><span class="dash-card-title">Hoje</span><span class="dash-card-sub" id="dash-hoje-count"></span></div>
+        <div id="dash-hoje"></div>
+      </div>
     </div>
-    <div class="card">
-      <div class="card-title">Distribuição de Desempenho</div>
-      <div id="dist-perf-dash"></div>
+    <div class="dash-col">
+      <div class="card dash-soft" style="padding:10px 10px 14px">
+        <div class="dash-card-head"><span class="dash-card-title">Próximas revisões</span><span class="dash-card-link" onclick="switchToTab('hoje')">Ver todas</span></div>
+        <div id="prox-rev"></div>
+      </div>
+      <div class="card dash-soft"><div class="card-title">Desempenho por área</div><div id="area-bars"></div></div>
     </div>
   </div>
   <!-- META DIÁRIA + EVOLUÇÃO -->
@@ -2297,80 +2344,95 @@ function renderDashboard(){
   const{topics}=get();
   const T=today();
   const dateEl=document.getElementById('dash-date');
-  if(dateEl)dateEl.textContent=new Date().toLocaleDateString('pt-BR',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
+  if(dateEl){const ds=new Date().toLocaleDateString('pt-BR',{weekday:'long',day:'numeric',month:'long',year:'numeric'});dateEl.textContent=ds.charAt(0).toUpperCase()+ds.slice(1);}
 
-
-  // STATS
+  // MÉTRICAS REAIS
   const total=topics.length;
   const viu=topics.filter(t=>t.aula).length;
   const qpos=topics.filter(t=>t.qpos).length;
   const conc=topics.filter(t=>t.pt==='Concluído').length;
-  let atrasadas=0;
-  topics.forEach(t=>{const d=revDates(t);['r1s','r1m','r2m','r4m','r6m'].forEach((k,i)=>{const dk=[d.r1s,d.r1m,d.r2m,d.r4m,d.r6m][i];if(!t[k]&&dk&&dk<=T)atrasadas++;});});
   const pct=n=>total>0?Math.round(n/total*100):0;
-
-  // BANNER RING
-  const ringPct=total>0?Math.round(viu/total*100):0;
-  document.getElementById('dash-ring-pct').innerHTML=`<span style="font-size:18px;font-weight:700">${ringPct}%</span><br><span style="font-size:9px;opacity:.7;font-weight:500">AULAS</span>`;
-  (function drawRing(){
-    const cv=document.getElementById('c-ring');if(!cv)return;
-    const ctx=cv.getContext('2d');const cx=45,cy=45,r=36,lw=8;
-    ctx.clearRect(0,0,90,90);
-    const _cs=getComputedStyle(document.documentElement);
-    const _acc=_cs.getPropertyValue('--accent').trim()||'#ff3b2e';
-    const _trk=_cs.getPropertyValue('--s3').trim()||'rgba(0,0,0,.08)';
-    ctx.beginPath();ctx.arc(cx,cy,r,-Math.PI/2,Math.PI*2-Math.PI/2);ctx.strokeStyle=_trk;ctx.lineWidth=lw;ctx.lineCap='round';ctx.stroke();
-    if(ringPct>0){ctx.beginPath();ctx.arc(cx,cy,r,-Math.PI/2,(Math.PI*2*(ringPct/100))-Math.PI/2);ctx.strokeStyle=_acc;ctx.lineWidth=lw;ctx.lineCap='round';ctx.stroke();}
-  })();
-
-  const icoBook=`<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>`;
-  const icoPlay=`<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polygon points="10 8 16 12 10 16 10 8"/></svg>`;
-  const icoQ=`<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>`;
-  const icoAlert=`<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>`;
-  const icoCheck=`<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>`;
-  const icoAward=`<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="6"/><path d="M15.477 12.89L17 22l-5-3-5 3 1.523-9.11"/></svg>`;
-  const icoFlame=`<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/></svg>`;
   const streak=studyStreak();
-  document.getElementById('stats-cards').innerHTML=`
-    <div class="stat-card c-orange"><div class="stat-icon">${icoBook}</div><div class="stat-body"><div class="stat-label">Tópicos</div><div class="stat-value va">${total}</div><div class="stat-sub">cadastrados</div></div></div>
-    <div class="stat-card c-blue"><div class="stat-icon">${icoPlay}</div><div class="stat-body"><div class="stat-label">Aulas vistas</div><div class="stat-value vb">${viu}</div><div class="stat-sub">${pct(viu)}% do total</div></div></div>
-    <div class="stat-card c-green"><div class="stat-icon">${icoQ}</div><div class="stat-body"><div class="stat-label">Com Questões</div><div class="stat-value vg">${qpos}</div><div class="stat-sub">${pct(qpos)}% do total</div></div></div>
-    <div class="stat-card ${atrasadas>0?'c-red':'c-green'}"><div class="stat-icon">${atrasadas>0?icoAlert:icoCheck}</div><div class="stat-body"><div class="stat-label">Rev. Atrasadas</div><div class="stat-value ${atrasadas>0?'vr':'vg'}">${atrasadas}</div><div class="stat-sub">${atrasadas>0?'urgente!':'Tudo em dia'}</div></div></div>
-    <div class="stat-card c-purple"><div class="stat-icon">${icoAward}</div><div class="stat-body"><div class="stat-label">Concluídos</div><div class="stat-value vp">${conc}</div><div class="stat-sub">${pct(conc)}% do total</div></div></div>
-    <div class="stat-card c-orange"><div class="stat-icon">${icoFlame}</div><div class="stat-body"><div class="stat-label">Sequência</div><div class="stat-value" style="color:#f97316">${streak}</div><div class="stat-sub">${streak===1?'dia seguido':'dias seguidos'}</div></div></div>`;
+  const act=todayAct();const goal=getGoal();const qHoje=act.q||0;const fcHoje=act.fc||0;
 
-  // AREA BARS
+  // revisões pendentes (hoje/atrasadas) e próximas (até 14 dias)
+  const revK=[{k:'r1s',l:'1 Semana'},{k:'r1m',l:'1 Mês'},{k:'r2m',l:'2 Meses'},{k:'r4m',l:'4 Meses'},{k:'r6m',l:'6 Meses'}];
+  const dueToday=[],upcoming=[];
+  topics.forEach(t=>{const d=revDates(t);const dm={r1s:d.r1s,r1m:d.r1m,r2m:d.r2m,r4m:d.r4m,r6m:d.r6m};revK.forEach(({k,l})=>{if(!t[k]&&dm[k]){const diff=diffD(dm[k]);if(diff===null)return;if(diff<=0)dueToday.push({t,k,l,date:dm[k],diff});else if(diff<=14)upcoming.push({t,k,l,date:dm[k],diff});}});});
+  dueToday.sort((a,b)=>a.diff-b.diff);
+  upcoming.sort((a,b)=>a.diff-b.diff);
+  const areaFirst=t=>Array.isArray(t.area)?(t.area[0]||''):(t.area||'');
+  const AREA_NM={'CLÍNICA':'Clínica Médica','CIRURGIA':'Cirurgia','PEDIATRIA':'Pediatria','GO':'G. e Obstetrícia','PREVENTIVA':'Preventiva'};
+
+  // CHIPS DE RESUMO
+  const chip=(ico,lbl,val,sub)=>`<div class="dash-chip"><div class="dash-chip-lbl">${ico}${lbl}</div><div class="dash-chip-val">${val}<small> ${sub}</small></div></div>`;
+  const icC=document.getElementById('dash-chips');
+  if(icC)icC.innerHTML=
+    chip('<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#FF2D55" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>','Questões hoje',qHoje,'/ '+goal)+
+    chip('<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#FF9500" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2c1.5 3.5 5 4.5 5 8.5A5 5 0 0 1 7 11c0-1.2.4-2.2 1-3 .3 1 .9 1.6 1.7 1.9C9.3 7 10.6 4.4 12 2z"/></svg>','Sequência',streak,streak===1?'dia':'dias')+
+    chip('<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#0A84FF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg>','Flashcards hoje',fcHoje,'revisados');
+
+  // ANÉIS DE PROGRESSO (estilo Apple Fitness)
+  const ring=(r,color,p)=>{const C=2*Math.PI*r;const off=C*(1-Math.min(100,p)/100);return`<circle cx="75" cy="75" r="${r}" fill="none" stroke="${color}" stroke-width="13" stroke-linecap="round" stroke-dasharray="${C.toFixed(1)}" stroke-dashoffset="${off.toFixed(1)}" style="transform:rotate(-90deg);transform-origin:75px 75px"></circle>`;};
+  const trk=(r,color)=>`<circle cx="75" cy="75" r="${r}" fill="none" stroke="${color}" stroke-width="13"></circle>`;
+  const legRow=(c,nm,v,tot)=>`<div><div style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--muted);font-weight:500"><span style="width:9px;height:9px;border-radius:50%;background:${c}"></span>${nm}</div><div style="font-size:19px;font-weight:700;letter-spacing:-.02em;color:var(--text)">${v} <span style="color:var(--dim);font-size:14px;font-weight:600">/ ${tot}</span></div></div>`;
+  const rEl=document.getElementById('dash-rings');
+  if(rEl)rEl.innerHTML=`<div style="display:flex;align-items:center;gap:26px;flex-wrap:wrap;margin-top:6px">
+    <svg width="150" height="150" viewBox="0 0 150 150" style="flex:0 0 150px">
+      ${trk(62,'rgba(255,45,85,.16)')}${trk(47,'rgba(48,209,88,.16)')}${trk(32,'rgba(10,132,255,.16)')}
+      ${ring(62,'#FF2D55',pct(viu))}${ring(47,'#30D158',pct(qpos))}${ring(32,'#0A84FF',pct(conc))}
+    </svg>
+    <div style="display:flex;flex-direction:column;gap:14px;flex:1;min-width:140px">
+      ${legRow('#FF2D55','Aulas vistas',viu,total)}
+      ${legRow('#30D158','Com questões',qpos,total)}
+      ${legRow('#0A84FF','Concluídos',conc,total)}
+    </div></div>`;
+
+  // HOJE — revisões pra fazer hoje / atrasadas (clique na bolinha marca como feita)
+  const hEl=document.getElementById('dash-hoje');
+  const hCount=document.getElementById('dash-hoje-count');
+  if(hCount)hCount.textContent=dueToday.length?`${dueToday.length} pendente${dueToday.length>1?'s':''}`:'';
+  if(hEl){
+    if(!dueToday.length)hEl.innerHTML=`<div style="padding:22px 12px;text-align:center;color:var(--muted);font-size:14px">Tudo em dia! 🎉</div>`;
+    else hEl.innerHTML=dueToday.slice(0,6).map(u=>{
+      const aN=AREA_NM[areaFirst(u.t)]||areaFirst(u.t);
+      const late=u.diff<0?` · ${Math.abs(u.diff)}d atrasada`:'';
+      return`<button class="dash-hoje-row" onclick="markRev('${u.t.id}','${u.k}');renderDashboard()">
+        <span class="dash-hoje-check"></span>
+        <span style="flex:1"><span class="dash-hoje-ttl" style="display:block">${escapeHtml(u.t.semana)}</span><span class="dash-hoje-sub" style="display:block">${aN} · Rev. ${u.l}${late}</span></span>
+      </button>`;}).join('');
+  }
+
+  // PRÓXIMAS REVISÕES
+  const pEl=document.getElementById('prox-rev');
+  if(pEl){
+    if(!upcoming.length)pEl.innerHTML=`<div style="padding:22px 12px;text-align:center;color:var(--muted);font-size:14px">Nenhuma revisão nos próximos 14 dias.</div>`;
+    else pEl.innerHTML=upcoming.slice(0,6).map(u=>{
+      const clr=AREA_CLR[areaFirst(u.t)]||'var(--muted)';
+      const aN=AREA_NM[areaFirst(u.t)]||areaFirst(u.t);
+      let pill;
+      if(u.diff<0)pill=`<span class="dash-rev-pill" style="background:rgba(255,59,48,.12);color:#FF3B30">${Math.abs(u.diff)}d atras.</span>`;
+      else if(u.diff===0)pill=`<span class="dash-rev-pill" style="background:var(--accent-wash);color:var(--accent)">Hoje</span>`;
+      else if(u.diff===1)pill=`<span class="dash-rev-pill" style="background:var(--s3);color:var(--muted)">Amanhã</span>`;
+      else pill=`<span class="dash-rev-pill" style="background:var(--s3);color:var(--muted)">Em ${u.diff}d</span>`;
+      return`<div class="dash-rev-row"><span class="dash-rev-dot" style="background:${clr}"></span><div style="flex:1;min-width:0"><div class="dash-rev-ttl">${escapeHtml(u.t.semana)}</div><div class="dash-rev-sub">${aN} · Rev. ${u.l}</div></div>${pill}</div>`;
+    }).join('');
+  }
+
+  // DESEMPENHO POR ÁREA
   const areas=['CLÍNICA','CIRURGIA','PEDIATRIA','GO','PREVENTIVA'];
-  document.getElementById('area-bars').innerHTML=areas.map(a=>{
+  const abEl=document.getElementById('area-bars');
+  if(abEl)abEl.innerHTML=areas.map((a,i)=>{
     const at=topics.filter(t=>(Array.isArray(t.area)?t.area:[t.area]).includes(a));
     const done=at.filter(t=>t.aula).length;
     const p=at.length>0?Math.round(done/at.length*100):0;
-    const clr=AREA_CLR[a]||'#b23a26';
-    return`<div style="margin-bottom:14px"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:5px"><div style="display:flex;align-items:center;gap:8px"><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:${clr}"></span><span style="font-weight:600;font-size:13px">${a}</span></div><span style="font-size:12px;color:var(--muted)">${done}/${at.length} aulas</span></div><div style="background:var(--s3);border-radius:99px;height:10px;overflow:hidden"><div style="height:100%;border-radius:99px;background:${clr};width:${p}%;transition:width .5s ease"></div></div><div style="text-align:right;font-size:11px;font-weight:700;color:${clr};margin-top:2px">${p}%</div></div>`;
+    const clr=AREA_CLR[a]||'#888';
+    return`<div style="margin-bottom:${i===areas.length-1?'0':'15px'}"><div class="dash-bar-top"><span class="dash-bar-name">${AREA_NM[a]}</span><span class="dash-bar-pct" style="color:${clr}">${p}%</span></div><div class="dash-bar-track"><div class="dash-bar-fill" style="width:${p}%;background:${clr}"></div></div></div>`;
   }).join('');
 
-  // DESEMPENHO — anel desenhado à mão (mesmo componente da aba Análise)
-  buildDistRing('dist-perf-dash');
-
-  // PRÓXIMAS REVISÕES
-  const upcoming=[];
-  const revK=[{k:'r1s',l:'1 Semana'},{k:'r1m',l:'1 Mês'},{k:'r2m',l:'2 Meses'},{k:'r4m',l:'4 Meses'},{k:'r6m',l:'6 Meses'}];
-  topics.forEach(t=>{const d=revDates(t);const dm={r1s:d.r1s,r1m:d.r1m,r2m:d.r2m,r4m:d.r4m,r6m:d.r6m};revK.forEach(({k,l})=>{if(!t[k]&&dm[k]){const diff=diffD(dm[k]);if(diff!==null&&diff<=14)upcoming.push({t,k,l,date:dm[k],diff});}});});
-  upcoming.sort((a,b)=>a.diff-b.diff);
-  const proxEl=document.getElementById('prox-rev');
-  if(!proxEl){}
-  else if(!upcoming.length){proxEl.innerHTML='<p style="color:var(--muted);font-size:13px">Nenhuma revisão pendente nos próximos 14 dias.</p>';}
-  else{proxEl.innerHTML=upcoming.slice(0,7).map(u=>{
-    const b=u.diff<0?`<span class="badge bred">⚠️ ${Math.abs(u.diff)}d atrasada</span>`:u.diff===0?`<span class="badge byellow">📌 Hoje</span>`:`<span class="badge bblue">Em ${u.diff}d</span>`;
-    const accent=u.diff<0?'var(--red)':u.diff===0?'var(--yellow)':'var(--blue)';
-    return`<div style="display:flex;align-items:center;justify-content:space-between;padding:9px 0;border-bottom:1px solid var(--border);gap:8px"><div style="display:flex;align-items:center;gap:10px"><div style="width:3px;height:36px;border-radius:3px;background:${accent};flex-shrink:0"></div><div><div style="font-weight:600;font-size:13px">${u.t.semana}</div><div style="font-size:12px;color:var(--muted)">Rev. ${u.l} · ${fmtD(u.date)}</div></div></div>${b}</div>`;
-  }).join('');}
-
-  // SIMULADOS
+  // SEÇÃO INFERIOR (recursos que o Lucas já usava)
   renderSimulados();
   renderSimsFeitos();
-
-  // META DIÁRIA + EVOLUÇÃO
   renderGoalBox();
   renderEvolucao();
 }
