@@ -1080,7 +1080,6 @@ body.sb-collapsed .sidebar-user-text,body.sb-collapsed .sidebar-user-chev{displa
     <div class="nav-group">Principal</div>
     <button class="tab-btn active" data-tab="dashboard" title="Dashboard"><span class="nav-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg></span><span class="nav-label">Dashboard</span></button>
     <button class="tab-btn" data-tab="cronograma" title="Cronograma"><span class="nav-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg></span><span class="nav-label">Cronograma</span></button>
-    <button class="tab-btn" data-tab="hoje" title="Hoje"><span class="nav-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg><span class="nav-badge" id="nav-hoje-badge" style="display:none">0</span></span><span class="nav-label">Hoje</span></button>
     <button class="tab-btn" data-tab="analise" title="Análise"><span class="nav-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg></span><span class="nav-label">Análise</span></button>
     <button class="tab-btn" data-tab="calendario" title="Calendário"><span class="nav-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></span><span class="nav-label">Calendário</span></button>
     <div class="nav-group">Estudo</div>
@@ -1117,10 +1116,6 @@ body.sb-collapsed .sidebar-user-text,body.sb-collapsed .sidebar-user-chev{displa
     <button class="hdr-icon-btn" id="btn-dark" onclick="toggleDark()" title="Alternar tema">
       <svg id="icon-dark" width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
       <svg id="icon-light" width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:none"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
-    </button>
-    <button class="hdr-icon-btn" id="btn-bell" onclick="switchToTab('hoje')" title="Revisar Hoje">
-      <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
-      <span class="bell-badge" id="bell-badge" style="display:none">0</span>
     </button>
     <button class="hdr-icon-btn" onclick="switchToTab('dados')" title="Dados &amp; Configurações">
       <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
@@ -1162,7 +1157,7 @@ body.sb-collapsed .sidebar-user-text,body.sb-collapsed .sidebar-user-chev{displa
     </div>
     <div class="dash-col">
       <div class="card dash-soft" style="padding:10px 10px 14px">
-        <div class="dash-card-head"><span class="dash-card-title">Próximas revisões</span><span class="dash-card-link" onclick="switchToTab('hoje')">Ver todas</span></div>
+        <div class="dash-card-head"><span class="dash-card-title">Próximas revisões</span></div>
         <div id="prox-rev"></div>
       </div>
       <div class="card dash-soft"><div class="card-title">Desempenho por área</div><div id="area-bars"></div></div>
@@ -1285,15 +1280,6 @@ body.sb-collapsed .sidebar-user-text,body.sb-collapsed .sidebar-user-chev{displa
   <div id="t-empty" class="empty" style="display:none">
     <div class="icon" style="font-size:32px;opacity:.3"><svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg></div><h3>Nenhum tópico</h3><p>Adicione ou ajuste os filtros.</p>
   </div>
-</div>
-
-<!-- HOJE -->
-<div class="tab-panel" id="tab-hoje">
-  <div class="sec-header">
-    <h2 class="sec-title">Revisar Hoje</h2>
-    <span id="hoje-date" style="color:var(--muted);font-size:13px"></span>
-  </div>
-  <div id="hoje-content"></div>
 </div>
 
 <!-- ANÁLISE -->
@@ -1983,7 +1969,7 @@ const diffD=s=>{if(!s)return null;return Math.round((new Date(s)-new Date(today(
 const fmtD=s=>{if(!s)return '—';const[y,m,d]=s.split('-');return`${d}/${m}/${y}`;};
 const AREA_CLR={'CLÍNICA':'#f97316','CIRURGIA':'#10b981','PEDIATRIA':'#ec4899','GO':'#1f5f8f','PREVENTIVA':'#6d4f9e'};
 
-// Prazos das revisões em cadeia (fonte única — tabela, Hoje, sino e calendário usam isto).
+// Prazos das revisões em cadeia (fonte única — tabela, dashboard e calendário usam isto).
 // Cada etapa parte da CONCLUSÃO real da anterior (rXXAt, gravada ao marcar o ☑); se não
 // houver registro, parte do prazo teórico. Assim, pôr uma revisão atrasada em dia faz a
 // próxima contar a partir de hoje, em vez de já nascer atrasada.
@@ -2175,8 +2161,8 @@ function autoNextTask(t){
 }
 
 // ── TABS ──────────────────────────────────────────────────────
-const TAB_FN={dashboard:renderDashboard,cronograma:renderTable,hoje:renderHoje,analise:renderAnalise,calendario:renderCalendar,flashcards:renderFC,anotacoes:renderNotas,resumos:renderResumos,escalas:renderEscalas,openevidence:renderOE,ingles:renderIngles,saude:renderSaude,dados:renderDados};
-const TAB_TITLES={dashboard:'Dashboard',cronograma:'Cronograma',hoje:'Revisar Hoje',analise:'Análise de Desempenho',calendario:'Calendário',flashcards:'Flashcards',anotacoes:'Anotações',resumos:'Resumos',escalas:'Critérios e Escalas',openevidence:'Ferramentas Clínicas',ingles:'Inglês',saude:'Minha Saúde e Exames',dados:'Gerenciar Dados'};
+const TAB_FN={dashboard:renderDashboard,cronograma:renderTable,analise:renderAnalise,calendario:renderCalendar,flashcards:renderFC,anotacoes:renderNotas,resumos:renderResumos,escalas:renderEscalas,openevidence:renderOE,ingles:renderIngles,saude:renderSaude,dados:renderDados};
+const TAB_TITLES={dashboard:'Dashboard',cronograma:'Cronograma',analise:'Análise de Desempenho',calendario:'Calendário',flashcards:'Flashcards',anotacoes:'Anotações',resumos:'Resumos',escalas:'Critérios e Escalas',openevidence:'Ferramentas Clínicas',ingles:'Inglês',saude:'Minha Saúde e Exames',dados:'Gerenciar Dados'};
 
 function switchToTab(tab){
   document.querySelectorAll('.tab-btn').forEach(x=>x.classList.remove('active'));
@@ -2186,7 +2172,6 @@ function switchToTab(tab){
   if(btn)btn.classList.add('active');
   const panel=document.getElementById('tab-'+tab);
   if(panel)panel.classList.add('active');
-  if(tab==='hoje')document.getElementById('btn-bell')?.classList.add('active-icon');
   const titleEl=document.getElementById('topbar-title');
   if(titleEl)titleEl.textContent=TAB_TITLES[tab]||tab;
   if(TAB_FN[tab])TAB_FN[tab]();
@@ -2201,16 +2186,6 @@ function toggleSidebar(){
   localStorage.setItem('medplanner_sb',document.body.classList.contains('sb-collapsed')?'1':'0');
 }
 if(localStorage.getItem('medplanner_sb')==='1')document.body.classList.add('sb-collapsed');
-
-function updateBellBadge(){
-  const{topics}=get();const T=today();
-  let count=0;
-  topics.forEach(t=>{const d=revDates(t);['r1s','r1m','r2m','r4m','r6m'].forEach((k,i)=>{const dk=[d.r1s,d.r1m,d.r2m,d.r4m,d.r6m][i];if(!t[k]&&dk&&dk<=T)count++;});});
-  const badge=document.getElementById('bell-badge');
-  if(badge){if(count>0){badge.style.display='flex';badge.textContent=count>9?'9+':count;}else{badge.style.display='none';}}
-  const navBadge=document.getElementById('nav-hoje-badge');
-  if(navBadge){if(count>0){navBadge.style.display='flex';navBadge.textContent=count>9?'9+':count;}else{navBadge.style.display='none';}}
-}
 
 // ── CHARTS ────────────────────────────────────────────────────
 const charts={};
@@ -2541,29 +2516,11 @@ function renderTable(){
   }).join('');
 }
 
-// ── HOJE ──────────────────────────────────────────────────────
-function renderHoje(){
-  const{topics}=get();const T=today();
-  document.getElementById('hoje-date').textContent=new Date().toLocaleDateString('pt-BR',{weekday:'long',day:'2-digit',month:'long'});
-  const late=[],now=[],next7=[];
-  const revK=[{k:'r1s',l:'1 Semana'},{k:'r1m',l:'1 Mês'},{k:'r2m',l:'2 Meses'},{k:'r4m',l:'4 Meses'},{k:'r6m',l:'6 Meses'}];
-  topics.forEach(t=>{const d=revDates(t);const dm={r1s:d.r1s,r1m:d.r1m,r2m:d.r2m,r4m:d.r4m,r6m:d.r6m};revK.forEach(({k,l})=>{if(!t[k]&&dm[k]){const diff=diffD(dm[k]);if(diff===null)return;const obj={t,k,l,date:dm[k],diff};if(diff<0)late.push(obj);else if(diff===0)now.push(obj);else if(diff<=7)next7.push(obj);}});});
-  const card=(u,cls)=>`<div class="rev-card ${cls}"><div class="rev-info"><div class="rev-title">${u.t.semana}</div><div class="rev-meta">${atags(u.t.area)}&nbsp;Rev. ${u.l} · ${fmtD(u.date)}${u.diff<0?`<span style="color:var(--red);font-weight:600;margin-left:6px">${Math.abs(u.diff)}d atrasada</span>`:''}</div>${u.t.ap?`<div class="rev-meta" style="margin-top:3px">${u.t.ap}</div>`:''}</div><button class="btn btn-p btn-sm" onclick="markRev('${u.t.id}','${u.k}')">✓ Feita</button></div>`;
-  let html='';
-  if(late.length)html+=`<div class="hoje-sec"><div class="hoje-sec-title"><div class="dot dot-r"></div>Atrasadas (${late.length})</div>${late.map(u=>card(u,'late')).join('')}</div>`;
-  if(now.length)html+=`<div class="hoje-sec"><div class="hoje-sec-title"><div class="dot dot-y"></div>Para Hoje (${now.length})</div>${now.map(u=>card(u,'today')).join('')}</div>`;
-  if(next7.length)html+=`<div class="hoje-sec"><div class="hoje-sec-title"><div class="dot dot-g"></div>Próximos 7 dias (${next7.length})</div>${next7.sort((a,b)=>a.diff-b.diff).map(u=>card(u,'')).join('')}</div>`;
-  if(!late.length&&!now.length&&!next7.length)html=`<div class="empty"><div class="icon" style="opacity:.3"><svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg></div><h3>Tudo em dia!</h3><p>Nenhuma revisão pendente.</p></div>`;
-  document.getElementById('hoje-content').innerHTML=html;
-}
-
 function markRev(id,key){
   const{topics}=get();const t=topics.find(x=>x.id===id);if(!t)return;
   const updated={...t,[key]:true,[key+'At']:today()};
   updT(id,{[key]:true,[key+'At']:today(),pt:autoNextTask(updated)});
   syncRevToCalendar(updated);
-  renderHoje();
-  updateBellBadge();
 }
 
 // ── ANOTAÇÕES ─────────────────────────────────────────────────
@@ -5984,7 +5941,6 @@ function applyCloudData(data){
 function reRenderAll(){
   const activeTab=document.querySelector('.tab-btn.active')?.dataset.tab||'dashboard';
   renderDashboard();
-  updateBellBadge();
   // Não re-renderiza flashcards se há revisão/formulário aberto (não fechar no meio)
   if(activeTab==='flashcards'&&fcViewLocked)return;
   if(activeTab==='ingles'&&(ieViewLocked||idViewLocked))return;
@@ -6006,7 +5962,6 @@ function startApp(){
   syncAllRevToCalendar();
   renderDashboard();
   renderTable();
-  updateBellBadge();
 }
 
 function showApp(){
