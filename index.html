@@ -4233,6 +4233,11 @@ function showFCBulkImport(catId,subId){
     <div class="fc-form">
       <div class="card-title" style="margin-bottom:8px">Importar cards em massa</div>
       <div style="font-size:12px;color:var(--muted);margin-bottom:14px;line-height:1.6">Cole o texto no formato abaixo. Use <strong>Q:</strong> para a pergunta e <strong>R:</strong> para a resposta. Separe cada card com uma linha em branco.<br><span style="color:var(--dim)">Q: Etiologia da artrite reumatóide?<br>R: Idiopática</span></div>
+      <div style="display:flex;gap:8px;align-items:center;margin-bottom:10px;flex-wrap:wrap">
+        <button class="btn btn-o btn-sm" onclick="document.getElementById('fc-bulk-file').click()">📄 Carregar arquivo (.txt)</button>
+        <span id="fc-bulk-fname" style="font-size:12px;color:var(--muted)"></span>
+        <input type="file" id="fc-bulk-file" accept=".txt,.md,text/plain" style="display:none" onchange="onFCBulkFile()">
+      </div>
       <div class="fg" style="margin-bottom:14px"><label>Texto</label><textarea class="fc-textarea" id="fc-bulk-text" style="min-height:280px;font-family:ui-monospace,monospace;font-size:13px" placeholder="Q: Pergunta 1?&#10;R: Resposta 1&#10;&#10;Q: Pergunta 2?&#10;R: Resposta 2"></textarea></div>
       <div id="fc-bulk-preview" style="font-size:12px;color:var(--muted);margin-bottom:14px"></div>
       <div style="display:flex;gap:8px">
@@ -4244,6 +4249,23 @@ function showFCBulkImport(catId,subId){
   const upd=()=>{const n=parseFCBulk(ta.value).length;document.getElementById('fc-bulk-preview').innerHTML=n?`<span style="color:var(--green);font-weight:600">${n} card${n!==1?'s':''} detectado${n!==1?'s':''}</span>`:'Nenhum card detectado ainda.';};
   ta.addEventListener('input',upd);
   setTimeout(()=>ta.focus(),50);
+}
+function onFCBulkFile(){
+  const inp=document.getElementById('fc-bulk-file');
+  const f=inp&&inp.files&&inp.files[0];
+  if(!f)return;
+  const rd=new FileReader();
+  rd.onload=()=>{
+    const ta=document.getElementById('fc-bulk-text');
+    if(!ta)return;
+    ta.value=String(rd.result||'');
+    ta.dispatchEvent(new Event('input'));
+    const nm=document.getElementById('fc-bulk-fname');
+    if(nm)nm.textContent=f.name;
+  };
+  rd.onerror=()=>toast('Não consegui ler o arquivo.','err');
+  rd.readAsText(f,'utf-8');
+  inp.value='';
 }
 function parseFCBulk(text){
   const cards=[];
