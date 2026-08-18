@@ -1367,6 +1367,7 @@ body.sb-collapsed .sidebar-user-text,body.sb-collapsed .sidebar-user-chev{displa
     <h2 class="sec-title">Resumos</h2>
     <div style="display:flex;gap:8px;flex-wrap:wrap">
       <button class="btn btn-o btn-sm" onclick="importResumosFromCronograma()" title="Cria uma aula em Resumos para cada aula do seu Cronograma (semana 01 a 46)">↧ Importar do Cronograma</button>
+      <button class="btn btn-o btn-sm" onclick="syncResumosDrive()" title="Liga cada aula ao PDF do resumo que está no seu Google Drive — abre no celular também">☁️ Puxar resumos do Drive</button>
       <button class="btn btn-o btn-sm" onclick="attachPdfsBulk()" title="Selecione vários PDFs de uma vez; o app encaixa cada um na aula certa pelo nome do arquivo (ex: 'Semana 16 - Leucemias.pdf')">📎 Anexar PDFs (lote)</button>
       <button class="btn btn-p btn-sm" onclick="openResumoModal()">+ Adicionar Aula</button>
     </div>
@@ -2557,7 +2558,12 @@ function _resSim(a,b){
   const tok=s=>new Set(_resNorm(s).split(' ').filter(x=>x.length>2));
   const ta=tok(a),tb=tok(b);
   if(!ta.size||!tb.size)return 0;
-  let inter=0;ta.forEach(t=>{if(tb.has(t))inter++;});
+  // conta palavra igual ou quase igual (plural/derivada: "doenças" ≈ "doença")
+  const lb=[...tb];
+  let inter=0;ta.forEach(t=>{
+    if(tb.has(t)){inter++;return;}
+    if(t.length>4&&lb.some(u=>u.length>4&&(u.startsWith(t.slice(0,5))||t.startsWith(u.slice(0,5)))))inter++;
+  });
   return inter/Math.min(ta.size,tb.size);
 }
 function _resAulaLabel(arr,sem,semNum){
@@ -2705,10 +2711,11 @@ function importResumosFromCronograma(){
   for(const t of sorted){
     const sem=(t.semana||'').trim().toUpperCase();
     const titulo=(t.ap||'').trim();
-    const aula='Aula '+String(numSem(sem)||0).padStart(2,'0');
-    const dup=existing.some(r=>norm(r.semana)===norm(sem)&&(norm(r.titulo)===norm(titulo)||norm(r.aula)===norm(aula)))
+    // já existe uma aula com este título nesta semana? (não descarta a 2ª aula da semana)
+    const dup=existing.some(r=>norm(r.semana)===norm(sem)&&norm(r.titulo)===norm(titulo))
             ||toAdd.some(r=>norm(r.semana)===norm(sem)&&norm(r.titulo)===norm(titulo));
     if(dup)continue;
+    const aula=_resAulaLabel(existing.concat(toAdd),sem,numSem(sem));
     toAdd.push({id:Date.now().toString(36)+Math.random().toString(36).slice(2,5),semana:sem,aula,titulo,linkResumo:'',linkSlide:''});
   }
   if(!toAdd.length){toast('Tudo certo! As aulas do Cronograma já estão nos Resumos.','info');return;}
@@ -2716,6 +2723,108 @@ function importResumosFromCronograma(){
   const all=existing.concat(toAdd);
   all.sort((a,b)=>(numSem(a.semana)-numSem(b.semana))||a.aula.localeCompare(b.aula));
   setResumos(all);renderResumos();toast(`${toAdd.length} aula(s) importada(s) do Cronograma!`,'ok');
+}
+/* ---- Resumos que já estão no Google Drive (Top1 › Semana XX › Resumos - Semana XX) ----
+   Formato: ['NN da semana', 'Título da aula', 'ID do arquivo no Drive'].
+   Quando novos resumos subirem pro Drive, é só acrescentar linhas aqui. */
+const RESUMOS_DRIVE=[
+['01','Ciclo Menstrual e Anticoncepção','1-fpoS4CP0T-WWtpCSbzCa1AKXHUeLXqP'],
+['01','Lesões Renais','1CJHMzJCRYQBX2nTOIvseApaYc_4g4ZGi'],
+['02','Amenorreia e Ovário Policístico','17O38-jAjVdHshpYi5nTnBJJN2TrB0Wmr'],
+['02','Glomerulopatias II - Síndrome Nefrótica','1vItxdAtHeAFHfhsFnzd_uoY8kLtQd2sH'],
+['03','Trauma I - Avaliação Inicial e Trauma de Tórax','1E4gCJgh-X0Uzn6WriJ4jMaWgeliLPyLX'],
+['03','Trauma II - Abdome, Pelve e TCE','1-4aMCyct78ydHL9Qr80T1lar4KwluCFu'],
+['04','Diagnóstico de Gravidez e Pré-natal','1Vzuio2r0E1Kc_wz4YMdkkoUl9V2ZBEAi'],
+['04','Distúrbio Hidroeletrolítico - Sódio e Potássio','1tBvYxP1hFu9wvONzC6k8_tgpdFYX3jky'],
+['05','Distúrbio Ácido-Básico','1pFoZPrqe-pVTaSFIOV6BFD1i-_CmOTpR'],
+['05','Insuficiência Renal','1Z1mS-E2l2v-zuLqlK2U4DslCSPZDFgtA'],
+['06','Neonatologia 1','1_oAs21pMbLFETYYgXUgzYbcdjA1DfamF'],
+['06','Preventiva 1 - Indicadores de Saúde','1-A-5DfmF2kk5_xUJy88wqeIUYkyvDqRr'],
+['08','Cirurgia - Urologia','1pAI3MD8PfTy647ZRU1NmB9MxPLC0K79K'],
+['08','Preventiva - Estudos Epidemiológicos','1_xZWnj9gpCcYBfpOt36e-4Ri7n26E8YD'],
+['09','Neonatologia II','1rhrYkOrXIBIAma4WqR3jeWYAElB17mps'],
+['09','Reumatologia - Artrites','1Wb7HPzZECBgmALK4dKtLTlQxP7BFktj6'],
+['10','Gota, Febre Reumática e Osteoartrite','1pmsvM1yh24x5TvWoBDWfQc56j6NSGZpW'],
+['10','Preventiva 3 - Testes Diagnósticos','1fwDK90TwJg5pqK-MyQJKFO70AolDXd1V'],
+['11','Assistência ao Parto e Parto Prematuro','1EnavHnJBIWSIaAXmaLy_gCmjwgzx9d-j'],
+['11','Cicatrização, Queimaduras e REMIT','1PByfHxW-PMc2KlZ-W53PxIr_F6vtiAB8'],
+['12','Colagenoses - LES, Esclerodermia e SAF','1UF29Ev5Ds1z1MQeguCzTlDLv8Q7VnGYN'],
+['12','Preventiva - Vigilância de Saúde','1_BsUmYdsOWxYLtMk1GJZKP2O-qTQ2Rxp'],
+['13','Cirurgia Pediátrica','1hgPJhUEbX_9AuoYLNFk8vjm2q2obAsWA'],
+['13','Saúde do Trabalhador e Ética Médica','1WNK9WiDBdXgAIXtdvi2UbcQTJYQHPD9q'],
+['14','Aleitamento Materno','1CR02PihQR6Nru8o12iWQHOXGvY-n5TBt'],
+['14','Reumatologia - Vasculites','1bAC69i1AO2wb7d2NmE-B79yo9q6VxVEH'],
+['15','Hematologia I - Anemias','1SVTAlT9SNbHGOf_DV4-_VsvAr6jZ4eN7'],
+['15','Pediatria 2 - Crescimento e Desenvolvimento','14Gm3s5Hv5Z2X_t4ZrVcA3_D7R_tYbxEc'],
+['16','Anemias II - Hemolítica e Falciforme','1DUxxnfoqQlR3WIR3kFICBukfOTNJgzmT'],
+['16','Leucemias Agudas e Crônicas','1CqHQVDIPw2VyLJ5iZo6tbdgAs1eVinaL'],
+['17','Linfomas e Mieloma Múltiplo','11zbDBzXoiNpYHZrNCn6w1S3DmrX_k2og'],
+['17','Pré-operatório, Complicações e Anestesiologia','1_U9ptwftSaiJBaHtTGnrWRrxUusyZdkn'],
+['24','Cirrose e suas Causas','1kpi_DJbiSAM0EU7ljaS0DRtEgnQUe4ZN'],
+['24','Introdução à Hepatologia e Hepatites Virais','1-IHQnq5NirhWiuyjCENcoc-cbi22Y2We'],
+['25','Cirrose e suas Complicações','1ZT0XNCQ0zxVxcNsMuUPwDaA9LWPZF8UP'],
+['25','Climatério e Distopia Genital','1KcdhBvCJa393bvjoEH62vv503StLZdWp'],
+['26','Arritmias I - Taquiarritmias','1Z_2TnCXh1KO7WtAK7qNjTyMqWRTzhWAS'],
+['26','Distúrbios do Crescimento','1gxZZBjca426PieJIBkXyQEjX59StIlyO'],
+['28','Insuficiência Cardíaca','1X46PflauxTSyWbBB6p3nL8AIpAme6GyX'],
+['28','Neoplasias Ginecológicas - Mamas e Ovários','1jcGBI0V0hYs3ndk_eEIpZtoTNt88FvK5'],
+['29','Hipertensão Arterial','15FHvvnHVoNQoD5oZIUIM2egjn6iW-yGB'],
+['29','Valvopatias','1w0LYBHfkBm83L-7rsYSNsfc_4k_WLVMb'],
+['30','Diarreia Aguda','1W-Wf76crnm2KMZ1WaoO3aXXw0b7LCCgh'],
+['30','Doenças Coronarianas','1ZTuymJuXlViKmcwu7uqmCF8WEOJnjeJV'],
+['31','Lesões Precursoras, CA de Colo e Endométrio','1yXPFyFdHPryAZnbAsPVwCj52LDldVqP4'],
+['31','SUS I - Evolução, Legislação e Financiamento','1lHJxeM6gmlgMLn1EupRDEiVWo9C7tsyP'],
+['32','Tireoide','10alxlZ0bmNIeSHYH43EtGVPHLmDskIZg']
+];
+function _resDriveUrl(id){return 'https://drive.google.com/file/d/'+id+'/view';}
+function _resLista(itens,max){
+  const m=max||12;
+  return itens.slice(0,m).map(t=>'   – '+t).join('\n')+(itens.length>m?('\n   … e mais '+(itens.length-m)):'');
+}
+function syncResumosDrive(){
+  let arr=getResumos();
+  const used=new Set(),ligadas=[],porOrdem=[],trocadas=[],novas=[],pend=[];
+  // 1ª passada: encaixa pelo nome da aula
+  for(const [sn,titulo,fid] of RESUMOS_DRIVE){
+    const sem='SEMANA '+sn, url=_resDriveUrl(fid);
+    // já ligado antes (mesmo que o nome da aula seja outro) — não mexe
+    const ja=arr.find(r=>!used.has(r.id)&&r.linkResumo===url);
+    if(ja){used.add(ja.id);continue;}
+    let best=null,bestScore=0;
+    for(const r of arr){
+      if(used.has(r.id)||_resNorm(r.semana)!==_resNorm(sem))continue;
+      const sc=_resSim(r.titulo,titulo);
+      if(sc>bestScore){bestScore=sc;best=r;}
+    }
+    if(best&&bestScore>=0.34){
+      used.add(best.id);
+      if(best.linkResumo!==url)(best.linkResumo?trocadas:ligadas).push({r:best,url});
+    }else pend.push({sn,sem,titulo,url});
+  }
+  // 2ª passada: o que sobrou vai para uma aula da mesma semana que ainda está sem resumo
+  for(const p of pend){
+    const livre=arr.find(r=>!used.has(r.id)&&_resNorm(r.semana)===_resNorm(p.sem)&&!r.linkResumo);
+    if(livre){used.add(livre.id);porOrdem.push({r:livre,url:p.url,titulo:p.titulo});}
+    else{
+      const id=Date.now().toString(36)+Math.random().toString(36).slice(2,5);
+      const na={id,semana:p.sem,aula:_resAulaLabel(arr,p.sem,parseInt(p.sn)),titulo:p.titulo,linkResumo:p.url,linkSlide:''};
+      arr=arr.concat([na]);used.add(id);novas.push(na);
+    }
+  }
+  if(!ligadas.length&&!porOrdem.length&&!trocadas.length&&!novas.length){toast('Tudo certo! Todos os resumos do Drive já estão nas suas aulas.','info');return;}
+  let msg='Puxar os resumos do Google Drive para as aulas?\n\n';
+  if(ligadas.length)msg+='• '+ligadas.length+' aula(s) reconhecida(s) pelo nome vão receber o link do resumo\n\n';
+  if(porOrdem.length)msg+='• '+porOrdem.length+' resumo(s) tinham nome diferente da aula — CONFIRA se ficou certo:\n'
+    +_resLista(porOrdem.map(x=>x.r.semana+': resumo "'+x.titulo+'" → aula "'+x.r.titulo+'"'))+'\n\n';
+  if(novas.length)msg+='• '+novas.length+' aula(s) nova(s) serão criadas:\n'+_resLista(novas.map(n=>n.semana+' — '+n.titulo))+'\n\n';
+  if(trocadas.length)msg+='• '+trocadas.length+' aula(s) já tinham outro link de Resumo e serão atualizadas\n\n';
+  msg+='Os links de Slides não são alterados.';
+  if(!confirm(msg))return;
+  ligadas.concat(porOrdem,trocadas).forEach(x=>{x.r.linkResumo=x.url;});
+  const numSem=s=>parseInt((s||'').replace(/\D/g,''))||0;
+  arr.sort((a,b)=>(numSem(a.semana)-numSem(b.semana))||a.aula.localeCompare(b.aula));
+  setResumos(arr);renderResumos();
+  toast((ligadas.length+porOrdem.length+trocadas.length+novas.length)+' resumo(s) ligado(s) ao Drive!','ok');
 }
 function deleteResumoItem(id){
   if(!confirm('Remover esta aula?'))return;
