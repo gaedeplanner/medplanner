@@ -1566,6 +1566,7 @@ body.sb-collapsed .sidebar-user-text,body.sb-collapsed .sidebar-user-chev{displa
     <button class="btn btn-p" onclick="showFCAddCategory()">+ Nova Categoria</button>
   </div>
   <div class="fc-stats" id="fc-stats"></div>
+  <div id="fc-fix-wrap"></div>
   <div style="display:flex;gap:8px;margin-bottom:18px;flex-wrap:wrap" id="fc-mode-btns">
     <button class="btn btn-p" id="fc-btn-review" onclick="startFCReview()">▶ Iniciar Revisão</button>
     <button class="btn btn-o" onclick="showFCBrowse()">Ver Todos os Cards</button>
@@ -4334,6 +4335,101 @@ function sessionWait(mainId,session,resumeFn,backFn){
   sessWaitTimer=setTimeout(tick,500);
 }
 
+// ── CONSERTO DE CARDS COM PERGUNTA PELA METADE ────────────────
+// Cards gerados em lote que ficaram dependendo do card anterior
+// ("E quais são agudos?"). Como a revisão embaralha, a pergunta perdia o
+// contexto. Tabela: pergunta antiga -> pergunta completa. O conserto é em
+// cima do card existente, então o histórico de revisão continua igual.
+const FC_FIXES=[
+ ["E após o pico MÁXIMO de LH?","Quanto tempo após o pico MÁXIMO de LH ocorre a ovulação?"],
+ ["E na 2ª fase (lútea)?","Como são os pulsos de GnRH na 2ª fase (lútea)?"],
+ ["E na fase secretora?","Como são as glândulas do endométrio na fase secretora?"],
+ ["E na 2ª fase?","Qual hormônio predomina no muco cervical da 2ª fase?"],
+ ["E a progesterona?","A progesterona inibe qual hormônio?"],
+ ["E quando a porta de entrada é a pele?","Qual o período de incubação da GNPE quando a porta de entrada é a pele?"],
+ ["E se foi na derme?","Qual anticorpo pesquisar se a infecção estreptocócica foi na derme?"],
+ ["E se o paciente não tolera a CVL?","Colecistite: o que fazer se o paciente não tolera a CVL?"],
+ ["E durante a CVL?","Coledocolitíase: qual o tratamento do cálculo encontrado DURANTE a CVL?"],
+ ["E o sinal de Grey Turner?","O que é o sinal de Grey Turner?"],
+ ["E a necrosante?","Como é a pancreatite necrosante na imagem?"],
+ ["E se não tolerar nem o cateter?","Pancreatite: o que fazer se não tolerar nem o cateter nasogástrico/nasojejunal?"],
+ ["E da pancreatite biliar GRAVE?","Qual o tratamento da pancreatite biliar GRAVE?"],
+ ["E se a drenagem também não resolver?","Necrose pancreática infectada: o que fazer se a drenagem também não resolver?"],
+ ["E para tumor de corpo/cauda?","Qual cirurgia para o câncer de pâncreas de corpo/cauda?"],
+ ["E o que significa gradiente ≥ 12 mmHg?","Na hipertensão porta, o que significa um gradiente porta-VCI ≥ 12 mmHg?"],
+ ["E para varizes gástricas?","Qual o tratamento de escolha para varizes gástricas sangrando?"],
+ ["E para ectasias antrais gástricas (\"estômago em melancia\")?","Qual o tratamento das ectasias antrais gástricas (\"estômago em melancia\")?"],
+ ["E se falhar?","Ascite refratária: o que fazer se o tratamento inicial (suspender betabloqueador + midodrina) falhar?"],
+ ["E o parassimpático?","O parassimpático faz o quê com a urina?"],
+ ["E a incontinência aos esforços?","Como se apresenta a incontinência urinária aos esforços?"],
+ ["E os laterais?","Quais os ligamentos laterais do aparelho de suspensão do útero?"],
+ ["E os posteriores?","Quais os ligamentos posteriores do aparelho de suspensão do útero?"],
+ ["E os pontos Ap e Bp?","No POP-Q, o que representam os pontos Ap e Bp?"],
+ ["E em quem NÃO tem útero?","Terapia hormonal do climatério: qual o esquema em quem NÃO tem útero?"],
+ ["E se houver só atrofia?","Climatério: o que usar quando a queixa é só atrofia genital?"],
+ ["E se houver osteoporose?","Climatério: qual o papel da terapia hormonal se houver osteoporose?"],
+ ["E RR regular (sem onda P)?","No ECG da taquiarritmia, RR regular e sem onda P indica o quê?"],
+ ["E a taquicardia supraventricular?","Como se reconhece a taquicardia supraventricular no ECG?"],
+ ["E os modificáveis?","Quais os fatores de risco MODIFICÁVEIS da fibrilação atrial?"],
+ ["E nos demais casos, qual droga?","FA: qual anticoagulante nos casos que não são estenose mitral moderada-grave nem prótese mecânica?"],
+ ["E DEPOIS da reversão?","FA: por quanto tempo anticoagular DEPOIS da reversão?"],
+ ["E a circunferência abdominal?","Para que serve medir a circunferência abdominal no obeso?"],
+ ["E a PA diastólica?","Qual som de Korotkoff marca a PA diastólica?"],
+ ["E quais são agudos?","Quais graus da retinopatia hipertensiva são agudos?"],
+ ["E de potássio?","Qual a meta de potássio na dieta do hipertenso?"],
+ ["E qual a meta em 2-6 horas?","Crise hipertensiva: qual a meta de PA em 2-6 horas?"],
+ ["E o sinal de Musset?","Onde se vê o sinal de Musset?"],
+ ["E para maiores de 1 ano?","Quanto ofertar no plano A para maiores de 1 ano?"],
+ ["E em maiores de 6 meses?","Qual a dose do zinco na diarreia em maiores de 6 meses?"],
+ ["E entre 3 meses e 10 anos?","Qual antibiótico na diarreia entre 3 meses e 10 anos?"],
+ ["E acima de 10 anos (> 30kg)?","Qual antibiótico na diarreia acima de 10 anos (> 30kg)?"],
+ ["E racecadotrila?","O Ministério da Saúde recomenda racecadotrila?"],
+ ["E da mamária?","Qual a vantagem da ponte de mamária?"],
+ ["E na oclusão?","O que o ECG mostra na oclusão coronariana total?"],
+ ["E a convencional?","Quando repetir a troponina convencional?"],
+ ["E o CAT em 24-72 horas?","Quando indicar o CAT em 24-72 horas?"],
+ ["Onda P sempre com a mesma morfologia — qual o tipo?","Na taquicardia atrial, onda P sempre com a mesma morfologia — qual o tipo?"]
+];
+function fcWalkCards(d,fn){
+  (d.cards||[]).forEach(c=>{
+    if(c.type==='category')(c.children||[]).forEach(ch=>fcWalkUm(ch,fn));
+    else fcWalkUm(c,fn);
+  });
+}
+function fcWalkUm(c,fn){
+  if(c.type==='deck')(c.subs||[]).forEach(s=>fn(s,'q'));
+  else fn(c,'front');
+}
+// aplicar=false só conta quantos existem; aplicar=true corrige e salva
+function fcFixScan(aplicar){
+  const d=getFC(),mapa=new Map(FC_FIXES);
+  let n=0;
+  fcWalkCards(d,(obj,campo)=>{
+    const novo=mapa.get((obj[campo]||'').trim());
+    if(novo){n++;if(aplicar)obj[campo]=novo;}
+  });
+  if(aplicar&&n)setFC(d);
+  return n;
+}
+function renderFCFixBanner(){
+  const wrap=document.getElementById('fc-fix-wrap');
+  if(!wrap)return;
+  const n=fcFixScan(false);
+  if(!n){wrap.innerHTML='';return;}
+  const plural=n>1;
+  wrap.innerHTML='<div class="notion-banner" style="margin-bottom:18px">'+
+    '<p><span>'+n+' card'+(plural?'s':'')+'</span> '+(plural?'estão':'está')+' com a pergunta pela metade '+
+    '(ex.: "E quais são agudos?") — '+(plural?'dependiam':'dependia')+' do card anterior. '+
+    'Dá pra completar de uma vez, sem perder o histórico de revisão.</p>'+
+    '<button class="btn btn-p btn-sm" onclick="fcFixApply()">Completar '+(plural?('as '+n+' perguntas'):'a pergunta')+'</button>'+
+    '</div>';
+}
+function fcFixApply(){
+  const n=fcFixScan(true);
+  toast(n?(n>1?n+' cards completados!':'Card completado!'):'Nada para corrigir.','ok');
+  renderFC();
+}
+
 function renderFC(){
   setFCFocus(false);
   clearSessWait();
@@ -4357,6 +4453,7 @@ function renderFC(){
     <div class="fc-stat"><div class="fc-stat-val" style="color:var(--green)">${doneQ}</div><div class="fc-stat-lbl">Em dia</div></div>
     <div class="fc-stat"><div class="fc-stat-val" style="color:var(--muted)">${cats.length}</div><div class="fc-stat-lbl">Categorias</div></div>
     <div class="fc-stat"><div class="fc-stat-val" style="color:var(--blue)">${totalQ}</div><div class="fc-stat-lbl">Total de cards</div></div>`;
+  renderFCFixBanner();
   const btn=document.getElementById('fc-btn-review');
   btn.disabled=false;
   btn.textContent=due>0?`▶ Revisar (${due})`:'▶ Revisar todos';
