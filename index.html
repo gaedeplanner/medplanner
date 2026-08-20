@@ -1200,6 +1200,27 @@ body.sb-collapsed .sidebar-user-text,body.sb-collapsed .sidebar-user-chev{displa
   .login-title{font-size:28px}
 }
 
+/* ── CELULAR: revisão de cards em tela cheia ──────────────────────────
+   Sem o cabeçalho/estatísticas por cima, o card ocupa o espaço livre
+   (e rola por dentro se a resposta for longa) e as notas ficam sempre
+   visíveis embaixo — não precisa rolar a página pra responder. */
+@media(max-width:820px){
+  body.fc-focus #fc-main,body.fc-focus #ie-main,body.fc-focus #id-main{position:fixed;left:0;right:0;top:calc(var(--topbar-h) + var(--safe-t));bottom:calc(var(--tabbar-h) + var(--safe-b));z-index:400;background:var(--bg);display:flex;flex-direction:column;padding:10px 14px 8px;overflow:hidden}
+  body.fc-focus .fc-progress{margin-bottom:8px;font-size:12.5px}
+  body.fc-focus .fc-card-wrap{flex:1;min-height:0;align-items:center;margin-bottom:10px}
+  body.fc-focus .fc-card{max-height:100%;min-height:100%;overflow-y:auto;overscroll-behavior:contain;justify-content:flex-start;padding:22px 18px}
+  /* centraliza o conteudo quando cabe, sem cortar o topo quando nao cabe */
+  body.fc-focus .fc-card::before{content:"";margin-top:auto}
+  body.fc-focus .fc-card::after{content:"";margin-bottom:auto}
+  body.fc-focus .fc-card-text{font-size:18px;line-height:1.5}
+  body.fc-focus .fc-card-side{margin-bottom:8px}
+  body.fc-focus .fc-ratings{gap:7px;margin-bottom:8px}
+  body.fc-focus .fc-ratings>button{padding:11px 0;font-size:13.5px}
+  body.fc-focus .id-photo-wrap{width:200px;height:200px;max-width:58vw;max-height:58vw}
+  body.fc-focus .id-word{font-size:27px}
+  body.fc-focus .id-emoji-fb{font-size:96px}
+}
+
 /* Em telas de toque, nada de "levantar" no hover (fica preso depois do toque) */
 @media(hover:none){
   .card:hover,.stat-card:hover,.counter-card:hover,.rev-card:hover,.dash-chip:hover,
@@ -4139,6 +4160,7 @@ function sessionWait(mainId,session,resumeFn,backFn){
 }
 
 function renderFC(){
+  setFCFocus(false);
   clearSessWait();
   fcViewLocked=false; // voltou pra lista de cards → libera re-render da nuvem
   const d=getFC();
@@ -4792,6 +4814,7 @@ function startFCReview(){
 function nextFCCard(){
   clearSessWait();
   if(!fcSession.length){
+    setFCFocus(false);
     document.getElementById('fc-main').innerHTML=`
       <div class="fc-session-done">
         <div style="margin-bottom:12px;opacity:.3"><svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg></div>
@@ -4808,7 +4831,11 @@ function nextFCCard(){
   renderFCCard();
 }
 
+// Liga/desliga o modo "revisão em tela cheia" (só tem efeito no celular)
+function setFCFocus(on){document.body.classList.toggle('fc-focus',!!on);}
+
 function renderFCCard(){
+  setFCFocus(true);
   const front=fcCurrent._parentId?fcCurrent.q:fcCurrent.front;
   const back=fcCurrent._parentId?fcCurrent.a:fcCurrent.back;
   const tag=!fcCurrent._parentId&&fcCurrent.tag?fcCurrent.tag:'';
@@ -4925,6 +4952,7 @@ function ieFindCardInData(d,id){
 }
 
 function renderIE(){
+  setFCFocus(false);
   clearSessWait();
   ieViewLocked=false;
   const d=getIE();
@@ -5491,6 +5519,7 @@ function nextIECard(){
   clearSessWait();
   const main=document.getElementById('ie-main');
   if(!ieSession.length){
+    setFCFocus(false);
     main.innerHTML=`
       <div class="fc-session-done">
         <div style="margin-bottom:12px;opacity:.3"><svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg></div>
@@ -5506,6 +5535,7 @@ function nextIECard(){
 }
 
 function renderIECard(){
+  setFCFocus(true);
   const main=document.getElementById('ie-main');
   const front=ieCurrent._parentId?ieCurrent.q:ieCurrent.front;
   const back=ieCurrent._parentId?ieCurrent.a:ieCurrent.back;
@@ -5698,6 +5728,7 @@ function idThumbTag(c){
 }
 
 function renderImgDecks(){
+  setFCFocus(false);
   clearSessWait();
   idViewLocked=false;
   const main=document.getElementById('id-main');
@@ -5819,6 +5850,7 @@ function nextIDCard(){
   clearSessWait();
   const main=document.getElementById('id-main');
   if(!idSession.length){
+    setFCFocus(false);
     main.innerHTML=`
       <div class="fc-session-done">
         <div style="margin-bottom:12px;opacity:.3"><svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg></div>
@@ -5834,6 +5866,7 @@ function nextIDCard(){
 }
 
 function renderIDCard(){
+  setFCFocus(true);
   const main=document.getElementById('id-main');
   const c=idCurrent;
   const ratings=idFlipped?`
