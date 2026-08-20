@@ -1237,6 +1237,21 @@ body.sb-collapsed .sidebar-user-text,body.sb-collapsed .sidebar-user-chev{displa
 .fc-edit-btn:hover{color:var(--accent);border-color:var(--accent);background:var(--accent-wash)}
 .fc-edit-btn svg{width:14px;height:14px}
 #fcq-front,#fcq-back{min-height:100px}
+/* Barrinha dos 10 últimos cards (vermelho=errei, laranja=difícil, azul-esverdeado=bom, verde=fácil) */
+.fc-bottom-row{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:10px}
+.fc-streak{display:flex;align-items:center;gap:4px;justify-self:start}
+.fcd{width:8px;height:8px;border-radius:50%;flex-shrink:0;transition:background .2s}
+.fcd-again{background:#e5484d;color:#e5484d}
+.fcd-hard{background:#f2a02a;color:#f2a02a}
+.fcd-good{background:#2d9aa8;color:#2d9aa8}
+.fcd-easy{background:#34c759;color:#34c759}
+.fcd-off{background:var(--dim);opacity:.3}
+.fcd-last{box-shadow:0 0 0 2px var(--bg),0 0 0 3.5px currentColor}
+@media(max-width:820px){
+  .fc-bottom-row{gap:8px}
+  .fc-streak{gap:3.5px}
+  .fcd{width:7px;height:7px}
+}
 /* Número do atalho no canto de cada botão de nota (só onde existe teclado) */
 @media(hover:hover) and (pointer:fine){
   .fc-ratings{counter-reset:fckey}
@@ -3988,6 +4003,36 @@ function delCalTask(id){
 
 // ── FLASHCARDS ────────────────────────────────────────────────
 // Intervalos fixos: Errei=1min  Difícil=10min  Bom=1dia  Fácil=4dias
+// ── BARRINHA DOS 10 ÚLTIMOS CARDS ─────────────────────────────
+// Guarda só as notas recentes (0=errei,1=difícil,2=bom,3=fácil), por
+// sistema ('fc' planner, 'ie' inglês, 'id' baralhos de imagem). É só
+// visual e local — não vai pra nuvem de propósito.
+const FCH_KEY='medplanner26_fc_hist';
+function fcHistGet(){try{return JSON.parse(localStorage.getItem(FCH_KEY))||{};}catch{return{};}}
+function fcHistPush(sys,rating){
+  const hist=fcHistGet();
+  hist[sys]=(hist[sys]||[]).concat(rating).slice(-10);
+  try{localStorage.setItem(FCH_KEY,JSON.stringify(hist));}catch(e){}
+}
+const FCH_NOMES=['Errei','Difícil','Bom','Fácil'];
+const FCH_CLS=['fcd-again','fcd-hard','fcd-good','fcd-easy'];
+function fcHistHTML(sys){
+  const arr=fcHistGet()[sys]||[];
+  let bolinhas='';
+  for(let i=0;i<10;i++){
+    const v=arr[arr.length-10+i]; // mais antigo à esquerda, mais recente à direita
+    const ultima=(i===9&&arr.length>0);
+    bolinhas+='<span class="fcd '+(v===undefined?'fcd-off':FCH_CLS[v]+(ultima?' fcd-last':''))+'"></span>';
+  }
+  const resumo=arr.length?arr.slice(-10).map(v=>FCH_NOMES[v]).join(' · '):'ainda sem notas nesta sequência';
+  return '<div class="fc-streak" title="Seus 10 últimos cards — '+resumo+'">'+bolinhas+'</div>';
+}
+// Linha de baixo da revisão: bolinhas à esquerda, botão de sair no meio
+function fcBottomRow(sys,onEnd){
+  return '<div class="fc-bottom-row">'+fcHistHTML(sys)+
+    '<button class="btn btn-o btn-sm" onclick="'+onEnd+'">← Encerrar</button><span></span></div>';
+}
+
 // ── CORRIGIR O CARD DURANTE A REVISÃO + ATALHOS 1/2/3/4 ───────
 // Botão "Editar" no topo da revisão: arruma um erro de digitação sem
 // perder a sessão. Vale pros flashcards do planner e pros do inglês.
@@ -4996,12 +5041,13 @@ function renderFCCard(){
       </div>
     </div>
     ${ratings}
-    <div style="text-align:center"><button class="btn btn-o btn-sm" onclick="renderFC()">← Encerrar</button></div>`;
+    ${fcBottomRow('fc','renderFC()')}`;
 }
 
 function flipFCCard(){fcFlipped=true;renderFCCard();}
 
 function rateFCCard(rating){
+  fcHistPush('fc',rating);
   const d=getFC();
   const nextTs=Date.now()+FC_INTERVALS[rating];
   if(fcCurrent._parentId){
@@ -5697,12 +5743,13 @@ function renderIECard(){
       </div>
     </div>
     ${ratings}
-    <div style="text-align:center"><button class="btn btn-o btn-sm" onclick="renderIE()">← Encerrar</button></div>`;
+    ${fcBottomRow('ie','renderIE()')}`;
 }
 
 function flipIECard(){ieFlipped=true;renderIECard();}
 
 function rateIECard(rating){
+  fcHistPush('ie',rating);
   const d=getIE();
   const nextTs=Date.now()+FC_INTERVALS[rating];
   if(ieCurrent._parentId){
@@ -6021,12 +6068,13 @@ function renderIDCard(){
       </div>
     </div>
     ${ratings}
-    <div style="text-align:center"><button class="btn btn-o btn-sm" onclick="renderImgDecks()">← Encerrar</button></div>`;
+    ${fcBottomRow('id','renderImgDecks()')}`;
 }
 
 function flipIDCard(){idFlipped=true;renderIDCard();}
 
 function rateIDCard(rating){
+  fcHistPush('id',rating);
   const deck=idDeck();
   const d=getID();
   const k=idKeyOf(deck.id,idCurrent.en);
