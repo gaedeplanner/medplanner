@@ -1036,6 +1036,178 @@ body.sb-collapsed .sidebar-user-text,body.sb-collapsed .sidebar-user-chev{displa
 .dash-bar-fill{height:100%;border-radius:8px;transition:width .6s ease}
 
 ::selection{background:var(--accent);color:#fff}
+/* ═══════════════════════════════════════════════════════════════════════
+   MOBILE — celular (camada final, vence o cascade)
+   Menu vira gaveta, barra de abas embaixo (estilo iOS), cronograma vira
+   cards, modais viram "folhas" que sobem. Reversível: apagar este bloco.
+   ═══════════════════════════════════════════════════════════════════════ */
+:root{--tabbar-h:58px;--safe-b:env(safe-area-inset-bottom,0px);--safe-t:env(safe-area-inset-top,0px)}
+.nav-backdrop,.tabbar,.mob-cards{display:none}
+
+/* Cartão de tópico do cronograma (só aparece no celular) */
+.tcard{background:var(--s1);border:1px solid var(--border);border-radius:18px;padding:14px 15px;margin-bottom:10px;box-shadow:var(--shadow-sm)}
+.tcard-top{display:flex;align-items:center;gap:7px;flex-wrap:wrap;margin-bottom:7px}
+.tcard-sem{font-size:11.5px;font-weight:700;color:var(--muted)}
+.tcard-data{margin-left:auto;font-size:11.5px;color:var(--muted);font-weight:500}
+.tcard-ttl{font-size:16px;font-weight:700;letter-spacing:-.015em;line-height:1.3;margin-bottom:10px;color:var(--text)}
+.tcard-meta{display:flex;align-items:center;gap:7px;flex-wrap:wrap;margin-bottom:12px}
+.tcard-chips{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:8px}
+.tchip{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;padding:10px 2px;border-radius:13px;background:var(--s2);border:1.5px solid transparent;font-size:10px;font-weight:700;color:var(--muted);cursor:pointer;text-transform:uppercase;letter-spacing:.02em;user-select:none;-webkit-tap-highlight-color:transparent;transition:background .15s,color .15s,border-color .15s}
+.tchip.on{background:var(--accent-wash);border-color:var(--accent-wash-strong);color:var(--accent)}
+.tchip-ico{font-size:16px;line-height:1}
+.tcard-revs{display:flex;gap:5px;margin-bottom:11px}
+.trev{flex:1;text-align:center;padding:9px 0;border-radius:11px;background:var(--s2);font-size:11px;font-weight:700;color:var(--dim);cursor:pointer;user-select:none;-webkit-tap-highlight-color:transparent;transition:background .15s,color .15s}
+.trev.on{background:rgba(52,199,89,.16);color:var(--green)}
+[data-dark] .trev.on{background:rgba(48,209,88,.2)}
+.tcard-foot{display:flex;align-items:center;justify-content:space-between;gap:10px;border-top:1px solid var(--border);padding-top:11px}
+.tcard-next{font-size:12px;color:var(--muted);display:flex;align-items:center;gap:5px;min-width:0}
+.tcard-acts{display:flex;gap:6px;flex-shrink:0}
+
+@media(max-width:820px){
+  html,body{overflow-x:hidden;max-width:100%}
+  body{font-size:15px}
+  body.nav-open{overflow:hidden}
+
+  /* ── MENU LATERAL vira gaveta ── */
+  body,body.sb-collapsed{--sidebar-w:0px}
+  .sidebar{width:min(84vw,320px);transform:translateX(-102%);transition:transform .32s cubic-bezier(.32,.72,0,1);z-index:1200;padding-top:var(--safe-t);background:var(--s1);backdrop-filter:none;-webkit-backdrop-filter:none}
+  body.nav-open .sidebar{transform:none;box-shadow:0 0 70px rgba(0,0,0,.4)}
+  .sidebar-traffic{display:none}
+  .sidebar-logo{padding:14px 18px 12px}
+  .tab-btn{padding:13px 14px;font-size:15.5px;border-radius:13px;margin-bottom:3px}
+  .nav-icon{width:28px;height:28px}
+  .nav-icon svg{width:20px;height:20px}
+  .nav-group{font-size:10px;padding:16px 12px 6px}
+  .sidebar-user{margin:8px 14px calc(14px + var(--safe-b))}
+  .nav-backdrop{display:block;position:fixed;inset:0;background:rgba(0,0,0,.34);opacity:0;pointer-events:none;transition:opacity .3s;z-index:1100}
+  body.nav-open .nav-backdrop{opacity:1;pointer-events:auto}
+
+  /* ── TOPO ── */
+  .topbar{left:0;height:calc(var(--topbar-h) + var(--safe-t));padding:var(--safe-t) 6px 0 6px;gap:2px}
+  .topbar-title{font-size:16.5px;font-weight:700}
+  .hdr-icon-btn,.topbar-toggle,.logout-btn{padding:11px}
+
+  /* ── BARRA DE ABAS EMBAIXO (estilo iOS) ── */
+  .tabbar{display:flex;position:fixed;left:0;right:0;bottom:0;z-index:900;height:calc(var(--tabbar-h) + var(--safe-b));padding-bottom:var(--safe-b);background:var(--sb-bg);backdrop-filter:blur(30px) saturate(180%);-webkit-backdrop-filter:blur(30px) saturate(180%);border-top:1px solid var(--sb-border)}
+  .tabbar-btn{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;background:none;border:none;padding:7px 0 5px;font-family:inherit;font-size:10px;font-weight:600;letter-spacing:-.01em;color:var(--muted);cursor:pointer;-webkit-tap-highlight-color:transparent;transition:color .15s}
+  .tabbar-btn svg{width:23px;height:23px}
+  .tabbar-btn.on{color:var(--accent)}
+  .tabbar-btn:active{opacity:.5}
+
+  /* ── CONTEÚDO ── */
+  .main{margin-left:0;padding:calc(var(--topbar-h) + var(--safe-t) + 16px) 14px calc(var(--tabbar-h) + var(--safe-b) + 28px);overflow-wrap:break-word}
+  .card{padding:16px 15px;border-radius:18px}
+  .sec-header{flex-wrap:wrap;gap:10px;margin-bottom:16px}
+  .sec-title{font-size:27px}
+  .dash-head{margin-bottom:18px;gap:12px}
+  .dash-head-title{font-size:27px}
+  .dash-head-date{font-size:13px}
+  .dash-search{display:none}
+  .dash-chips{grid-template-columns:1fr 1fr;gap:10px}
+  .dash-chips>:last-child:nth-child(3){grid-column:1/-1}
+  .dash-chip{padding:14px 15px;border-radius:18px}
+  .dash-chip-lbl{font-size:11.5px;gap:6px;margin-bottom:7px}
+  .dash-chip-val{font-size:24px}
+  .dash-grid,.grid-2,.form-row,.tg-grid,.ing-menu-grid{grid-template-columns:1fr}
+  .counter-grid{grid-template-columns:repeat(2,1fr);gap:10px}
+  .chart-box{height:200px}
+  .stat-value{font-size:25px}
+  .dash-banner{padding:22px 20px;border-radius:20px}
+  .notion-banner{padding:14px 16px}
+
+  /* ── FILTROS / FORMULÁRIOS (16px evita o zoom automático do iPhone) ── */
+  input,select,textarea,.fg input,.fg select,.toolbar select,.toolbar input[type=text],.day-add-input,.fc-textarea,.login-fg input,.cnt-input{font-size:16px}
+  .toolbar{gap:8px}
+  .toolbar select,.toolbar input[type=text]{flex:1 1 100%;min-width:0!important;padding:11px 14px}
+  #table-count{margin-left:0!important;width:100%}
+  .btn{padding:11px 16px;font-size:14px}
+  .btn-sm{padding:8px 12px;font-size:13px}
+
+  /* ── CRONOGRAMA: tabela some, entram os cards ── */
+  .table-wrap{display:none}
+  .mob-cards{display:block}
+
+  /* ── MODAIS viram folha que sobe ── */
+  .overlay{align-items:flex-end}
+  .modal{width:100%;max-width:100%;max-height:92vh;border-radius:26px 26px 0 0;padding:14px 16px calc(20px + var(--safe-b));transform:translateY(100%);transition:transform .34s cubic-bezier(.32,.72,0,1)}
+  .overlay.open .modal{transform:translateY(0)}
+  .modal::before{content:'';display:block;width:38px;height:5px;border-radius:99px;background:var(--dim);opacity:.55;margin:2px auto 14px}
+  .modal-head{margin-bottom:16px}
+  .modal-title{font-size:18px}
+  .modal-close{padding:10px}
+
+  /* ── CALENDÁRIO ── */
+  .cal-header{gap:10px}
+  .cal-month-title{font-size:19px}
+  .cal-seg{width:100%}
+  .cal-seg-btn{flex:1;padding:9px 0;font-size:13.5px}
+  .cal-nav-group{width:100%}
+  .cal-today-btn{flex:1}
+  .cal-grid{gap:3px}
+  .cal-dow{font-size:9.5px;padding:2px 0}
+  .cal-day{min-height:62px;padding:5px 4px;border-radius:10px}
+  .cal-day-num{font-size:11px;margin-bottom:3px}
+  .cal-task-pill{font-size:9px;padding:1px 4px;border-radius:4px}
+  .cal-more{font-size:9px}
+  .cal-week-grid{grid-template-columns:1fr;gap:8px}
+  .cal-week-col{min-height:0}
+  .cal-week-head{flex-direction:row;align-items:center;justify-content:flex-start;gap:11px;padding:10px 12px;margin-bottom:4px}
+  .cal-week-date{font-size:16px;width:28px;height:28px}
+  .cal-week-body{padding:0 10px 4px}
+  .cal-week-body .cal-task-pill{font-size:11.5px;padding:4px 8px}
+
+  /* ── FLASHCARDS ── */
+  .fc-stats{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
+  .fc-stat{min-width:0;padding:11px 5px}
+  .fc-stat-val{font-size:20px}
+  .fc-stat-lbl{font-size:9px;letter-spacing:.03em}
+  .fc-card{min-height:250px;padding:34px 20px;border-radius:22px}
+  .fc-card-text{font-size:19.5px;line-height:1.45}
+  .fc-ratings{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+  .fc-ratings>button{width:100%;padding:14px 0;font-size:14px}
+  .fc-form{padding:16px}
+  .fc-browse-row{flex-wrap:wrap;padding:12px 13px}
+  .fc-browse-front{flex:1 1 100%;white-space:normal}
+  .fc-browse-back{flex:1 1 100%}
+  .fc-type-btn{padding:16px}
+
+  /* ── RESUMOS ── */
+  .res-row{flex-wrap:wrap;gap:8px;padding:12px 13px}
+  .res-aula-tag{min-width:0}
+  .res-titulo{flex:1 1 auto;white-space:normal}
+  .res-btns{flex:1 1 100%}
+  .res-btn{flex:1;justify-content:center;padding:9px 10px}
+
+  /* ── OUTROS ── */
+  .rev-card{padding:13px 14px;gap:11px}
+  .id-band{min-width:0;flex:1 1 100%}
+  .id-word{font-size:32px}
+  .id-grid{grid-template-columns:repeat(auto-fill,minmax(104px,1fr));gap:9px}
+  .ing-subtab{padding:10px 14px;font-size:14px}
+  .sim-row,.sf-row{padding:11px 12px}
+  .day-task-row{padding:12px}
+  .empty{padding:40px 16px}
+
+  /* ── POMODORO / AVISOS ── */
+  .pomo-panel{top:auto;bottom:calc(var(--tabbar-h) + var(--safe-b) + 12px);left:12px;right:12px;width:auto;transform:translateY(12px) scale(.97)}
+  .pomo-panel.open{transform:translateY(0) scale(1)}
+  .toast-wrap{left:12px;right:12px;bottom:calc(var(--tabbar-h) + var(--safe-b) + 12px)}
+  .toast{max-width:none;transform:translateY(150%)}
+  .toast.show{transform:translateY(0)}
+
+  /* ── LOGIN ── */
+  .login-card{padding:32px 24px;border-radius:22px}
+  .login-title{font-size:28px}
+}
+
+/* Em telas de toque, nada de "levantar" no hover (fica preso depois do toque) */
+@media(hover:none){
+  .card:hover,.stat-card:hover,.counter-card:hover,.rev-card:hover,.dash-chip:hover,
+  .ing-menu-card:hover,.id-cell:hover,.btn:hover,.btn-p:hover,.btn-o:hover,
+  .res-btn:hover,.fc-btn-again:hover,.fc-btn-hard:hover,.fc-btn-good:hover,.fc-btn-easy:hover,
+  .id-deckbtn:hover,.tcard:hover{transform:none}
+}
+
 </style>
 </head>
 <body>
@@ -1103,6 +1275,7 @@ body.sb-collapsed .sidebar-user-text,body.sb-collapsed .sidebar-user-chev{displa
     <svg class="sidebar-user-chev" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg>
   </div>
 </aside>
+<div class="nav-backdrop" id="nav-backdrop" onclick="closeNav()"></div>
 
 <header class="topbar">
   <button class="topbar-toggle" onclick="toggleSidebar()" title="Abrir / recolher menu">
@@ -1277,6 +1450,7 @@ body.sb-collapsed .sidebar-user-text,body.sb-collapsed .sidebar-user-chev{displa
       <tbody id="t-body"></tbody>
     </table>
   </div>
+  <div class="mob-cards" id="t-cards"></div>
   <div id="t-empty" class="empty" style="display:none">
     <div class="icon" style="font-size:32px;opacity:.3"><svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg></div><h3>Nenhum tópico</h3><p>Adicione ou ajuste os filtros.</p>
   </div>
@@ -1849,6 +2023,15 @@ body.sb-collapsed .sidebar-user-text,body.sb-collapsed .sidebar-user-chev{displa
 <!-- TOAST CONTAINER -->
 <div class="toast-wrap" id="toast-wrap"></div>
 
+<!-- BARRA DE ABAS (celular) -->
+<nav class="tabbar" id="tabbar">
+  <button class="tabbar-btn on" data-tab="dashboard"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>Início</button>
+  <button class="tabbar-btn" data-tab="cronograma"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>Cronograma</button>
+  <button class="tabbar-btn" data-tab="calendario"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2.5"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>Calendário</button>
+  <button class="tabbar-btn" data-tab="flashcards"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg>Flashcards</button>
+  <button class="tabbar-btn" data-more="1" onclick="toggleNav()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>Mais</button>
+</nav>
+
 </div><!-- /#app-root -->
 
 <script>
@@ -2175,7 +2358,10 @@ function switchToTab(tab){
   if(panel)panel.classList.add('active');
   const titleEl=document.getElementById('topbar-title');
   if(titleEl)titleEl.textContent=TAB_TITLES[tab]||tab;
+  document.querySelectorAll('.tabbar-btn').forEach(x=>x.classList.toggle('on',x.dataset.tab===tab));
+  closeNav();
   if(TAB_FN[tab])TAB_FN[tab]();
+  if(isMobileNav())window.scrollTo(0,0);
 }
 
 document.querySelectorAll('.tab-btn').forEach(b=>{
@@ -2183,10 +2369,47 @@ document.querySelectorAll('.tab-btn').forEach(b=>{
 });
 
 function toggleSidebar(){
+  if(isMobileNav()){toggleNav();return;}
   document.body.classList.toggle('sb-collapsed');
   localStorage.setItem('medplanner_sb',document.body.classList.contains('sb-collapsed')?'1':'0');
 }
 if(localStorage.getItem('medplanner_sb')==='1')document.body.classList.add('sb-collapsed');
+
+// ── CELULAR: gaveta do menu + barra de abas de baixo ──────────
+function isMobileNav(){return window.matchMedia('(max-width:820px)').matches;}
+function openNav(){document.body.classList.add('nav-open');}
+function closeNav(){document.body.classList.remove('nav-open');}
+function toggleNav(){document.body.classList.toggle('nav-open');}
+document.querySelectorAll('.tabbar-btn[data-tab]').forEach(b=>{
+  b.addEventListener('click',()=>switchToTab(b.dataset.tab));
+});
+document.addEventListener('keydown',e=>{if(e.key==='Escape')closeNav();});
+// No celular o menu vive na gaveta (sempre aberto por dentro); no PC volta ao normal
+let _mobPrev=null;
+function syncMobileNav(){
+  const m=isMobileNav();
+  if(m===_mobPrev)return;
+  _mobPrev=m;
+  if(m){document.body.classList.remove('sb-collapsed');}
+  else{closeNav();if(localStorage.getItem('medplanner_sb')==='1')document.body.classList.add('sb-collapsed');}
+}
+syncMobileNav();
+window.addEventListener('resize',syncMobileNav);
+// Deslizar da borda esquerda abre o menu; deslizar pra esquerda fecha
+(function(){
+  let sx=0,sy=0,track=false;
+  document.addEventListener('touchstart',e=>{
+    if(!isMobileNav()||e.touches.length!==1){track=false;return;}
+    sx=e.touches[0].clientX;sy=e.touches[0].clientY;
+    track=document.body.classList.contains('nav-open')||sx<26;
+  },{passive:true});
+  document.addEventListener('touchend',e=>{
+    if(!track)return;track=false;
+    const t=e.changedTouches[0],dx=t.clientX-sx,dy=t.clientY-sy;
+    if(Math.abs(dx)<60||Math.abs(dy)>Math.abs(dx))return;
+    if(dx>0&&sx<26)openNav();else if(dx<0)closeNav();
+  },{passive:true});
+})();
 
 // ── CHARTS ────────────────────────────────────────────────────
 const charts={};
@@ -2470,6 +2693,19 @@ function renderCountCell(cell,val,id,field){
 }
 
 // ── CRONOGRAMA TABLE ──────────────────────────────────────────
+// Versão em cartão de um tópico do cronograma — usada só no celular
+function tCardHTML(t){
+  const chip=(v,field,ico,lbl)=>`<div class="tchip ${v?'on':''}" onclick="toggleField('${t.id}','${field}')"><span class="tchip-ico">${v?'✓':ico}</span>${lbl}</div>`;
+  const rev=(v,field,lbl)=>`<div class="trev ${v?'on':''}" onclick="toggleField('${t.id}','${field}')">${lbl}</div>`;
+  return `<div class="tcard">
+    <div class="tcard-top">${atags(t.area)}<span class="tcard-sem">${t.semana||''}</span><span class="tcard-data">${fmtD(t.data)}</span></div>
+    <div class="tcard-ttl">${t.ap||'—'}</div>
+    <div class="tcard-meta">${ptCell(t)}${dbadge(t.desemp,t.id)}</div>
+    <div class="tcard-chips">${chip(t.aula,'aula','📺','Aula')}${chip(t.mini,'mini','🎬','Mini')}${chip(t.qpos,'qpos','✍️','Questões')}${chip(t.flash,'flash','🗂️','Flash')}</div>
+    <div class="tcard-revs">${rev(t.r1s,'r1s','1 sem')}${rev(t.r1m,'r1m','1 mês')}${rev(t.r2m,'r2m','2 m')}${rev(t.r4m,'r4m','4 m')}${rev(t.r6m,'r6m','6 m')}</div>
+    <div class="tcard-foot"><span class="tcard-next">Próxima: ${calcNextRev(t)}</span><span class="tcard-acts"><button class="btn btn-o btn-sm" onclick="openModal('${t.id}')">✏️</button><button class="btn btn-d btn-sm" onclick="confirmDel('${t.id}')">🗑</button></span></div>
+  </div>`;
+}
 function renderTable(){
   const{topics}=get();
   const search=document.getElementById('s-search').value.toLowerCase();
@@ -2492,8 +2728,10 @@ function renderTable(){
   document.getElementById('table-count').textContent=`${f.length} de ${topics.length} tópicos`;
   const empty=document.getElementById('t-empty');
   const tbody=document.getElementById('t-body');
-  if(!f.length){tbody.innerHTML='';empty.style.display='';return;}
+  const cards=document.getElementById('t-cards');
+  if(!f.length){tbody.innerHTML='';if(cards)cards.innerHTML='';empty.style.display='';return;}
   empty.style.display='none';
+  if(cards)cards.innerHTML=f.map(tCardHTML).join('');
 
   tbody.innerHTML=f.map((t,i)=>{
     return`<tr>
