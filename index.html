@@ -4660,6 +4660,9 @@ const FC_FIXES2=[
  ["Como é o preparo para a cirurgia?","1º DAT; 2º iodo, 7 a 10 dias antes.",["Graves: como é o preparo para a tireoidectomia?"]],
  ["E como iniciar no idoso ou cardiopata?","Começar com 12,5 a 50 mcg/dia e aumentar gradualmente.",["Levotiroxina: como iniciar no idoso ou cardiopata?"]],
  ["Qual o 2º passo — e a conduta pelo tamanho?","Ultrassonografia. < 1 cm: acompanhar. ≥ 1 cm com características suspeitas: PAAF. Nódulo grande: PAAF com ≥ 1,5 a 2 cm.",["Nódulo de tireoide: qual o 2º passo — e a conduta pelo tamanho?"]]
+,
+ ["Anti-hipertensivos — efeitos adversos: por que não usar bloqueador de cálcio na ICC?","Porque o coração precisa de cálcio para contrair.",["Anti-hipertensivos — efeitos adversos: por que não usar verapamil/diltiazem (BCC não di-hidropiridínico) na ICC?"]],
+ ["Qual estágio de HAS controlar antes da cirurgia?","HAS estágio 2 (PAS>180 / PAD>110); leve/moderada não justifica adiar.",["Que nível de PA precisa ser controlado antes da cirurgia eletiva?"]]
 ];
 // respostas corrigidas (chave = resposta antiga, que é única)
 const FC_FIXES_R=[
@@ -4667,6 +4670,15 @@ const FC_FIXES_R=[
  ["Perda ao tossir, espirrar, ao levantar…","Perda ao tossir, espirrar, rir ou levantar peso."],
  ["Aumento da produção hormonal (\"a glândula quer iodo\"). Ocorre na diminuição do iodo, nódulo tóxico...","Aumento da produção hormonal (\"a glândula quer o iodo\"). Ocorre quando se dá uma CARGA de iodo (contraste, amiodarona) a quem tinha carência de iodo ou nódulo/bócio autônomo."],
  ["Baixa produção hormonal (\"a glândula não quer iodo\"). Ocorre com anti-TPO, antitireoidianos.","Queda da produção hormonal (\"a glândula não quer o iodo\"). Também ocorre após carga de iodo e costuma ser transitório — mas quem tem tireoidite (anti-TPO) ou usa antitireoidiano pode não escapar e ficar hipotireoideo."]
+,
+ ["≥ 135x80.","≥ 135x85."],
+ ["VO = 1/3 da IV; resgate = 1/6 a 1/10 da dose diária total; NÃO tem dose-teto (titula pelo controle da dor).","A dose VO é 3x a dose IV (a IV é que vale 1/3 da VO — 10 mg IV ≈ 30 mg VO); resgate = 1/6 a 1/10 da dose diária total; NÃO tem dose-teto (titula pelo controle da dor)."],
+ ["Child.","Pancreatectomia distal (corpo-caudal) + esplenectomia."],
+ ["Porque o coração precisa de cálcio para contrair.","Porque são inotrópicos negativos — o coração precisa de cálcio para contrair. (Os di-hidropiridínicos, como anlodipino, podem ser usados.)"],
+ ["HAS estágio 2 (PAS>180 / PAD>110); leve/moderada não justifica adiar.","PA ≥ 180x110 mmHg (HAS grave — estágio 3 na classificação brasileira); HAS leve/moderada não justifica adiar."],
+ ["Desidratação grave: ≥ 2 (*≥1); desidratação: ≥ 2; sem desidratação: sem sinais suficientes.","Pela contagem de sinais do quadro da OMS: desidratação GRAVE = 2 ou mais sinais, sendo ao menos 1 dos sinais-chave (letargia/inconsciência, não consegue beber, prega que desfaz muito lentamente); desidratação = 2 ou mais sinais; sem desidratação = não preenche os anteriores."],
+ ["Trimetazidina, ranolazina, colchicina e ivabradina.","Trimetazidina, ranolazina e ivabradina. (A colchicina entra como anti-inflamatório para reduzir risco cardiovascular, não como antianginoso.)"],
+ ["Todos: análogo de GLP-1 (liraglutida, tirzepatida) e resmetirom. Diabético: pioglitazona e iSGLT2 (dapagliflozina).","Todos: incretinomiméticos — análogo de GLP-1 (semaglutida, liraglutida) ou agonista duplo GIP/GLP-1 (tirzepatida) — e resmetirom. Diabético: pioglitazona e iSGLT2 (dapagliflozina)."]
 ];
 function fcWalkCards(d,fn){
   (d.cards||[]).forEach(c=>{
