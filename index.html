@@ -4390,6 +4390,284 @@ const FC_FIXES=[
  ["E o CAT em 24-72 horas?","Quando indicar o CAT em 24-72 horas?"],
  ["Onda P sempre com a mesma morfologia — qual o tipo?","Na taquicardia atrial, onda P sempre com a mesma morfologia — qual o tipo?"]
 ];
+// 2ª rodada: perguntas que só faziam sentido dentro da seção da apostila
+// ("Qual a intervenção?" servia para 3 valvas diferentes). Chave =
+// pergunta + resposta antigas; quando a mesma dupla tem mais de um
+// destino, aplica na ordem em que os cards aparecem.
+const FC_FIXES2=[
+ ["Qual a regra da formação do estrogênio?","2 células e 2 gonadotrofinas.",["Fase folicular: qual a regra da formação do estrogênio?"]],
+ ["Qual enzima transforma androgênio em estrogênio?","A aromatase (formando estrona e estradiol).",["Fase folicular: qual enzima transforma androgênio em estrogênio?"]],
+ ["O que acontece na teca por ação do LH?","O colesterol vira androgênio (androstenediona e testosterona).",["Fase folicular: o que acontece na teca por ação do LH?"]],
+ ["No que se transforma o folículo roto?","Em corpo lúteo.",["Ovulação/fase lútea: no que se transforma o folículo roto?"]],
+ ["Quais camadas formam a camada funcional?","A compacta e a esponjosa (1 e 2).",["Ciclo endometrial: quais camadas formam a camada funcional?"]],
+ ["Quais são as 4 categorias de elegibilidade da OMS?","1: pode usar; 2: usar com cautela; 3: contraindicação relativa; 4: contraindicação absoluta.",["Anticoncepção: quais são as 4 categorias de elegibilidade da OMS?"]],
+ ["Quais são os métodos comportamentais?","Tabelinha, curva térmica e muco cervical — todos de baixa eficácia.",["Método comportamental/barreira: quais são os métodos comportamentais?"]],
+ ["O que os métodos comportamentais tentam fazer?","Prever a ovulação.",["Método comportamental/barreira: o que os métodos comportamentais tentam fazer?"]],
+ ["Quais as 3 condições da amenorreia da lactação?","Amamentação exclusiva + amenorreia + até 6 meses.",["Método comportamental/barreira: quais as 3 condições da amenorreia da lactação?"]],
+ ["Qual a contraindicação categoria 4?","CA de mama atual.",["Contraceptivo só de progesterona: qual a contraindicação categoria 4?"]],
+ ["A progesterona inibe qual hormônio?","O LH.",["Anticoncepcional combinado: a progesterona inibe qual hormônio?"]],
+ ["Com quais progestágenos o efeito anti-androgênico é maior?","Drospirenona ou ciproterona.",["Anticoncepcional combinado: com quais progestágenos o efeito anti-androgênico é maior?"]],
+ ["Em quais pacientes não usar o método ORAL e por quê?","Quem usa tirzepatida, anticonvulsivante ou rifampicina e quem fez bariátrica — diminuem o efeito da pílula.",["Anticoncepcional combinado: em quais pacientes não usar o método ORAL e por quê?"]],
+ ["O que é LARC e o que inclui?","Long-Acting Reversible Contraception: DIU (cobre e progesterona) + implante.",["DIU: o que é LARC e o que inclui?"]],
+ ["Exemplos de causas não pós-estreptocócicas?","Hepatites, LES, doença de Berger, tumores...",["Síndrome nefrítica: exemplos de causas NÃO pós-estreptocócicas?"]],
+ ["Do que são feitos os cilindros hemáticos?","Proteína de Tamm-Horsfall + células.",["Síndrome nefrítica: Do que são feitos os cilindros hemáticos?"]],
+ ["Qual anticorpo pesquisar se a infecção foi na faringe?","ASLO.",["GNPE: qual anticorpo pesquisar se a infecção foi na faringe?"]],
+ ["Patogênese do Goodpasture?","Anticorpos anti-MBG atacam a membrana dos glomérulos e dos alvéolos pulmonares.",["GNRP: Patogênese do Goodpasture?"]],
+ ["Clínica do Goodpasture?","Pulmão: hemoptise. Rim: GNRP clássica.",["GNRP: Clínica do Goodpasture?"]],
+ ["Qual o tratamento inicial?","Internação + antibiótico.",["Colecistite aguda: qual o tratamento inicial?"]],
+ ["Qual o tratamento padrão-ouro?","Colecistectomia videolaparoscópica.",["Colecistite aguda: qual o tratamento padrão-ouro?"]],
+ ["Tokyo Guideline — critério A?","Sinais de inflamação local: Murphy + dor em QSD, massa.",["Tokyo Guideline da COLECISTITE — critério A?"]],
+ ["Tokyo Guideline — critério B?","Sinais de inflamação sistêmica: febre, leucocitose e aumento de PCR.",["Tokyo Guideline da COLECISTITE — critério B?"]],
+ ["Tokyo Guideline — critério C?","Achados de USG.",["Tokyo Guideline da COLECISTITE — critério C?"]],
+ ["Como fechar suspeita e diagnóstico no Tokyo?","Suspeita: A + B. Diagnóstico: A + B + C.",["Colecistite: como fechar suspeita e diagnóstico no Tokyo?"]],
+ ["Tratamento do grau I?","CVL.",["Colecistite aguda (Tokyo): tratamento do grau I?"]],
+ ["Tratamento do grau II?","CVL em centro especializado.",["Colecistite aguda (Tokyo): tratamento do grau II?"]],
+ ["Tratamento do grau III?","Conservador até correção da disfunção; depois de estabilizar, CVL por cirurgião experiente (colecistostomia se não estabilizar).",["Colecistite aguda (Tokyo): tratamento do grau III?"]],
+ ["Como se faz o diagnóstico?","No intraoperatório ou por CPRE.",["Síndrome de Mirizzi: como se faz o diagnóstico?"]],
+ ["Qual a diferença entre primária e secundária?","Primária: formado no colédoco (< 5%). Secundária: formado na vesícula.",["Coledocolitíase: qual a diferença entre primária e secundária?"]],
+ ["Qual o 1º passo do diagnóstico e o que procurar?","USG: dilatação (> 5mm) e cálculos.",["Coledocolitíase: qual o 1º passo do diagnóstico e o que procurar?"]],
+ ["Quais exames confirmam o diagnóstico?","Colangio-RM e CPRE.",["Coledocolitíase: quais exames confirmam o diagnóstico?"]],
+ ["Qual o tratamento antes da CVL?","CPRE.",["Coledocolitíase: qual o tratamento do cálculo ANTES da CVL?"]],
+ ["Tokyo — critério B?","Colestase: icterícia.",["Tokyo da COLANGITE — critério B?"]],
+ ["Tokyo — critério C?","Imagem: dilatação ou evidência de obstrução.",["Tokyo da COLANGITE — critério C?"]],
+ ["Tratamento do grau I?","Antibiótico (drenagem se refratário).",["Colangite aguda (Tokyo): tratamento do grau I?"]],
+ ["Tratamento do grau II?","Antibiótico + drenagem de urgência.",["Colangite aguda (Tokyo): tratamento do grau II?"]],
+ ["Tratamento do grau III?","Antibiótico + drenagem de emergência.",["Colangite aguda (Tokyo): tratamento do grau III?"]],
+ ["Qual a principal etiologia em crianças?","Trauma.",["Pancreatite aguda: qual a principal etiologia em crianças?"]],
+ ["Os sinais semiológicos são patognomônicos?","Não! Podem ser causados por hemorragia retroperitoneal.",["Pancreatite aguda: os sinais semiológicos são patognomônicos?"]],
+ ["Qual das duas normaliza mais rápido?","A amilase.",["Pancreatite aguda: entre amilase e lipase, qual normaliza mais rápido?"]],
+ ["Qual exame de imagem pedir primeiro e por quê?","USG — não é bom para ver o pâncreas, mas vê a litíase biliar.",["Pancreatite aguda: qual exame de imagem pedir primeiro e por quê?"]],
+ ["Não achou litíase na USG, e agora?","Suspeitar de microlitíases: USG endoscópica.",["Pancreatite aguda: não achou litíase na USG, e agora?"]],
+ ["Qual o principal exame de imagem?","TC com contraste.",["Pancreatite aguda: qual o principal exame de imagem?"]],
+ ["Quando fazer a TC com contraste?","Após ≥ 72 horas, ou imediata se grave, se piora ou se há dúvida.",["Pancreatite aguda: quando fazer a TC com contraste?"]],
+ ["Quais as duas formas na TC com contraste?","Edematosa e necrosante.",["Pancreatite aguda: quais as duas formas na TC com contraste?"]],
+ ["Quando usar o Balthazar?","Quando já tiver sido feita a tomografia.",["Pancreatite aguda: quando usar o Balthazar?"]],
+ ["Qual classificação é a mais usada na prática?","Os critérios de Atlanta.",["Pancreatite aguda: qual classificação é a mais usada na prática?"]],
+ ["Pode usar opioide na analgesia?","Pode.",["Pancreatite aguda: pode usar opioide na analgesia?"]],
+ ["Com qual eletrólito ter cuidado?","Com a queda do cálcio.",["Pancreatite aguda: com qual eletrólito ter cuidado?"]],
+ ["Quando reiniciar a dieta VO?","Pancreatite leve, sem dor e com fome.",["Pancreatite aguda: quando reiniciar a dieta VO?"]],
+ ["Quanto de lipídeo na dieta reiniciada?","Menos de 30% do total.",["Pancreatite aguda: quanto de lipídeo na dieta reiniciada?"]],
+ ["Não tolerou VO em 72 horas, e agora?","Cateter nasogástrico ou nasojejunal.",["Pancreatite aguda: não tolerou VO em 72 horas, e agora?"]],
+ ["Qual a complicação local mais comum e quando aparece?","O pseudocisto — tardio, em 15% dos casos.",["Pancreatite aguda: qual a complicação local mais comum e quando aparece?"]],
+ ["O imipenem não resolveu, e agora?","Drenagem endoscópica ou percutânea.",["Pancreatite aguda: O imipenem não resolveu, e agora?"]],
+ ["Qual exame de imagem é o mais usado?","A TC.",["Pancreatite crônica: qual exame de imagem é o mais usado?"]],
+ ["Qual a indicação de tratamento cirúrgico?","Dor clinicamente intratável.",["Pancreatite crônica: qual a indicação de tratamento cirúrgico?"]],
+ ["O que avaliar antes da cirurgia?","O Wirsung (ducto pancreático principal).",["Pancreatite crônica: o que avaliar antes da cirurgia?"]],
+ ["Ducto pancreático dilatado: qual o corte para CPRE?","Ducto principal > 6-7mm.",["Pancreatite crônica — Ducto pancreático dilatado: qual o corte para CPRE?"]],
+ ["Qual a cirurgia do ducto dilatado?","Cirurgia de Puestow: pancreatojejunostomia lateral em Y de Roux.",["Pancreatite crônica: qual a cirurgia do ducto dilatado?"]],
+ ["Ducto NÃO dilatado com calcificação na cabeça: qual cirurgia?","Duodenopancreatectomia (Whipple modificada).",["Pancreatite crônica — Ducto NÃO dilatado com calcificação na cabeça: qual cirurgia?"]],
+ ["Ducto NÃO dilatado com calcificação em corpo e cauda?","Pancreatectomia subtotal distal.",["Pancreatite crônica: ducto NÃO dilatado com calcificação em corpo e cauda?"]],
+ ["Clínica da trombose da veia esplênica?","Varizes apenas em fundo gástrico + esplenomegalia.",["Pancreatite crônica: Clínica da trombose da veia esplênica?"]],
+ ["Conduta na trombose da veia esplênica?","Esplenectomia.",["Pancreatite crônica: Conduta na trombose da veia esplênica?"]],
+ ["Qual o tipo histológico e sua frequência?","Adenocarcinoma, 80-90%.",["Câncer de pâncreas: qual o tipo histológico e sua frequência?"]],
+ ["Qual a localização mais comum?","Cabeça do pâncreas, 70%.",["Câncer de pâncreas: qual a localização mais comum?"]],
+ ["Outros achados clínicos?","Perda ponderal, dor abdominal, linfonodo supraclavicular esquerdo e umbilical.",["Câncer de pâncreas: Outros achados clínicos?"]],
+ ["Quais exames de imagem?","USG endoscópico e TC com contraste.",["Câncer de pâncreas: quais exames de imagem?"]],
+ ["Como fazer a biópsia?","Transduodenal (USG-EDA) ou percutânea (TC/USG).",["Câncer de pâncreas: como fazer a biópsia?"]],
+ ["Qual a proporção de tratamento paliativo?","80% dos casos (T4 / N / M1).",["Câncer de pâncreas: qual a proporção de tratamento paliativo?"]],
+ ["O que define T4?","Envolvimento > 180° do tronco celíaco e/ou da artéria mesentérica superior.",["Câncer de pâncreas: o que define T4?"]],
+ ["Paliativo SEM condição cirúrgica: conduta?","Stents em colédoco e/ou duodeno.",["Câncer de pâncreas — Paliativo SEM condição cirúrgica: conduta?"]],
+ ["Paliativo COM condição cirúrgica: conduta?","Coledocojejunostomia (diminui a icterícia) e/ou gastrojejunostomia (diminui a obstrução duodenal) + quimio/radioterapia adjuvante.",["Câncer de pâncreas — Paliativo COM condição cirúrgica: conduta?"]],
+ ["Qual a proporção de tratamento curativo e em quais estádios?","20% dos casos, até T3 / N / M0.",["Câncer de pâncreas: qual a proporção de tratamento curativo e em quais estádios?"]],
+ ["Qual a sequência do tratamento curativo?","Quimioterapia neoadjuvante + cirurgia + linfadenectomia.",["Câncer de pâncreas: qual a sequência do tratamento curativo?"]],
+ ["Qual o detalhe de prova no laboratório?","Transaminases < 400 U/L e TGO > TGP (AST > ALT).",["Doença hepática alcoólica: qual o detalhe de prova no laboratório?"]],
+ ["Quando entra corticoide — e qual?","Caso grave (índice de Maddrey ≥ 32): prednisolona por 4 semanas.",["Doença hepática alcoólica: quando entra corticoide — e qual?"]],
+ ["Quais os 3 passos do diagnóstico?","1) Esteatose (em geral USG). 2) Fator cardiometabólico. 3) Excluir outras etiologias (álcool, HCV, Wilson…).",["DHEM/MASLD (esteatose metabólica): quais os 3 passos do diagnóstico?"]],
+ ["Como é a estratificação não invasiva?","FIB-4 (idade, transaminases, plaquetas) ≥ 1,3 → elastografia transitória ≥ 8 kPa = doença avançada.",["DHEM/MASLD (esteatose metabólica): como é a estratificação não invasiva?"]],
+ ["De quanto em quanto tempo o diabético tipo 2 faz FIB-4?","A cada 1 a 2 anos (pré-diabético também).",["DHEM/MASLD (esteatose metabólica): De quanto em quanto tempo o diabético tipo 2 faz FIB-4?"]],
+ ["Qual o tratamento não farmacológico (sempre)?","Redução de peso ≥ 5-10%, dieta e exercício.",["DHEM/MASLD (esteatose metabólica): qual o tratamento não farmacológico (sempre)?"]],
+ ["Qual o tratamento farmacológico na doença avançada?","Todos: análogo de GLP-1 (liraglutida, tirzepatida) e resmetirom. Diabético: pioglitazona e iSGLT2 (dapagliflozina).",["DHEM/MASLD (esteatose metabólica): qual o tratamento farmacológico na doença avançada?"]],
+ ["Qual o prazo da profilaxia pós-exposição em não vacinado?","Até 14 dias.",["Hepatite A/E: qual o prazo da profilaxia pós-exposição em não vacinado?"]],
+ ["Por que o HBcAg não é pedido no sangue?","Não é detectável em exames de sangue — só o anti-HBc (IgM e IgG).",["Hepatite B: por que o HBcAg não é pedido no sangue?"]],
+ ["Qual a indicação de tratar por agressão?","HBV-DNA ≥ 2.000 + aumento de ALT ≥ 1,5x LSN.",["Hepatite B: qual a indicação de tratar por agressão?"]],
+ ["Quando tratar para prevenir reativação?","Uso de imunossupressor ou quimioterapia.",["Hepatite B: quando tratar para prevenir reativação?"]],
+ ["Quando tratar para prevenir transmissão vertical?","HBV-DNA ≥ 200.000 ou HBeAg (+).",["Hepatite B: quando tratar para prevenir transmissão vertical?"]],
+ ["Qual a droga de escolha — e por quanto tempo?","Tenofovir (TDF). Em geral, por tempo indeterminado.",["Hepatite B: qual a droga de escolha — e por quanto tempo?"]],
+ ["Transmissão vertical: qual droga e quando começar?","Apenas TDF, de 24 a 28 semanas até o parto.",["Hepatite B — Transmissão vertical: qual droga e quando começar?"]],
+ ["Qual a principal forma de contágio?","Drogas injetáveis.",["Hepatite C: qual a principal forma de contágio?"]],
+ ["Como se faz o diagnóstico de infecção ativa?","Anti-HCV (+) e HCV-RNA (+).",["Hepatite C: como se faz o diagnóstico de infecção ativa?"]],
+ ["Quem deve ser tratado?","Todos os pacientes.",["Hepatite C: quem deve ser tratado?"]],
+ ["O que é resposta viral sustentada (RVS)?","HCV-RNA indetectável — cura!",["Hepatite C: o que é resposta viral sustentada (RVS)?"]],
+ ["Esquema se APRI < 1 (sem cirrose)?","Sofosbuvir + daclatasvir (12 a 24 semanas).",["Hepatite C: Esquema se APRI < 1 (sem cirrose)?"]],
+ ["Esquema se APRI ≥ 1 (cirrose)?","Sofosbuvir + velpatasvir.",["Hepatite C: Esquema se APRI ≥ 1 (cirrose)?"]],
+ ["O que é a coinfecção e o que ela muda?","\"D\" e \"B\" agudas ao mesmo tempo. NÃO aumenta o risco de cronificação.",["Hepatite D: o que é a coinfecção e o que ela muda?"]],
+ ["O que é a super-infecção e o que ela muda?","\"D\" aguda em quem já tinha \"B\". AUMENTA o risco de fulminante e cirrose.",["Hepatite D: o que é a super-infecção e o que ela muda?"]],
+ ["O que a USG com doppler mostra?","Aumento do calibre portal (n = 12 mm) e da esplênica (n = 9 mm), com fluxo hepatofugal.",["Hipertensão porta: o que a USG com doppler mostra?"]],
+ ["Qual a chance de ressangrar em 1 ano?","60%.",["Varizes esofágicas: qual a chance de ressangrar em 1 ano?"]],
+ ["Qual o alvo do betabloqueador?","FC de 55 a 60 bpm, ou queda de 25% da FC basal.",["Varizes que nunca sangraram: qual o alvo do betabloqueador?"]],
+ ["Qual o alvo de hemoglobina na transfusão?","Hb ≥ 7 g/dL.",["Varizes sangrando: qual o alvo de hemoglobina na transfusão?"]],
+ ["Quais drogas vasoativas usar e por quanto tempo?","Terlipressina ou somatostatina ou octreotide, por 2 a 5 dias.",["Varizes sangrando: quais drogas vasoativas usar e por quanto tempo?"]],
+ ["O que suspender no paciente que está sangrando?","Betabloqueador e diuréticos. E reverter a anticoagulação.",["Varizes sangrando: o que suspender no paciente que está sangrando?"]],
+ ["Em quanto tempo fazer a endoscopia?","Em até 12 horas — é o ideal.",["Varizes sangrando: em quanto tempo fazer a endoscopia?"]],
+ ["Quais as doses iniciais e máximas?","Espironolactona 100 mg (máx. 400 mg/dia); furosemida 40 mg (máx. 160 mg/dia).",["Ascite: quais as doses iniciais e máximas dos diuréticos?"]],
+ ["Qual o objetivo de perda de peso?","0,5 kg/dia (1 kg/dia se houver edema) + Na urinário ≥ 78 mEq/dia.",["Ascite: qual o objetivo de perda de peso?"]],
+ ["Quando fazer restrição hídrica?","1 a 1,5 L/dia, se Na < 125.",["Ascite: quando fazer restrição hídrica?"]],
+ ["O que caracteriza?","Falência, azotemia, ClCr < 30, Na < 120, K > 6.",["Ascite refratária: o que caracteriza?"]],
+ ["Qual o tratamento inicial?","Suspender o betabloqueador e iniciar midodrina VO.",["Ascite refratária: qual o tratamento inicial?"]],
+ ["Quanto de albumina repor na paracentese de grande volume?","6 a 8 g de albumina por litro retirado (volume > 5-6 L).",["Ascite refratária: quanto de albumina repor na paracentese de grande volume?"]],
+ ["O que é ascite neutrofílica?","PMN ≥ 250/mm³ com cultura NEGATIVA. Trata igual PBE.",["PBE: o que é ascite neutrofílica?"]],
+ ["Qual a fisiopatologia?","Aumento da amônia (NH₃) e de outras toxinas.",["Encefalopatia hepática: qual a fisiopatologia?"]],
+ ["Quais os fatores precipitantes?","Hemorragia, infecções, PBE, constipação, queda do K e diuréticos.",["Encefalopatia hepática: quais os fatores precipitantes?"]],
+ ["Como é o diagnóstico?","Clínico: flapping, letargia, sonolência e coma.",["Encefalopatia hepática: como é o diagnóstico?"]],
+ ["Pode restringir proteína na dieta?","Não — deve-se evitar a restrição proteica.",["Encefalopatia hepática: pode restringir proteína na dieta?"]],
+ ["Quais antibióticos usar?","Rifaximina, metronidazol ou neomicina.",["Encefalopatia hepática: quais antibióticos usar?"]],
+ ["O que usar se houver agitação?","Haloperidol.",["Encefalopatia hepática: o que usar se houver agitação?"]],
+ ["Qual o tratamento definitivo?","Transplante.",["Encefalopatia hepática: qual o tratamento definitivo?"]],
+ ["Que exame mostra o shunt intrapulmonar?","Eco com microbolhas.",["Síndrome hepatorrenal/hepatopulmonar: que exame mostra o shunt intrapulmonar?"]],
+ ["Quais os critérios de hipoxemia?","Sat < 96% e PaO₂ < 80 mmHg.",["Síndrome hepatorrenal/hepatopulmonar: quais os critérios de hipoxemia?"]],
+ ["O que pensar na perda insensível (extrauretral)?","Fístula — cirurgia pélvica + perda contínua vaginal.",["Incontinência urinária: o que pensar na perda insensível (extrauretral)?"]],
+ ["Que exames pedir na suspeita de fístula?","Cistoscopia (bexiga) ou urografia (ureter).",["Incontinência urinária: que exames pedir na suspeita de fístula?"]],
+ ["O que avaliar no exame físico?","IMC, prolapsos, atrofia e teste de esforço.",["Incontinência urinária: o que avaliar no exame físico?"]],
+ ["Que exames pedir SEMPRE?","Urina I (EAS) e urocultura.",["Incontinência urinária: que exames pedir SEMPRE?"]],
+ ["Qual o resíduo normal no estudo miccional?","Menos de 50 ml.",["Incontinência urinária: qual o resíduo normal no estudo miccional?"]],
+ ["Como se calcula a pressão do detrusor?","Pressão vesical − pressão abdominal.",["Incontinência urinária: como se calcula a pressão do detrusor?"]],
+ ["Qual o tratamento clínico?","Perda de peso, exercícios perineais (Kegel), biofeedback e eletroestimulação.",["Incontinência de esforço: qual o tratamento clínico?"]],
+ ["Qual o papel da duloxetina?","Papel secundário.",["Incontinência de esforço: qual o papel da duloxetina?"]],
+ ["Quando indicar cirurgia?","Casos mais graves ou que não melhoraram com o tratamento clínico.",["Incontinência de esforço: quando indicar cirurgia?"]],
+ ["Qual o padrão-ouro cirúrgico?","O SLING (TVT / TOT).",["Incontinência de esforço: qual o padrão-ouro cirúrgico?"]],
+ ["O diagnóstico da síndrome é clínico ou urodinâmico?","Da síndrome é clínico; o da hiperatividade é urodinâmico.",["Bexiga hiperativa: O diagnóstico da síndrome é clínico ou urodinâmico?"]],
+ ["Quais as medidas gerais de 1ª linha?","Perda de peso, reduzir cafeína e fumo.",["Bexiga hiperativa: quais as medidas gerais de 1ª linha?"]],
+ ["Qual o tratamento fisioterápico?","Treinamento vesical, cinesioterapia e eletroestimulação.",["Bexiga hiperativa: qual o tratamento fisioterápico?"]],
+ ["Qual a 2ª escolha entre as drogas?","Imipramina.",["Bexiga hiperativa: qual a 2ª escolha entre as drogas?"]],
+ ["Quais músculos formam o diafragma pélvico?","Elevador do ânus (puborretal, iliococcígeo e pubococcígeo) e coccígeo.",["Distopia genital (anatomia): quais músculos formam o diafragma pélvico?"]],
+ ["Quando fazer tratamento conservador?","Prolapso menor ou risco cirúrgico aumentado — pessários e fisioterapia.",["Prolapso genital: quando fazer tratamento conservador?"]],
+ ["Qual o defeito mais comum na cistocele?","Defeito lateral da fáscia (80%).",["Prolapso genital: qual o defeito mais comum na cistocele?"]],
+ ["Qual o 1º sinal clínico?","A alteração menstrual.",["Climatério: qual o 1º sinal clínico?"]],
+ ["Quais outras manifestações?","Insônia, síndrome geniturinária (atrofia e dispareunia) e aumento do risco de osteoporose.",["Climatério: quais outras manifestações?"]],
+ ["Como diagnosticar insuficiência ovariana prematura?","Se < 40 anos: duas dosagens de FSH > 25, com 1 mês de intervalo.",["Climatério: como diagnosticar insuficiência ovariana prematura?"]],
+ ["Quais exames básicos antes da TH?","Lipidograma, glicemia de jejum e mamografia.",["Terapia hormonal do climatério: quais exames básicos antes da TH?"]],
+ ["O que é a janela de oportunidade?","Os primeiros 10 anos ou antes dos 60 anos.",["Terapia hormonal do climatério: o que é a janela de oportunidade?"]],
+ ["Qual a indicação mais comum de TH?","Os fogachos.",["Terapia hormonal do climatério: qual a indicação mais comum de TH?"]],
+ ["Qual esquema usar em quem TEM útero?","Sempre estrogênio + progesterona.",["Terapia hormonal do climatério: qual esquema usar em quem TEM útero?"]],
+ ["O que define ritmo sinusal?","P positiva em DII e seguida de QRS.",["ECG na taquiarritmia: o que define ritmo sinusal?"]],
+ ["Como se classifica a TV?","1) Monomórfica ou polimórfica; 2) sustentada ou não sustentada.",["Taquiarritmias — reconhecimento: como se classifica a TV?"]],
+ ["O que define TV sustentada?","≥ 30 segundos ou instabilidade hemodinâmica.",["Taquiarritmias — reconhecimento: o que define TV sustentada?"]],
+ ["O que é comum na TV sustentada?","Congestão, angina, hipotensão e síncope.",["Taquiarritmias — reconhecimento: o que é comum na TV sustentada?"]],
+ ["Como se chama a TV polimórfica com QT longo?","Torção de pontas — torsades de pointes.",["Taquiarritmias — reconhecimento: como se chama a TV polimórfica com QT longo?"]],
+ ["Quem tem alto risco tromboembólico?","1) Estenose mitral moderada-grave / prótese mecânica; 2) escore CHA2DS2VA ≥ 2; 3) amiloidose / hipertrófica / hipertireoidismo.",["Fibrilação atrial: quem tem alto risco tromboembólico?"]],
+ ["O que significa o \"B\"?","Baixar a FC.",["Fibrilação atrial: o que significa o \"B\"?"]],
+ ["Quais drogas para controle da FC?","Inibidores do AV: betabloqueadores (metoprolol, esmolol), bloqueadores do canal de cálcio (verapamil e diltiazem) e digitálicos (digoxina).",["Fibrilação atrial: quais drogas para controle da FC?"]],
+ ["Como se faz o controle do ritmo?","Elétrica, química (amiodarona/propafenona) ou ablação.",["Fibrilação atrial: como se faz o controle do ritmo?"]],
+ ["O que significa o \"C\"?","Controlar fatores de risco: pesquisar desencadeantes como HAS, álcool, TSH e apneia do sono.",["Fibrilação atrial: o que significa o \"C\"?"]],
+ ["Como saber se existe via acessória?","Pela pré-excitação ventricular: PR curto + onda delta.",["Taquicardia supraventricular: como saber se existe via acessória?"]],
+ ["O que é a síndrome de Wolff-Parkinson-White?","Via acessória + taquiarritmia.",["Taquicardia supraventricular: o que é a síndrome de Wolff-Parkinson-White?"]],
+ ["O que pode ser feito durante o preparo da cardioversão?","Adenosina ou manobra vagal.",["Taquicardia supraventricular: o que pode ser feito durante o preparo da cardioversão?"]],
+ ["Conduta no paciente estável?","1) Manobra vagal (Valsalva, compressão carotídea); 2) adenosina.",["Taquicardia supraventricular: Conduta no paciente estável?"]],
+ ["Quando fazer profilaxia e como?","Em episódios recorrentes, com ablação por cateter.",["Taquicardia supraventricular: quando fazer profilaxia e como?"]],
+ ["Quais causas de QT longo?","Agrotóxicos, BAVT, congênitas, drogas e eletrólitos.",["Taquicardia ventricular: quais causas de QT longo?"]],
+ ["Quais drogas causam QT longo?","Antipsicóticos, antidepressivos, antiarrítmicos, macrolídeo e cloroquina.",["Taquicardia ventricular: quais drogas causam QT longo?"]],
+ ["Quais distúrbios eletrolíticos causam QT longo?","Hipo: K, Mg e Ca.",["Taquicardia ventricular: quais distúrbios eletrolíticos causam QT longo?"]],
+ ["Qual o escore Z que define magreza acentuada?","< Z -3.",["Desnutrição grave: qual o escore Z que define magreza acentuada?"]],
+ ["Qual o corte da circunferência braquial?","< 115mm.",["Desnutrição grave: qual o corte da circunferência braquial?"]],
+ ["Para que faixa etária vale a circunferência braquial?","Crianças de 6 meses a 5 anos.",["Desnutrição grave: para que faixa etária vale a circunferência braquial?"]],
+ ["Qual das formas preserva o subcutâneo?","O kwashiorkor.",["Desnutrição grave: qual das formas preserva o subcutâneo?"]],
+ ["Quais as 3 fases do tratamento?","1) Estabilização; 2) Reabilitação; 3) Acompanhamento.",["Tratamento da desnutrição grave: quais as 3 fases do tratamento?"]],
+ ["O que acontece se a dieta não for balanceada?","Síndrome de realimentação.",["Tratamento da desnutrição grave: o que acontece se a dieta não for balanceada?"]],
+ ["O que se faz no acompanhamento?","Acompanhamento ambulatorial com pesagem semanal.",["Tratamento da desnutrição grave: o que se faz no acompanhamento?"]],
+ ["Quais os 6 itens da avaliação complementar?","1) PA (HAS); 2) glicemia de jejum (DM); 3) colesterol total/HDL/LDL (dislipidemia); 4) triglicerídeos (dislipidemia); 5) TGP (esteatose hepática); 6) circunferência abdominal (síndrome metabólica).",["Obesidade infantil: quais os 6 itens da avaliação complementar?"]],
+ ["A partir de que valor o alvo é baixo no homem?","< 163cm.",["Baixa estatura: a partir de que valor o alvo é baixo no homem?"]],
+ ["A partir de que valor o alvo é baixo na mulher?","< 151cm.",["Baixa estatura: a partir de que valor o alvo é baixo na mulher?"]],
+ ["Quais são as variantes da normalidade?","Baixa estatura familiar e atraso constitucional — ambas com velocidade de crescimento normal.",["Baixa estatura: quais são as variantes da normalidade?"]],
+ ["O que diferencia as duas variantes na idade óssea?","Familiar: idade óssea adequada. Constitucional: idade óssea atrasada.",["Baixa estatura: o que diferencia as duas variantes na idade óssea?"]],
+ ["Quais as causas endócrinas?","Hipotireoidismo (principal causa), deficiência de GH e altos níveis de cortisol.",["Baixa estatura: quais as causas endócrinas?"]],
+ ["Qual a exceção que dispensa as 2 consultas?","PA ≥ 180x110 mmHg.",["Diagnóstico de HAS: qual a exceção que dispensa as 2 consultas?"]],
+ ["Quais as lesões cardíacas?","Coronariopatia e cardiopatia hipertensiva (HVE, insuficiência cardíaca).",["HAS — lesão de órgão-alvo: quais as lesões cardíacas?"]],
+ ["Quais as medidas gerais?","Cessar tabagismo, exercício físico, meditação e diminuição do peso (IMC < 25).",["HAS — medidas não medicamentosas: quais as medidas gerais?"]],
+ ["Como iniciar o tratamento medicamentoso?","Preferir associação de 2 fármacos em comprimido único.",["HAS — tratamento: como iniciar o tratamento medicamentoso?"]],
+ ["Quais as exceções a começar com 2 drogas?","Frágeis ≥ 80 anos, hipotensão ortostática e pré-HAS.",["HAS — tratamento: quais as exceções a começar com 2 drogas?"]],
+ ["Quais as drogas de 1ª linha?","Tiazídico, IECA ou BRA e bloqueador de cálcio.",["HAS — tratamento: quais as drogas de 1ª linha?"]],
+ ["Qual a situação do betabloqueador?","Só em indicações específicas.",["HAS — tratamento: qual a situação do betabloqueador?"]],
+ ["Quais as drogas de 2ª linha?","Alfabloqueador, clonidina, metildopa, espironolactona, hidralazina e alisquireno.",["HAS — tratamento: quais as drogas de 2ª linha?"]],
+ ["Para quem o tiazídico é indicação específica?","Para o paciente negro.",["HAS — tratamento: para quem o tiazídico é indicação específica?"]],
+ ["Quais são os tiazídicos?","Hidroclorotiazida, indapamida e clortalidona.",["HAS — tratamento: quais são os tiazídicos?"]],
+ ["Quando indicar bloqueador de canal de cálcio?","Paciente negro e doença arterial periférica.",["HAS — tratamento: quando indicar bloqueador de canal de cálcio?"]],
+ ["Quais são os bloqueadores de cálcio citados?","Anlodipina e nifedipina.",["HAS — tratamento: quais são os bloqueadores de cálcio citados?"]],
+ ["Quais os \"4 hipo\" do tiazídico?","Hipovolemia, hiponatremia, hipocalemia e hipomagnesemia.",["Anti-hipertensivos — efeitos adversos: quais os \"4 hipo\" do tiazídico?"]],
+ ["Quais os \"3 hiper\" do tiazídico?","Hiperuricemia, hiperglicemia e hiperlipemia.",["Anti-hipertensivos — efeitos adversos: quais os \"3 hiper\" do tiazídico?"]],
+ ["Quem não pode usar tiazídico por causa do ácido úrico?","Quem tem histórico de gota.",["Anti-hipertensivos — efeitos adversos: quem não pode usar tiazídico por causa do ácido úrico?"]],
+ ["Quais os efeitos adversos do bloqueador de cálcio?","Edema de membros inferiores, cefaleia e rubor facial.",["Anti-hipertensivos — efeitos adversos: quais os efeitos adversos do bloqueador de cálcio?"]],
+ ["Por que não usar bloqueador de cálcio na ICC?","Porque o coração precisa de cálcio para contrair.",["Anti-hipertensivos — efeitos adversos: por que não usar bloqueador de cálcio na ICC?"]],
+ ["Como excluir pseudorresistência?","Avaliar a aderência ao tratamento e afastar o efeito do avental branco (MAPA/MRPA).",["HAS resistente: como excluir pseudorresistência?"]],
+ ["O que é a dissecção aórtica Stanford A?","A que pega a parte da aorta ascendente.",["Crise hipertensiva: o que é a dissecção aórtica Stanford A?"]],
+ ["O que o aumento do átrio esquerdo provoca?","FA e disfagia.",["Estenose mitral: o que o aumento do átrio esquerdo provoca?"]],
+ ["Qual o achado da onda P no ECG?","P larga: > 100ms (2,5 quadradinhos).",["Estenose mitral: qual o achado da onda P no ECG?"]],
+ ["Quais os achados no RX de tórax?","Sinal do duplo contorno e sinal da bailarina.",["Estenose mitral: quais os achados no RX de tórax?"]],
+ ["Qual área valvar define gravidade no eco?","< 1,5 cm².",["Estenose mitral: qual área valvar define gravidade no eco?"]],
+ ["Quais os achados do exame físico?","B1 hiperfonética, sopro diastólico (com reforço pré-sistólico) e estalido de abertura.",["Estenose mitral: quais os achados do exame físico?"]],
+ ["Qual o tratamento medicamentoso?","Controle da FC com betabloqueador.",["Estenose mitral: qual o tratamento medicamentoso?"]],
+ ["Qual a intervenção de escolha?","Valvoplastia mitral por cateter-balão.",["Estenose mitral: qual a intervenção de escolha?"]],
+ ["Quando trocar a valva?","Se escore de Block > 8.",["Estenose mitral: quando trocar a valva?"]],
+ ["Qual o achado do ECG?","Sinais de hipertrofia de VE: em V5/V6 aumento de QRS e padrão de strain.",["Estenose aórtica: qual o achado do ECG?"]],
+ ["Quando o RX mostra dilatação de VE?","Apenas em fase avançada.",["Estenose aórtica: quando o RX mostra dilatação de VE?"]],
+ ["Qual área valvar define gravidade?","< 1 cm².",["Estenose aórtica: qual área valvar define gravidade?"]],
+ ["Como é o tratamento medicamentoso?","Insatisfatório — evitar betabloqueador.",["Estenose aórtica: como é o tratamento medicamentoso?"]],
+ ["Qual a intervenção?","Troca valvar.",["Estenose aórtica: qual a intervenção?","Insuficiência aórtica: qual a intervenção?"]],
+ ["Qual a tendência atual e para quem?","TAVI (implante de valva aórtica transcateter) — boa opção para > 70 anos.",["Estenose aórtica: qual a tendência atual e para quem?"]],
+ ["Quais as manifestações?","Aumento do átrio esquerdo e do ventrículo esquerdo (sobrecarga de volume), levando a insuficiência cardíaca.",["Insuficiência mitral: quais as manifestações?"]],
+ ["O que o ECG e o RX mostram?","Aumento do átrio esquerdo e do ventrículo esquerdo.",["Insuficiência mitral: o que o ECG e o RX mostram?"]],
+ ["Qual fração regurgitante define gravidade?","≥ 50%.",["Insuficiência mitral: qual fração regurgitante define gravidade?","Insuficiência aórtica: qual fração regurgitante define gravidade?"]],
+ ["Qual o tratamento medicamentoso?","Tratar a IC.",["Insuficiência mitral: qual o tratamento medicamentoso?"]],
+ ["Qual a intervenção?","Reparo (MitraClip) ou troca valvar.",["Insuficiência mitral: qual a intervenção?"]],
+ ["Quais as manifestações?","Aumento do VE por sobrecarga de volume (insuficiência cardíaca) e PA divergente.",["Insuficiência aórtica: quais as manifestações?"]],
+ ["Qual a frase que resume o exame físico?","\"Tudo pulsa na insuficiência aórtica\".",["Insuficiência aórtica: qual a frase que resume o exame físico?"]],
+ ["Quando usar vasodilatador?","Se sintomático — \"sangue vai e não volta\".",["Insuficiência aórtica: quando usar vasodilatador?"]],
+ ["Qual E. coli causa diarreia do viajante?","A enterotoxigênica.",["Diarreia aquosa: qual E. coli causa diarreia do viajante?"]],
+ ["Qual E. coli causa diarreia persistente?","A enteropatogênica.",["Diarreia aquosa: qual E. coli causa diarreia persistente?"]],
+ ["Qual a prioridade do tratamento?","Prevenção e tratamento da desidratação.",["Diarreia — hidratação: qual a prioridade do tratamento?"]],
+ ["Quanto de sódio tem a solução de reidratação oral?","75 ou 90 mEq/L de Na+.",["Diarreia — hidratação: quanto de sódio tem a solução de reidratação oral?"]],
+ ["O que usar na via endovenosa?","Soluções cristaloides.",["Diarreia — hidratação: o que usar na via endovenosa?"]],
+ ["Como tratar a cólera?","Doxiciclina.",["Diarreia aguda: como tratar a cólera?"]],
+ ["O que avaliar na diarreia persistente?","Redução de lactose.",["Diarreia aguda: o que avaliar na diarreia persistente?"]],
+ ["CCS classe 1?","Grandes esforços — corrida.",["Doença coronariana: CCS classe 1?"]],
+ ["CCS classe 2?","Médios esforços — grande caminhada.",["Doença coronariana: CCS classe 2?"]],
+ ["CCS classe 3?","Atividades cotidianas — pequena caminhada.",["Doença coronariana: CCS classe 3?"]],
+ ["CCS classe 4?","Mínimo esforço — andar em casa.",["Doença coronariana: CCS classe 4?"]],
+ ["Quais alterações tornam o ECG basal anormal?","BRE, HVE, WPW e marca-passo.",["Angina estável — testes provocativos: quais alterações tornam o ECG basal anormal?"]],
+ ["Paciente NÃO consegue se exercitar: o que fazer?","Testes com \"stress\" farmacológico.",["Angina estável — testes provocativos — Paciente NÃO consegue se exercitar: o que fazer?"]],
+ ["Qual o cuidado com o dipiridamol?","Pode induzir broncoespasmo.",["Angina estável — testes provocativos: qual o cuidado com o dipiridamol?"]],
+ ["Como é a angio-TC de coronárias / escore de cálcio?","Alta sensibilidade e baixa especificidade.",["Angina estável — testes provocativos: como é a angio-TC de coronárias / escore de cálcio?"]],
+ ["Para que serve a cardiorressonância?","É melhor para diferenciar músculo viável.",["Angina estável — testes provocativos: para que serve a cardiorressonância?"]],
+ ["Quais as medidas não farmacológicas?","Parar de fumar, atividade física, tratar comorbidades, perder peso e vacinação.",["Angina estável: quais as medidas não farmacológicas?"]],
+ ["Quais são os vasculoprotetores?","AAS e estatinas.",["Angina estável: quais são os vasculoprotetores?"]],
+ ["Qual o antianginoso de escolha?","Betabloqueador.",["Angina estável: qual o antianginoso de escolha?"]],
+ ["Quando usar IECA?","HAS, DM, DRC e FE < 40%.",["Angina estável: quando usar IECA?"]],
+ ["Que outras drogas modernas entram?","Gliflozinas ou análogos de GLP-1 (liraglutida etc.).",["Angina estável: que outras drogas modernas entram?"]],
+ ["Qual a droga de resgate na dor?","Nitrato sublingual.",["Angina estável: qual a droga de resgate na dor?"]],
+ ["Quais os \"outros\" antianginosos?","Trimetazidina, ranolazina, colchicina e ivabradina.",["Angina estável: quais os \"outros\" antianginosos?"]],
+ ["Qual o exame padrão-ouro?","O cateterismo.",["Doença coronariana — revascularização: qual o exame padrão-ouro?"]],
+ ["2ª situação?","Trivascular, ou bivascular com lesão proximal > 70% da DA + disfunção sistólica de VE e/ou DM e/ou teste com grande área isquêmica (> 10% do miocárdio).",["Quando a ponte (CRVM) aumenta sobrevida — 2ª situação?"]],
+ ["3ª situação?","Multivascular + escore SYNTAX ≥ 33.",["Quando a ponte (CRVM) aumenta sobrevida — 3ª situação?"]],
+ ["O que avaliar no aparelho cardiovascular?","Irradiação da dor, PA, pulsos, FC, B3 e sopros.",["Síndrome coronariana aguda: o que avaliar no aparelho cardiovascular?"]],
+ ["Que cuidados ter com o betabloqueador VO?","Cuidado se > 70 anos, FC > 110 ou PAs < 120.",["SCA — conduta inicial (MONABICHE): que cuidados ter com o betabloqueador VO?"]],
+ ["Qual antiplaquetário preferir se usou trombolítico?","Clopidogrel.",["SCA — conduta inicial (MONABICHE): qual antiplaquetário preferir se usou trombolítico?"]],
+ ["Quando não usar prasugrel?","Se AVE/AIT prévios.",["SCA — conduta inicial (MONABICHE): quando não usar prasugrel?"]],
+ ["Quais letras NÃO usar no IAM de VD?","M, N e B (morfina, nitrato e betabloqueador).",["SCA — conduta inicial (MONABICHE): quais letras NÃO usar no IAM de VD?"]],
+ ["Quando não usar o \"B\"?","Cocaína ou insuficiência ventricular esquerda.",["SCA — conduta inicial (MONABICHE): quando não usar o \"B\"?"]],
+ ["Quando não usar o \"N\"?","Se o paciente usou Viagra ou similares.",["SCA — conduta inicial (MONABICHE): quando não usar o \"N\"?"]],
+ ["Qual a conduta inicial?","Internação com MOVD e MONABICHE.",["Angina instável / IAM sem supra: qual a conduta inicial?"]],
+ ["Como é a dor da pericardite?","Melhora com o tronco para frente e piora com inspiração ou tosse; irradia para o trapézio.",["IAM com supra de ST: como é a dor da pericardite?"]],
+ ["Qual o tratamento da pericardite?","AINE + colchicina.",["IAM com supra de ST: qual o tratamento da pericardite?"]],
+ ["Qual o perfil da Takotsubo?","Mulher pós-menopausa + grande estresse.",["IAM com supra de ST: qual o perfil da Takotsubo?"]],
+ ["Quem transferir independentemente do tempo?","Paciente em choque, IC grave ou com contraindicação ao trombolítico.",["IAM com supra — reperfusão: quem transferir independentemente do tempo?"]],
+ ["Não consegue angioplastar em até 2h: o que fazer?","Trombolítico em até 10-30 min e depois transferir em até 24 horas — ou imediatamente se falhou/reocluiu.",["IAM com supra — reperfusão — Não consegue angioplastar em até 2h: o que fazer?"]],
+ ["Qual o achado do exame físico?","Pulmões limpos + turgência jugular.",["IAM de ventrículo direito: qual o achado do exame físico?"]],
+ ["E a desiodase III?","Transforma T4 em T3 reverso (T3r), que é inativo.",["Nos tecidos periféricos, o que faz a desiodase III?"]],
+ ["E no secundário / central (hipófise ou hipotálamo)?","T3/T4 e TSH andam juntos. Hiper: todos aumentados. Hipo: todos diminuídos.",["Hiper e hipotireoidismo SECUNDÁRIO/central: como ficam T3/T4 e TSH?"]],
+ ["E se não tiver nenhum achado específico — o que pedir?","Autoanticorpos (TRAb); ultrassonografia (bócio difuso, vascularização aumentada); cintilografia / RAIU-24h.",["Graves sem nenhum achado específico: o que pedir?"]],
+ ["Quando indicar a radioiodoterapia?","Na recidiva e como terapia definitiva.",["Graves: quando indicar a radioiodoterapia?"]],
+ ["Quando EVITAR a radioiodoterapia?","Descompensados, oftalmopatia grave, gravidez e bócios aumentados.",["Graves: quando EVITAR a radioiodoterapia?"]],
+ ["Quando optar pela cirurgia?","Terapia definitiva mais rápida, ou quando não pode fazer radioiodo (RAI).",["Graves: quando optar pela cirurgia?"]],
+ ["Como é o preparo para a cirurgia?","1º DAT; 2º iodo, 7 a 10 dias antes.",["Graves: como é o preparo para a tireoidectomia?"]],
+ ["E como iniciar no idoso ou cardiopata?","Começar com 12,5 a 50 mcg/dia e aumentar gradualmente.",["Levotiroxina: como iniciar no idoso ou cardiopata?"]],
+ ["Qual o 2º passo — e a conduta pelo tamanho?","Ultrassonografia. < 1 cm: acompanhar. ≥ 1 cm com características suspeitas: PAAF. Nódulo grande: PAAF com ≥ 1,5 a 2 cm.",["Nódulo de tireoide: qual o 2º passo — e a conduta pelo tamanho?"]]
+];
+// respostas corrigidas (chave = resposta antiga, que é única)
+const FC_FIXES_R=[
+ ["Hepatites, LES, doença de Berger, tumores...","Hepatites, LES, doença de Berger e tumores, entre outras."],
+ ["Perda ao tossir, espirrar, ao levantar…","Perda ao tossir, espirrar, rir ou levantar peso."],
+ ["Aumento da produção hormonal (\"a glândula quer iodo\"). Ocorre na diminuição do iodo, nódulo tóxico...","Aumento da produção hormonal (\"a glândula quer o iodo\"). Ocorre quando se dá uma CARGA de iodo (contraste, amiodarona) a quem tinha carência de iodo ou nódulo/bócio autônomo."],
+ ["Baixa produção hormonal (\"a glândula não quer iodo\"). Ocorre com anti-TPO, antitireoidianos.","Queda da produção hormonal (\"a glândula não quer o iodo\"). Também ocorre após carga de iodo e costuma ser transitório — mas quem tem tireoidite (anti-TPO) ou usa antitireoidiano pode não escapar e ficar hipotireoideo."]
+];
 function fcWalkCards(d,fn){
   (d.cards||[]).forEach(c=>{
     if(c.type==='category')(c.children||[]).forEach(ch=>fcWalkUm(ch,fn));
@@ -4400,13 +4678,28 @@ function fcWalkUm(c,fn){
   if(c.type==='deck')(c.subs||[]).forEach(s=>fn(s,'q'));
   else fn(c,'front');
 }
-// aplicar=false só conta quantos existem; aplicar=true corrige e salva
+// aplicar=false só conta quantos existem; aplicar=true corrige e salva.
+// Uma passada só; fcFixApply repete enquanto ainda achar algo (tem card que
+// precisa da 1ª e da 2ª rodada, uma depois da outra).
 function fcFixScan(aplicar){
-  const d=getFC(),mapa=new Map(FC_FIXES);
+  const d=getFC();
+  const mapa1=new Map(FC_FIXES);
+  const mapa2=new Map();FC_FIXES2.forEach(e=>mapa2.set(e[0]+'\u0000'+e[1],{novos:e[2],i:0}));
+  const mapaR=new Map(FC_FIXES_R);
   let n=0;
   fcWalkCards(d,(obj,campo)=>{
-    const novo=mapa.get((obj[campo]||'').trim());
-    if(novo){n++;if(aplicar)obj[campo]=novo;}
+    const campoR=campo==='q'?'a':'back';
+    const q=(obj[campo]||'').trim(),r=(obj[campoR]||'').trim();
+    let mexeu=false;
+    const nr=mapaR.get(r);
+    if(nr&&nr!==r){if(aplicar)obj[campoR]=nr;mexeu=true;}
+    const n1=mapa1.get(q);
+    if(n1){if(aplicar)obj[campo]=n1;mexeu=true;}
+    else{
+      const e=mapa2.get(q+'\u0000'+r);
+      if(e){const nq=e.novos[Math.min(e.i,e.novos.length-1)];e.i++;if(aplicar)obj[campo]=nq;mexeu=true;}
+    }
+    if(mexeu)n++;
   });
   if(aplicar&&n)setFC(d);
   return n;
@@ -4419,13 +4712,14 @@ function renderFCFixBanner(){
   const plural=n>1;
   wrap.innerHTML='<div class="notion-banner" style="margin-bottom:18px">'+
     '<p><span>'+n+' card'+(plural?'s':'')+'</span> '+(plural?'estão':'está')+' com a pergunta pela metade '+
-    '(ex.: "E quais são agudos?") — '+(plural?'dependiam':'dependia')+' do card anterior. '+
+    '(ex.: "E quais são agudos?", "Qual a intervenção?") — '+(plural?'dependiam':'dependia')+' do card anterior ou do título da seção. '+
     'Dá pra completar de uma vez, sem perder o histórico de revisão.</p>'+
     '<button class="btn btn-p btn-sm" onclick="fcFixApply()">Completar '+(plural?('as '+n+' perguntas'):'a pergunta')+'</button>'+
     '</div>';
 }
 function fcFixApply(){
-  const n=fcFixScan(true);
+  let n=0,passada=0;
+  while(passada++<4){const k=fcFixScan(true);if(!k)break;n+=k;}
   toast(n?(n>1?n+' cards completados!':'Card completado!'):'Nada para corrigir.','ok');
   renderFC();
 }
