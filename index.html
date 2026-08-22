@@ -4740,6 +4740,24 @@ function fcFixApply(){
   renderFC();
 }
 
+// Conserta as perguntas incompletas SOZINHO, sem precisar clicar no botão.
+// Roda ao abrir o app e de novo quando os dados chegam da nuvem (a nuvem
+// sobrescreve o local, então um card antigo pode voltar). Nunca roda no meio
+// de uma revisão — nesse caso o aviso com o botão continua lá como reserva.
+let fcFixAutoAvisou=false;
+function fcFixAuto(){
+  if(fcViewLocked)return;
+  if(!fcFixScan(false))return;
+  let n=0,passada=0;
+  while(passada++<4){const k=fcFixScan(true);if(!k)break;n+=k;}
+  if(!n)return;
+  if(!fcFixAutoAvisou){
+    fcFixAutoAvisou=true;
+    toast(n>1?(n+' cards tiveram a pergunta completada'):'1 card teve a pergunta completada','ok');
+  }
+  if((document.querySelector('.tab-btn.active')?.dataset.tab)==='flashcards')renderFC();
+}
+
 function renderFC(){
   setFCFocus(false);
   clearSessWait();
@@ -6925,6 +6943,7 @@ function fillMissingAulaDates(){
 }
 function startApp(){
   autoMerge();
+  fcFixAuto();
   fillMissingAulaDates();
   syncAllRevToCalendar();
   renderDashboard();
@@ -6975,6 +6994,7 @@ function enterApp(user){
       // A nuvem tem dados -> ela é a fonte da verdade; sobrescreve o local.
       applyCloudData(snap.data());
       cloudReady=true;
+      fcFixAuto(); // a nuvem pode ter trazido de volta um card com a pergunta pela metade
       reRenderAll();
     }else{
       // Documento ainda não existe (1º acesso) -> envia os dados locais como base.
