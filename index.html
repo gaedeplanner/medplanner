@@ -4765,7 +4765,7 @@ function fcFixAuto(){
 // Cada aula do Medcurso vira um Subtema dentro da categoria Medcurso;
 // Sobe de versão (FC_LIB_V) quando entram aulas novas: aí o app reorganiza
 // sozinho de novo, sem perder o histórico de revisão do que já existe.
-const FC_LIB_V=3;
+const FC_LIB_V=4;
 const FC_LIB=[
 ["Semana 01 · Lesões Renais",[["Panorama",[["Quais são os 5 grandes grupos de lesões renais?","1- Síndromes glomerulares; 2- Síndromes tubulares; 3- Síndromes vasculares; 4- Distúrbio eletrolítico/ácido-básico; 5- Síndrome urêmica."],["Quais são as síndromes glomerulares?","Síndrome nefrítica (GNDA), alterações assintomáticas, GNRP, síndrome nefrótica e trombose glomerular."]]],["Síndrome nefrítica",[["Por que outro nome a síndrome nefrítica é conhecida?","GNDA — glomerulonefrite difusa aguda."],["Causas da síndrome nefrítica?","Glomerulonefrite pós-estreptocócica e não pós-estreptocócica."],["Síndrome nefrítica: exemplos de causas NÃO pós-estreptocócicas?","Hepatites, LES, doença de Berger e tumores, entre outras."],["Características da síndrome nefrítica?","Oligúria, hipertensão, edema, hematúria dismórfica, cilindros hemáticos, proteinúria 150mg a 3,5g/24h e aumento de escórias."],["Síndrome nefrítica: Do que são feitos os cilindros hemáticos?","Proteína de Tamm-Horsfall + células."],["Qual a faixa de proteinúria da síndrome nefrítica?","150mg a 3,5g/24h."]]],["GNPE — glomerulonefrite pós-estreptocócica",[["O que é a GNPE?","Sequela tardia de infecção por cepas específicas do S. pyogenes."],["Qual a porta de entrada da GNPE e em que faixa etária?","Piodermite ou faringoamigdalite; faixa etária de 2-15 anos."],["Período de incubação da GNPE quando a porta é a faringe?","7-21 dias (média de 10 dias)."],["Qual o período de incubação da GNPE quando a porta de entrada é a pele?","15-28 dias (média de 21 dias)."],["Clínica da GNPE?","Síndrome nefrítica clássica."],["Quais os 4 pilares do diagnóstico da GNPE?","1) Piodermite (2-6 semanas) ou faringoamigdalite prévia (1-3 semanas); 2) período de incubação compatível; 3) infecção estreptocócica (cultura ou anticorpos); 4) queda transitória do complemento."],["GNPE: qual anticorpo pesquisar se a infecção foi na faringe?","ASLO."],["Qual anticorpo pesquisar se a infecção estreptocócica foi na derme?","Anti-DNAse."],["Quais frações do complemento caem na GNPE?","C3 e CH50."],["Quais as 5 indicações de biópsia na GNPE?","1- IR acelerada (rápida e progressiva); 2- proteinúria nefrótica > 4 semanas; 3- hematúria macroscópica > 4 semanas; 4- HAS > 4 semanas; 5- hipocomplementemia > 8 semanas."],["Achado da microscopia óptica na GNPE?","GN proliferativa difusa."],["Achado patognomônico na microscopia eletrônica da GNPE?","GIBAS — corcovas ou humps."],["História natural da GNPE: quanto tempo dura a oligúria?","Até 7 dias."],["História natural da GNPE: quanto dura a hipocomplementemia?","Até 8 semanas."],["História natural da GNPE: quanto dura a hematúria microscópica?","Até 1-2 anos."],["História natural da GNPE: quanto dura a proteinúria <1g/dia?","Até 2-5 anos."],["Tratamento da GNPE?","Restrição hidrossalina, diurético de alça (furosemida), vasodilatadores e antibiótico (penicilina benzatina)."],["Qual o diurético de escolha na GNPE?","Furosemida (diurético de alça)."],["Por que fazer antibiótico na GNPE?","Como medida epidemiológica: não vai melhorar o quadro, mas evita passar para outras pessoas."]]],["Doença de Berger (nefropatia por IgA)",[["O que é a doença de Berger?","Nefropatia por IgA — depósito granular de imunoglobulina A no mesângio."],["Epidemiologia da doença de Berger?","Glomerulopatia primária mais frequente; homem (2:1), entre 10 e 40 anos."],["Qual frase resume o padrão clínico do Berger?","\"Hematúria, nada, hematúria, nada...\""],["Quais as 5 formas clínicas do Berger?","1) Hematúria macroscópica recorrente (40-50%); 2) hematúria microscópica persistente (30-40%); 3) síndrome nefrítica (10%); 4) síndrome nefrótica (muito raro); 5) GNRP (<5%)."],["O que desencadeia a hematúria macroscópica no Berger?","Infecções, vacinação ou exercício físico vigoroso."],["Qual forma clínica do Berger tem melhor prognóstico?","A hematúria macroscópica recorrente."],["Como diferenciar a síndrome nefrítica do Berger da GNPE?","No Berger não há período de incubação e o complemento é normal."],["Laboratório do Berger?","Hematúria dismórfica, complemento normal, aumento de IgA sérico e depósitos de IgA em vasos da pele."],["Quando usar corticoide no Berger?","Proteinúria > 1g, HAS ou Cr > 1,5."],["Quando usar IECA/BRA no Berger?","Proteinúria > 500mg ou HAS."],["Prognóstico do Berger?","60% têm evolução benigna (rim estável); 35-40% evoluem para insuficiência renal."],["Fatores de mau prognóstico no Berger?","Idade avançada ao diagnóstico, sexo masculino, Cr > 1,5 ao diagnóstico e HAS."]]],["GNRP",[["O que é a GNRP?","Síndrome nefrítica que evoluiu para insuficiência renal de forma rápida e fulminante."],["Qual o achado da biópsia renal na GNRP?","Crescente em mais de 50% dos glomérulos."],["GNRP tipo 1 (10%) — qual a causa?","Depósito de anticorpo anti-MBG: Goodpasture."],["GNRP tipo 2 (45%) — quais as causas?","Berger, GNPE, endocardite, hepatites virais e LES."],["GNRP tipo 3 (45%) — qual a causa?","Pauci-imune: vasculites ANCA+ (poliarterite microscópica e granulomatose com poliangeíte)."],["Epidemiologia da GNRP?","Homens (6:1), entre 20-30 anos."],["GNRP: Patogênese do Goodpasture?","Anticorpos anti-MBG atacam a membrana dos glomérulos e dos alvéolos pulmonares."],["GNRP: Clínica do Goodpasture?","Pulmão: hemoptise. Rim: GNRP clássica."],["Como é a imunofluorescência na GNRP por anti-MBG?","Padrão linear."],["Tratamento da GNRP?","Plasmaférese + prednisona + imunossupressor."]]],["O complemento na síndrome nefrítica",[["Quais causas de síndrome nefrítica CONSOMEM o complemento?","GNPE, infecciosa não GNPE e lúpus."],["Quais causas NÃO diminuem o complemento?","Berger, Goodpasture e vasculites em geral."]]]]],
 ["Semana 01 · Ciclo Menstrual e Anticoncepção",[["Noções iniciais",[["Quantos folículos o feto tem na 20ª semana de gestação?","7 milhões."],["Quantos folículos restam na menarca?","Cerca de 300 mil."],["Qual a duração normal do ciclo?","21 a 35 dias."],["De que depende o ciclo menstrual?","Da interação hipotálamo-hipófise-ovário e de genitália normal."]]],["Ciclo ovariano — fase folicular",[["O que acontece no início da fase folicular?","Aumento do FSH e recrutamento folicular."],["Qual folículo é selecionado como dominante?","O que tem mais receptores de FSH."],["Características da fase folicular?","Aumento de estrogênio e de inibina B (\"Before ovulation\")."],["O que o estrogênio e a inibina fazem com o FSH?","Inibem o FSH."],["Fase folicular: qual a regra da formação do estrogênio?","2 células e 2 gonadotrofinas."],["O que o FSH faz na granulosa?","Transforma androgênio em estrogênio."],["Fase folicular: qual enzima transforma androgênio em estrogênio?","A aromatase (formando estrona e estradiol)."],["Fase folicular: o que acontece na teca por ação do LH?","O colesterol vira androgênio (androstenediona e testosterona)."]]],["Ovulação e fase lútea",[["O que dispara o pico de LH?","O pico de estradiol."],["Quanto tempo após o INÍCIO do pico de LH ocorre a ovulação?","32-36 horas."],["Quanto tempo após o pico MÁXIMO de LH ocorre a ovulação?","10-12 horas."],["Qual receptor o folículo pré-ovulatório já tem na granulosa?","Receptor de LH."],["Ovulação/fase lútea: no que se transforma o folículo roto?","Em corpo lúteo."],["Características da fase lútea?","Aumento da progesterona e da inibina A (\"After\")."],["Qual a duração da fase lútea?","Cerca de 14 dias."],["O que a elevação da progesterona faz com o LH?","Inibe o LH."],["O que acontece na regressão do corpo lúteo?","Queda de estrogênio, progesterona e inibina A; o ciclo reinicia com novo recrutamento folicular e aumento do FSH."]]],["Hipotálamo e endométrio",[["Como o GnRH é liberado?","De forma pulsátil, com pulsos que variam em frequência e amplitude."],["Como são os pulsos de GnRH na 1ª fase (folicular)?","Alta frequência e menor amplitude."],["Como são os pulsos de GnRH na 2ª fase (lútea)?","Baixa frequência e alta amplitude."],["Quais são as camadas do endométrio?","1- Compacta (superficial); 2- Esponjosa (média); 3- Basal (profunda)."],["Qual camada do endométrio sofre menos alteração?","A basal (profunda)."],["Ciclo endometrial: quais camadas formam a camada funcional?","A compacta e a esponjosa (1 e 2)."],["Como são as glândulas na fase proliferativa inicial?","Curtas e pequenas."],["Como são as glândulas do endométrio na fase secretora?","Mais longas, tortuosas e dilatadas."],["Qual hormônio predomina no muco cervical da 1ª fase?","O estrogênio."],["Qual hormônio predomina no muco cervical da 2ª fase?","A progesterona."]]],["Anticoncepção — escolha do método",[["O que se avalia na escolha do método?","Facilidade de uso, reversibilidade e índice de Pearl (segurança)."],["O que é o índice de Pearl?","Taxa de gravidez para cada 100 mulheres/ano."],["Qual método tem o MENOR índice de Pearl?","O implante subdérmico."],["Anticoncepção: quais são as 4 categorias de elegibilidade da OMS?","1: pode usar; 2: usar com cautela; 3: contraindicação relativa; 4: contraindicação absoluta."]]],["Métodos comportamentais e de barreira",[["Método comportamental/barreira: quais são os métodos comportamentais?","Tabelinha, curva térmica e muco cervical — todos de baixa eficácia."],["Como se calcula a tabelinha?","Ciclo curto menos 18 e ciclo longo menos 11."],["Método comportamental/barreira: o que os métodos comportamentais tentam fazer?","Prever a ovulação."],["Qual a grande vantagem do preservativo?","Proteção contra ISTs."],["Índice de Pearl do preservativo em uso típico?","18 (masculino) e 21 (feminino)."],["Método comportamental/barreira: quais as 3 condições da amenorreia da lactação?","Amamentação exclusiva + amenorreia + até 6 meses."]]],["Só progesterona",[["Quais são os métodos só de progesterona?","Minipílula, injetável trimestral e implante subdérmico."],["Contraindicações categoria 3 dos métodos só de progesterona?","Gravidez, tumor hepático, HAS grave, AVE, TVP e TEP aguda."],["Contraceptivo só de progesterona: qual a contraindicação categoria 4?","CA de mama atual."],["Mecanismo da minipílula?","Altera o muco cervical e atrofia o endométrio."],["Quais pílulas de progesterona são mais usadas hoje e por quê?","Desogestrel e drospirenona — têm menos falhas porque geram anovulação."]]],["Combinados (estrogênio + progesterona)",[["Quais são as apresentações dos combinados?","Oral (ACO), anel vaginal, adesivo e injeção mensal."],["Mecanismo de ação de TODOS os combinados?","Anovulação, alteração do muco e do endométrio (e da motilidade tubária)."],["O estrogênio inibe qual hormônio?","O FSH."],["Anticoncepcional combinado: a progesterona inibe qual hormônio?","O LH."],["Quais outros benefícios dos combinados?","Diminuem câncer de ovário e endométrio, diminuem fluxo e dismenorreia e têm efeito anti-androgênico."],["Anticoncepcional combinado: com quais progestágenos o efeito anti-androgênico é maior?","Drospirenona ou ciproterona."],["Contraindicações categoria 4 dos combinados?","Amamentação < 6 semanas pós-parto, CA de mama atual, fumar (≥ 15 cigarros) após os 35 anos, IAM/TVP/TEP/AVE atuais ou prévios, enxaqueca com aura, DM com vasculopatia e HAS grave."],["A partir de que idade a enxaqueca SEM aura contraindica o combinado?","Acima dos 35 anos — pelo risco de AVE."],["Anticoncepcional combinado: em quais pacientes não usar o método ORAL e por quê?","Quem usa tirzepatida, anticonvulsivante ou rifampicina e quem fez bariátrica — diminuem o efeito da pílula."]]],["DIU",[["Qual a duração do DIU de cobre?","10 anos."],["Mecanismo do DIU de cobre?","Ação irritativa, inflamatória e espermicida."],["O DIU de cobre pode ser usado em CA de mama?","Pode."],["Quando evitar o DIU de cobre?","Em caso de dismenorreia ou aumento de fluxo."],["Duração do DIU de progesterona?","Mirena 8 anos e Kyleena 5 anos."],["Mecanismo do DIU de progesterona?","Altera o muco e o endométrio: atrofia o endométrio e torna o muco hostil."],["DIU: o que é LARC e o que inclui?","Long-Acting Reversible Contraception: DIU (cobre e progesterona) + implante."],["Contraindicações intrauterinas ao DIU?","Gravidez, sangramento uterino inexplicado, mioma submucoso, malformação ou infecção uterina, CA de colo ou de endométrio."],["Em que janela pós-parto o DIU é contraindicado?","Entre 48 horas e 4 semanas pós-parto."],["Em CA de mama e LES com SAF, pode qual DIU?","O DIU de cobre."],["O que há de novo em DIU?","O DIU de cobre + prata: formato em Y que facilita inserção e remoção, dura 5 anos e tem ação inflamatória e espermicida."]]],["Emergência e laqueadura",[["Qual a dose do levonorgestrel na contracepção de emergência?","1 comprimido de 1,5mg VO em dose única."],["Qual o prazo da contracepção de emergência?","Ideal < 72 horas, mas pode até 5 dias."],["Quando NÃO usar o DIU de cobre como emergência?","Em caso de violência sexual."],["Quais os critérios para laqueadura tubária?","> 21 anos ou ≥ 2 filhos, capacidade civil e > 60 dias entre a vontade e a cirurgia."],["A laqueadura é permitida no parto? Precisa da assinatura do cônjuge?","É permitida no parto e não precisa do cônjuge assinar."]]],["Questões que errei",[["Histórico familiar de TVP: qual a categoria do ACO?","Categoria 2."],["Qual câncer o ACO reduz o risco?","Câncer de ovário."],["Muco cervical \"clara de ovo\" indica o quê?","Estrogênio — fase pré-ovulatória."],["Para que serve a pinça de Pozzi?","Para colocar o DIU."],["Principal causa de amenorreia primária?","Disgenesia gonadal e malformações mullerianas."]]]]],
@@ -4793,6 +4793,12 @@ const fcLibKey=q=>(q||'').trim().toLowerCase().replace(/\s+/g,' ');
 const fcLibNorm=s=>(s||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();
 const fcLibEhAula=nome=>FC_LIB.some(a=>a[0]===nome);
 const fcLibEhGeriatria=aula=>/^Geriatria/.test(aula);
+// Nomes que o Lucas usa para uma aula da biblioteca (o Medcurso batiza
+// de um jeito, o material dele de outro). Serve pra juntar os repetidos.
+const FC_LIB_APELIDOS=[
+  [/^glomerulopatias?\s*(1|i)$/,'Semana 01 · Lesões Renais'],
+  [/^lesao renal$/,'Semana 01 · Lesões Renais'],
+];
 // só o tema da aula, sem "Semana NN ·" e sem acento/pontuação
 const fcLibTema=nome=>fcLibNorm(nome).replace(/^semana\s*\d+\s*[^a-z0-9]*/,'').replace(/[^a-z0-9]+/g,' ').trim();
 
@@ -4852,10 +4858,36 @@ function fcLibAulaDoSubtema(dk,porPergunta,porResposta){
   if(aula&&max>=3&&max>=(dk.subs||[]).length*0.5)return aula;
   // pelo nome: "Lesões Renais" casa com "Semana 01 · Lesões Renais"
   const nome=fcLibTema(dk.front);
+  if(nome.length<4)return null;
+  for(let i=0;i<FC_LIB_APELIDOS.length;i++)if(FC_LIB_APELIDOS[i][0].test(nome))return FC_LIB_APELIDOS[i][1];
   if(nome.length<6)return null;
   const casam=FC_LIB.filter(a=>{const t=fcLibTema(a[0]);
     return t.length>=6&&(t.indexOf(nome)>=0||nome.indexOf(t)>=0);}).map(a=>a[0]);
   return casam.length===1?casam[0]:null;
+}
+
+// Leva os cards de um subtema para outro sem repetir: mesma pergunta, uma
+// pergunta dentro da outra (é a mesma com prefixo do tema) ou mesma resposta
+// longa contam como o mesmo card — e fica o histórico mais adiantado.
+function fcJuntarCards(alvo,origem,nid){
+  alvo.subs=alvo.subs||[];
+  let entraram=0,repetidos=0;
+  (origem.subs||[]).forEach(s=>{
+    const kq=fcLibKey(s.q),ka=fcLibKey(s.a);
+    const igual=alvo.subs.find(x=>{
+      const kx=fcLibKey(x.q);
+      if(kx===kq)return true;
+      // a mesma pergunta com um prefixo do tema na frente conta como igual
+      // ("Graves: quando indicar a radioiodoterapia?" = "Quando indicar a radioiodoterapia?")
+      if(kq.length>=12&&kx.length>=12&&
+         (kx.endsWith(kq)||kq.endsWith(kx)||kx.startsWith(kq)||kq.startsWith(kx)))return true;
+      return ka.length>15&&fcLibKey(x.a)===ka;
+    });
+    if(igual){if((s.nextTs||0)>(igual.nextTs||0))igual.nextTs=s.nextTs;repetidos++;}
+    else{alvo.subs.push({id:nid(),q:s.q,a:s.a,nextTs:s.nextTs||null});entraram++;}
+  });
+  origem.subs=[];
+  return{entraram:entraram,repetidos:repetidos};
 }
 
 function fcLibJuntarRepetidos(d,mexidos,nid){
@@ -4880,19 +4912,8 @@ function fcLibJuntarRepetidos(d,mexidos,nid){
       decks.sort((x,y)=>(y.front===aula?1:0)-(x.front===aula?1:0)||(y.subs||[]).length-(x.subs||[]).length);
       const alvo=decks[0];
       decks.slice(1).forEach(dk=>{
-        dk.subs.forEach(s=>{
-          const kq=fcLibKey(s.q),ka=fcLibKey(s.a);
-          const igual=alvo.subs.find(x=>{
-            const kx=fcLibKey(x.q);
-            if(kx===kq)return true; // mesma pergunta
-            // uma pergunta dentro da outra: e a mesma com prefixo do tema
-            if(kq.length>=12&&kx.length>=12&&(kx.indexOf(kq)>=0||kq.indexOf(kx)>=0))return true;
-            return ka.length>15&&fcLibKey(x.a)===ka; // mesma resposta longa
-          });
-          if(igual){if((s.nextTs||0)>(igual.nextTs||0))igual.nextTs=s.nextTs;}
-          else alvo.subs.push({id:nid(),q:s.q,a:s.a,nextTs:s.nextTs||null});
-        });
-        dk.subs=[];mexidos.add(dk);mexidos.add(cat);juntados++;
+        fcJuntarCards(alvo,dk,nid);
+        mexidos.add(dk);mexidos.add(cat);juntados++;
       });
     });
   });
@@ -5074,6 +5095,7 @@ function showFCBrowse(){
         <div style="padding:8px 12px 8px 40px;border-top:1px solid var(--border);background:var(--s2);display:flex;gap:6px">
           <button class="btn btn-o btn-sm" onclick="showFCAddCardInSubtema('${catId}','${ch.id}')">+ Adicionar card</button>
           <button class="btn btn-o btn-sm" onclick="showFCBulkImport('${catId}','${ch.id}')">Importar em massa</button>
+          <button class="btn btn-o btn-sm" onclick="showFCJuntar('${catId}','${ch.id}')" title="Leva os cards deste subtema para outro, sem repetir nada">⇄ Juntar com outro</button>
         </div>`:'';
       const dropAttrs=catId?`ondragover="onFCDragOver(event,this)" ondragleave="onFCDragLeave(this)" ondrop="onFCDrop(event,'${catId}','${ch.id}')"`:'' ;
       const reoDeck=catId?`draggable="true" ondragstart="fcReoStart(event,'deck','${catId}','','${ch.id}')" ondragend="fcReoEnd(event)" ondragover="fcReoOver(event,'deck','${catId}','')" ondrop="fcReoDrop(event,'deck','${catId}','','${ch.id}')"`:'';
@@ -5380,6 +5402,45 @@ function saveFCSubtema(catId){
   cat.children=cat.children||[];
   cat.children.push({id:newId(),type:'deck',front:name,tag:'',subs:[],collapsed:false,createdAt:today()});
   setFC(d);renderFC();toast('Subtema criado!','ok');
+}
+// Juntar dois subtemas na mão (quando o automático não percebeu que são a
+// mesma aula, ex.: "Glomerulopatia 1" e "Semana 01 · Lesões Renais").
+function showFCJuntar(catId,subId){
+  const d=getFC();
+  const cat=d.cards.find(c=>c.id===catId&&c.type==='category');
+  if(!cat)return;
+  const deck=(cat.children||[]).find(c=>c.id===subId&&c.type==='deck');
+  if(!deck)return;
+  const outros=(cat.children||[]).filter(c=>c.type==='deck'&&c.id!==subId);
+  if(!outros.length){toast('Não há outro subtema nesta categoria para juntar.','info');return;}
+  fcViewLocked=true;
+  document.getElementById('fc-main').innerHTML=`
+    <div class="fc-form">
+      <div class="card-title" style="margin-bottom:8px">Juntar subtemas</div>
+      <p style="font-size:13px;color:var(--muted);line-height:1.6;margin-bottom:16px">Os <strong style="color:var(--text)">${(deck.subs||[]).length} cards</strong> de <strong style="color:var(--text)">${deck.front}</strong> vão para o subtema escolhido abaixo. Card repetido não entra de novo, o histórico de revisão é mantido e o subtema <strong style="color:var(--text)">${deck.front}</strong> deixa de existir.</p>
+      <div class="fg" style="margin-bottom:16px"><label>Juntar com</label>
+        <select id="fc-juntar-alvo" style="background:var(--s2);border:1.5px solid var(--border);border-radius:8px;color:var(--text);padding:9px 12px;font-size:14px;width:100%;font-family:inherit">
+          ${outros.map(o=>`<option value="${o.id}">${o.front} — ${(o.subs||[]).length} card${(o.subs||[]).length===1?'':'s'}</option>`).join('')}
+        </select></div>
+      <div style="display:flex;gap:8px">
+        <button class="btn btn-p" onclick="fcJuntarSubtemas('${catId}','${subId}')">Juntar</button>
+        <button class="btn btn-o" onclick="renderFC()">Cancelar</button>
+      </div>
+    </div>`;
+}
+function fcJuntarSubtemas(catId,subId){
+  const alvoId=(document.getElementById('fc-juntar-alvo')||{}).value;
+  const d=getFC();
+  const cat=d.cards.find(c=>c.id===catId&&c.type==='category');
+  if(!cat)return;
+  const origem=(cat.children||[]).find(c=>c.id===subId);
+  const alvo=(cat.children||[]).find(c=>c.id===alvoId);
+  if(!origem||!alvo){toast('Subtema não encontrado.','err');renderFC();return;}
+  const nid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,5)+Math.floor(Math.random()*1000);
+  const r=fcJuntarCards(alvo,origem,nid);
+  cat.children=cat.children.filter(c=>c!==origem);
+  setFC(d);renderFC();
+  toast(r.entraram+' card'+(r.entraram===1?'':'s')+' juntado'+(r.entraram===1?'':'s')+(r.repetidos?(' · '+r.repetidos+' já estava'+(r.repetidos===1?'':'m')+' lá'):''),'ok');
 }
 function showFCAddCardInSubtema(catId,subId){
   fcViewLocked=true;
