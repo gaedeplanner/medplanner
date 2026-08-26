@@ -3442,7 +3442,9 @@ function renderSaude(){
 }
 // ── CRITÉRIOS E ESCALAS ───────────────────────────────────────
 const ESC_KEY='medplanner26_escalas';
-const ESC_DEFAULT=[{id:'esc-glasgow',nome:'Escala de Coma de Glasgow',cat:'Neurologia',link:'',conteudo:'ABERTURA OCULAR\nEspontânea — 4\nAo chamado — 3\nÀ dor — 2\nAusente — 1\n\nRESPOSTA VERBAL\nOrientado — 5\nConfuso — 4\nPalavras — 3\nSons — 2\nAusente — 1\n\nRESPOSTA MOTORA\nObedece — 6\nLocaliza — 5\nFlete — 4\nFlexão anormal — 3\nExtensão — 2\nAusente — 1\n\nSoma dos critérios avalia o nível de consciência = 3 a 15'}];
+const ESC_SEED_V=1;
+const ESC_SEED=[{id:'esc-child-pugh',nome:'Child-Pugh (gravidade da cirrose)',cat:'Hepatologia',link:'https://www.mdcalc.com/calc/340/child-pugh-score-cirrhosis-mortality',conteudo:'BILIRRUBINA TOTAL\n< 2 mg/dL — 1\n2 a 3 mg/dL — 2\n> 3 mg/dL — 3\n\nALBUMINA\n> 3,5 g/dL — 1\n2,8 a 3,5 g/dL — 2\n< 2,8 g/dL — 3\n\nINR (ou TP alargado)\n< 1,7 (TP < 4s) — 1\n1,7 a 2,3 (TP 4 a 6s) — 2\n> 2,3 (TP > 6s) — 3\n\nASCITE\nAusente — 1\nLeve / controlada com diurético — 2\nModerada a tensa / refratária — 3\n\nENCEFALOPATIA HEPÁTICA\nAusente — 1\nGrau I a II — 2\nGrau III a IV — 3\n\nCLASSE A = 5 a 6 pontos · CLASSE B = 7 a 9 · CLASSE C = 10 a 15\nSobrevida em 1 ano: A ~100%, B ~80%, C ~45% (em 2 anos: 85%, 60% e 35%)\nCirurgia abdominal: mortalidade A ~10%, B ~30%, C ~70 a 80% (Child C contraindica cirurgia eletiva e ressecção hepática)\nColestáticas (CBP/CEP): trocar a bilirrubina por < 4 (1 ponto), 4 a 10 (2 pontos) e > 10 (3 pontos)\nMnemônico BEATA: Bilirrubina, Encefalopatia, Albumina, TP/INR, Ascite\nHoje a fila de transplante usa o MELD 3.0; o Child-Pugh segue valendo para risco cirúrgico, estadiamento BCLC do hepatocarcinoma e ajuste de dose de remédios'}];
+const ESC_DEFAULT=[{id:'esc-glasgow',nome:'Escala de Coma de Glasgow',cat:'Neurologia',link:'',conteudo:'ABERTURA OCULAR\nEspontânea — 4\nAo chamado — 3\nÀ dor — 2\nAusente — 1\n\nRESPOSTA VERBAL\nOrientado — 5\nConfuso — 4\nPalavras — 3\nSons — 2\nAusente — 1\n\nRESPOSTA MOTORA\nObedece — 6\nLocaliza — 5\nFlete — 4\nFlexão anormal — 3\nExtensão — 2\nAusente — 1\n\nSoma dos critérios avalia o nível de consciência = 3 a 15'}].concat(ESC_SEED.map(e=>({...e})));
 let escEditId=null;
 const escOpen=new Set();
 function getEscalas(){try{const v=localStorage.getItem(ESC_KEY);return v?JSON.parse(v):ESC_DEFAULT.map(e=>({...e}));}catch{return[];}}
@@ -3481,6 +3483,28 @@ function saveEscalaItem(){
 function deleteEscalaItem(id){
   if(!confirm('Remover esta escala?'))return;
   setEscalas(getEscalas().filter(e=>e.id!==id));renderEscalas();toast('Escala removida.','info');
+}
+// Escalas novas que eu acrescento ao app entram sozinhas na lista dele, sem
+// mexer no que ele já escreveu (mesma ideia da biblioteca de flashcards).
+const ESC_SEED_KEY='medplanner26_escv';
+const escNomeNorm=s=>String(s||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/[^a-z0-9]/g,'');
+function escSeedAuto(){
+  try{
+    if((parseInt(localStorage.getItem(ESC_SEED_KEY)||'0',10)||0)>=ESC_SEED_V)return;
+    const arr=getEscalas();let novas=0;
+    ESC_SEED.forEach(s=>{
+      const nome=escNomeNorm(s.nome);
+      // 'CHILD-PUGH' que ele mesmo tenha escrito conta como a mesma escala
+      if(arr.some(e=>{const a=escNomeNorm(e.nome);return e.id===s.id||a===nome||(a.length>=6&&(a.includes(nome)||nome.includes(a)));}))return;
+      arr.push({...s});novas++;
+    });
+    if(novas)setEscalas(arr);
+    localStorage.setItem(ESC_SEED_KEY,String(ESC_SEED_V));
+    if(novas){
+      toast(novas===1?'Escala nova na aba Escalas: Child-Pugh!':(novas+' escalas novas na aba Escalas!'),'ok');
+      if((document.querySelector('.tab-btn.active')?.dataset.tab)==='escalas')renderEscalas();
+    }
+  }catch(e){}
 }
 function toggleEscala(id){escOpen.has(id)?escOpen.delete(id):escOpen.add(id);renderEscalas();}
 // Transforma o texto da escala num quadro visual: linhas "Critério — pontos" viram
@@ -7217,7 +7241,7 @@ db.settings({experimentalForceLongPolling:true});
 auth.setPersistence(firebase.auth.Auth.Persistence.SESSION).catch(()=>{});
 
 // Chaves do localStorage que devem ser sincronizadas entre dispositivos
-const CLOUD_KEYS=['medplanner26','medplanner26_notas','medplanner26_cal','medplanner26_fc','medplanner26_fc_ingles','medplanner26_imgdeck','medplanner26_exames','medplanner_resumos','medplanner_ingles_tarefas','medplanner26_ingles_crono','medplanner26_escalas','medplanner_simulados','medplanner_sims_feitos','medplanner26_activity','medplanner26_goal'];
+const CLOUD_KEYS=['medplanner26','medplanner26_notas','medplanner26_cal','medplanner26_fc','medplanner26_fc_ingles','medplanner26_imgdeck','medplanner26_exames','medplanner_resumos','medplanner_ingles_tarefas','medplanner26_ingles_crono','medplanner26_escalas','medplanner26_escv','medplanner_simulados','medplanner_sims_feitos','medplanner26_activity','medplanner26_goal'];
 
 let cloudUid=null;
 let applyingRemote=false;
@@ -7279,6 +7303,7 @@ function startApp(){
   autoMerge();
   fcFixAuto();
   fcLibAuto();
+  escSeedAuto();
   fillMissingAulaDates();
   syncAllRevToCalendar();
   renderDashboard();
@@ -7331,6 +7356,7 @@ function enterApp(user){
       cloudReady=true;
       fcFixAuto(); // a nuvem pode ter trazido de volta um card com a pergunta pela metade
       fcLibAuto(); // e pode ter trazido dados de antes da biblioteca de aulas
+      escSeedAuto();
       reRenderAll();
     }else{
       // Documento ainda não existe (1º acesso) -> envia os dados locais como base.
