@@ -3145,8 +3145,54 @@ function syncResumosDrive(){
   setResumos(arr);renderResumos();
   toast((ligadas.length+porOrdem.length+trocadas.length+novas.length)+' resumo(s) ligado(s) ao Drive!','ok');
 }
+// Resumos que eu subo pro Drive entram sozinhos na aba Resumos, sem ele precisar
+// clicar no botao "Puxar resumos do Drive". Nunca troca um link que ele ja tenha
+// posto, e nao traz de volta aula que ele apagou de proposito (RES_DISMISS_KEY).
+const RES_DISMISS_KEY='medplanner_resumos_off';
+function resDismissed(){try{return new Set(JSON.parse(localStorage.getItem(RES_DISMISS_KEY)||'[]'));}catch(e){return new Set();}}
+function resSeedAuto(){
+  try{
+    let arr=getResumos();
+    if(!Array.isArray(arr))return;
+    const off=resDismissed(),used=new Set();let novas=0,ligadas=0;
+    const pend=[];
+    for(const [sn,titulo,fid] of RESUMOS_DRIVE){
+      const sem='SEMANA '+sn,url=_resDriveUrl(fid);
+      if(off.has(url))continue;
+      const ja=arr.find(r=>!used.has(r.id)&&r.linkResumo===url);
+      if(ja){used.add(ja.id);continue;}
+      let best=null,bestScore=0;
+      for(const r of arr){
+        if(used.has(r.id)||r.linkResumo||_resNorm(r.semana)!==_resNorm(sem))continue;
+        const sc=_resSim(r.titulo,titulo);
+        if(sc>bestScore){bestScore=sc;best=r;}
+      }
+      if(best&&bestScore>=0.34){used.add(best.id);best.linkResumo=url;ligadas++;}
+      else pend.push({sn,sem,titulo,url});
+    }
+    for(const q of pend){
+      const livre=arr.find(r=>!used.has(r.id)&&_resNorm(r.semana)===_resNorm(q.sem)&&!r.linkResumo&&_resSim(r.titulo,q.titulo)>=0.2);
+      if(livre){used.add(livre.id);livre.linkResumo=q.url;ligadas++;continue;}
+      const id=Date.now().toString(36)+Math.random().toString(36).slice(2,5);
+      arr=arr.concat([{id,semana:q.sem,aula:_resAulaLabel(arr,q.sem,parseInt(q.sn)),titulo:q.titulo,linkResumo:q.url,linkSlide:''}]);
+      used.add(id);novas++;
+    }
+    if(!ligadas&&!novas)return;
+    const numSem=x=>parseInt((x||'').replace(/D/g,''))||0;
+    arr.sort((a,b)=>(numSem(a.semana)-numSem(b.semana))||String(a.aula).localeCompare(String(b.aula)));
+    setResumos(arr);
+    if((document.querySelector('.tab-btn.active')?.dataset.tab)==='resumos')renderResumos();
+  }catch(e){}
+}
 function deleteResumoItem(id){
   if(!confirm('Remover esta aula?'))return;
+  try{
+    const alvo=getResumos().find(r=>r.id===id);
+    if(alvo&&alvo.linkResumo&&RESUMOS_DRIVE.some(x=>_resDriveUrl(x[2])===alvo.linkResumo)){
+      const off=resDismissed();off.add(alvo.linkResumo);
+      localStorage.setItem(RES_DISMISS_KEY,JSON.stringify([...off]));
+    }
+  }catch(e){}
   idbDel(pdfKey(id,'resumo')).catch(()=>{});idbDel(pdfKey(id,'slide')).catch(()=>{});
   setResumos(getResumos().filter(r=>r.id!==id));
   refreshPdfKeys().then(renderResumos);toast('Aula removida.','info');
@@ -7260,7 +7306,7 @@ db.settings({experimentalForceLongPolling:true});
 auth.setPersistence(firebase.auth.Auth.Persistence.SESSION).catch(()=>{});
 
 // Chaves do localStorage que devem ser sincronizadas entre dispositivos
-const CLOUD_KEYS=['medplanner26','medplanner26_notas','medplanner26_cal','medplanner26_fc','medplanner26_fc_ingles','medplanner26_imgdeck','medplanner26_exames','medplanner_resumos','medplanner_ingles_tarefas','medplanner26_ingles_crono','medplanner26_escalas','medplanner26_escv','medplanner_simulados','medplanner_sims_feitos','medplanner26_activity','medplanner26_goal'];
+const CLOUD_KEYS=['medplanner26','medplanner26_notas','medplanner26_cal','medplanner26_fc','medplanner26_fc_ingles','medplanner26_imgdeck','medplanner26_exames','medplanner_resumos','medplanner_resumos_off','medplanner_ingles_tarefas','medplanner26_ingles_crono','medplanner26_escalas','medplanner26_escv','medplanner_simulados','medplanner_sims_feitos','medplanner26_activity','medplanner26_goal'];
 
 let cloudUid=null;
 let applyingRemote=false;
@@ -7323,6 +7369,7 @@ function startApp(){
   fcFixAuto();
   fcLibAuto();
   escSeedAuto();
+  resSeedAuto();
   fillMissingAulaDates();
   syncAllRevToCalendar();
   renderDashboard();
@@ -7376,6 +7423,7 @@ function enterApp(user){
       fcFixAuto(); // a nuvem pode ter trazido de volta um card com a pergunta pela metade
       fcLibAuto(); // e pode ter trazido dados de antes da biblioteca de aulas
       escSeedAuto();
+      resSeedAuto();
       reRenderAll();
     }else{
       // Documento ainda não existe (1º acesso) -> envia os dados locais como base.
