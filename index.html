@@ -1340,6 +1340,19 @@ body.sb-collapsed .sidebar-user-text,body.sb-collapsed .sidebar-user-chev{displa
 .q-dash-btn{display:block;width:100%;margin-top:12px;background:var(--accent);color:#fff;border:none;
   border-radius:11px;padding:11px;font-size:13.5px;font-weight:600;cursor:pointer;font-family:inherit}
 @media(max-width:820px){.q-mot-nome{width:88px}#q-input{font-size:16px}}
+/* Chips do Dashboard que aceitam clique */
+.dash-chip-btn{cursor:pointer;transition:transform .12s ease,box-shadow .15s ease,border-color .15s ease}
+.dash-chip-btn:hover{transform:translateY(-2px);box-shadow:0 10px 24px -8px rgba(0,0,0,.22)}
+.dash-chip-btn:focus-visible{outline:2px solid var(--accent);outline-offset:3px}
+.dash-chip-plus{display:inline-flex;align-items:center;justify-content:center;width:17px;height:17px;
+  margin-left:auto;border-radius:50%;background:var(--accent);color:#fff;font-size:13px;font-weight:700;line-height:1}
+.dash-chip-btn .dash-chip-lbl{display:flex;align-items:center;gap:7px}
+/* Detalhe por nota embaixo de "Flashcards hoje" */
+.dash-chip-notas{display:flex;align-items:center;gap:10px;margin-top:6px;flex-wrap:wrap}
+.dash-chip-notas .dcn{display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:700;
+  color:var(--muted);font-variant-numeric:tabular-nums;line-height:1}
+.dash-chip-notas .dcn i{width:7px;height:7px;border-radius:50%;display:inline-block;flex:none}
+.dash-chip-notas .dcn-zero{opacity:.35}
 </style>
 </head>
 <body>
@@ -2376,11 +2389,29 @@ const ACT_KEY='medplanner26_activity';
 const GOAL_KEY='medplanner26_goal';
 const getAct=()=>{try{return JSON.parse(localStorage.getItem(ACT_KEY))||{};}catch{return{};}};
 const setAct=d=>localStorage.setItem(ACT_KEY,JSON.stringify(d));
-function logActivity(type,n){
+// rating (0..3) = Errei / Difícil / Bom / Fácil. Guardado em d[dia].fcr para o
+// Dashboard mostrar como foi o dia de flashcards, não só quantos.
+const FC_NOTAS=[
+  {k:'a',l:'Errei',  cor:'#dc2626'},
+  {k:'h',l:'Difícil',cor:'#d97706'},
+  {k:'g',l:'Bom',    cor:'#0e7a6d'},
+  {k:'e',l:'Fácil',  cor:'#059669'}
+];
+function logActivity(type,n,rating){
   n=n||1;const d=getAct();const t=today();
   if(!d[t])d[t]={q:0,fc:0};
   d[t][type]=(d[t][type]||0)+n;
+  if(type==='fc'&&rating>=0&&rating<=3){
+    if(!d[t].fcr)d[t].fcr={a:0,h:0,g:0,e:0};
+    const k=FC_NOTAS[rating].k;
+    d[t].fcr[k]=(d[t].fcr[k]||0)+n;
+  }
   setAct(d);
+}
+// Notas de hoje, com zeros garantidos (dias antigos não têm esse registro)
+function fcNotasHoje(){
+  const f=(getAct()[today()]||{}).fcr||{};
+  return{a:f.a||0,h:f.h||0,g:f.g||0,e:f.e||0};
 }
 const getGoal=()=>{const g=parseInt(localStorage.getItem(GOAL_KEY),10);return g>0?g:50;};
 const setGoalVal=n=>localStorage.setItem(GOAL_KEY,String(n));
@@ -2417,6 +2448,41 @@ function addQuestions(n){
   toast('+'+n+' questões registradas hoje! 🎯','ok');
   renderDashboard();
 }
+// Lança as questões do dia direto pelo chip do Dashboard.
+// Aceita "30" (soma 30) ou "=30" (define o total do dia como 30).
+// Linha miúda embaixo de "Flashcards hoje": quantos de cada nota hoje.
+function fcNotasRodape(){
+  const n=fcNotasHoje();
+  const tot=n.a+n.h+n.g+n.e;
+  if(!tot)return'';
+  return'<div class="dash-chip-notas">'+FC_NOTAS.map(x=>
+    `<span class="dcn${n[x.k]?'':' dcn-zero'}" title="${x.l}: ${n[x.k]}"><i style="background:${x.cor}"></i>${n[x.k]}</span>`
+  ).join('')+'</div>';
+}
+
+function lancarQuestoes(){
+  const atual=todayAct().q||0;
+  const v=prompt('Quantas questões você fez?\n\nDigite o número para SOMAR ao total de hoje ('+atual+').\nOu comece com "=" para corrigir o total (ex: =80).','');
+  if(v===null)return;
+  const txt=String(v).trim().replace(',','.');
+  if(!txt)return;
+  if(txt[0]==='='){
+    const alvo=parseInt(txt.slice(1),10);
+    if(!(alvo>=0)){toast('Valor inválido','info');return;}
+    const d=getAct();const t=today();
+    if(!d[t])d[t]={q:0,fc:0};
+    d[t].q=alvo;
+    setAct(d);
+    toast('Total de hoje ajustado para '+alvo+' questões','ok');
+  }else{
+    const n=parseInt(txt,10);
+    if(!(n>0)){toast('Valor inválido','info');return;}
+    logActivity('q',n);
+    toast('+'+n+' questões · total de hoje: '+(atual+n)+' 🎯','ok');
+  }
+  renderDashboard();
+}
+
 function editGoal(){
   const v=prompt('Defina sua meta diária de questões:',getGoal());
   if(v===null)return;const n=parseInt(v,10);if(!(n>0)){toast('Valor inválido','info');return;}
@@ -3041,12 +3107,12 @@ function renderDashboard(){
   const AREA_NM={'CLÍNICA':'Clínica Médica','CIRURGIA':'Cirurgia','PEDIATRIA':'Pediatria','GO':'G. e Obstetrícia','PREVENTIVA':'Preventiva'};
 
   // CHIPS DE RESUMO
-  const chip=(ico,lbl,val,sub)=>`<div class="dash-chip"><div class="dash-chip-lbl">${ico}${lbl}</div><div class="dash-chip-val">${val}<small> ${sub}</small></div></div>`;
+  const chip=(ico,lbl,val,sub,acao,dica,rodape)=>`<div class="dash-chip${acao?' dash-chip-btn':''}"${acao?` onclick="${acao}" title="${dica||''}" role="button" tabindex="0" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();${acao}}"`:''}><div class="dash-chip-lbl">${ico}${lbl}${acao?'<span class="dash-chip-plus">+</span>':''}</div><div class="dash-chip-val">${val}<small> ${sub}</small></div>${rodape||''}</div>`;
   const icC=document.getElementById('dash-chips');
   if(icC)icC.innerHTML=
-    chip('<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#FF2D55" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>','Questões hoje',qHoje,'/ '+goal)+
+    chip('<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#FF2D55" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>','Questões hoje',qHoje,'/ '+goal,'lancarQuestoes()','Clique para lançar quantas questões você fez hoje')+
     chip('<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#FF9500" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2c1.5 3.5 5 4.5 5 8.5A5 5 0 0 1 7 11c0-1.2.4-2.2 1-3 .3 1 .9 1.6 1.7 1.9C9.3 7 10.6 4.4 12 2z"/></svg>','Sequência',streak,streak===1?'dia':'dias')+
-    chip('<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#0A84FF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg>','Flashcards hoje',fcHoje,'revisados');
+    chip('<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#0A84FF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg>','Flashcards hoje',fcHoje,'revisados',null,null,fcNotasRodape());
 
   // ANÉIS DE PROGRESSO (estilo Apple Fitness)
   const ring=(r,color,p)=>{const C=2*Math.PI*r;const off=C*(1-Math.min(100,p)/100);return`<circle cx="75" cy="75" r="${r}" fill="none" stroke="${color}" stroke-width="13" stroke-linecap="round" stroke-dasharray="${C.toFixed(1)}" stroke-dashoffset="${off.toFixed(1)}" style="transform:rotate(-90deg);transform-origin:75px 75px"></circle>`;};
@@ -6513,7 +6579,7 @@ function rateFCCard(rating){
     }
     if(card){card.nextTs=nextTs;bumpFcStat(card,rating);}
   }
-  setFC(d);logActivity('fc',1);
+  setFC(d);logActivity('fc',1,rating);
   // Passo curto (Errei=1min / Difícil=10min): o card volta na mesma sessão
   // depois do tempo. Bom=1dia / Fácil=4dias graduam e saem da sessão.
   sessReinject(fcSession,fcCurrent,rating);
@@ -7216,6 +7282,7 @@ function rateIECard(rating){
     if(card){card.nextTs=nextTs;bumpFcStat(card,rating);}
   }
   setIE(d);
+  logActivity('fc',1,rating); // conta no "Flashcards hoje" e na sequência, igual aos de medicina
   // Passo curto (1min/10min) volta na mesma sessão; 1dia/4dias graduam.
   sessReinject(ieSession,ieCurrent,rating);
   nextIECard();
@@ -7527,6 +7594,7 @@ function rateIDCard(rating){
   s.nextTs=Date.now()+FC_INTERVALS[rating];
   s.st[['a','h','g','e'][rating]]++;
   d[k]=s;setID(d);
+  logActivity('fc',1,rating); // conta no "Flashcards hoje" e na sequência
   // Passo curto (1min/10min) volta na mesma sessão; 1dia/4dias graduam.
   sessReinject(idSession,idCurrent,rating);
   nextIDCard();
