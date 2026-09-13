@@ -1270,6 +1270,22 @@ body.sb-collapsed .sidebar-user-text,body.sb-collapsed .sidebar-user-chev{displa
   .fc-edit-btn{padding:8px 14px;font-size:13px}
   body.fc-focus .fc-progress-row{margin-bottom:10px}
 }
+/* ===== MODO OFFLINE ===== */
+#login-offline{width:100%;margin-top:10px;padding:11px;border-radius:11px;cursor:pointer;
+  background:transparent;color:var(--text);border:1.5px solid var(--border);
+  font-size:13.5px;font-weight:600;font-family:inherit;box-shadow:none;
+  text-transform:none;letter-spacing:0;transition:background .18s,border-color .18s}
+#login-offline:hover{background:var(--accent-wash);border-color:var(--accent)}
+#offline-bar{position:fixed;left:0;right:0;bottom:0;z-index:6000;display:none;
+  align-items:center;justify-content:center;gap:12px;flex-wrap:wrap;
+  padding:10px 16px;background:rgba(28,28,30,.96);-webkit-backdrop-filter:blur(20px);backdrop-filter:blur(20px);color:#fff;font-size:13px;font-weight:600;
+  box-shadow:0 -6px 20px rgba(0,0,0,.22);padding-bottom:calc(10px + env(safe-area-inset-bottom))}
+#offline-bar.on{display:flex}
+#offline-bar .ob-dot{width:8px;height:8px;border-radius:50%;background:#FF9500;flex:none}
+#offline-bar.online .ob-dot{background:#34C759}
+#offline-bar button{background:#fff;color:#1C1C1E;border:none;border-radius:9px;
+  padding:6px 13px;font-size:12.5px;font-weight:700;cursor:pointer;font-family:inherit}
+@media(max-width:820px){#offline-bar{bottom:var(--mobile-tabbar-h,62px)}}
 </style>
 </head>
 <body>
@@ -1296,8 +1312,15 @@ body.sb-collapsed .sidebar-user-text,body.sb-collapsed .sidebar-user-chev{displa
       <input type="password" id="login-pass" placeholder="••••••••" autocomplete="current-password" onkeydown="if(event.key==='Enter')doLogin()">
     </div>
     <button class="login-btn" id="login-btn" onclick="doLogin()">Entrar →</button>
+    <button id="login-offline" onclick="enterOfflineApp()">Entrar offline (sem internet)</button>
     <div class="login-error" id="login-error"></div>
   </div>
+</div>
+
+<div id="offline-bar">
+  <span class="ob-dot"></span>
+  <span id="offline-bar-msg">Modo offline &mdash; suas altera&ccedil;&otilde;es ficam salvas no aparelho.</span>
+  <button id="offline-bar-act" onclick="offlineBarAction()" style="display:none">Reconectar</button>
 </div>
 
 <div id="app-root">
@@ -7501,6 +7524,9 @@ const auth=firebase.auth();
 const db=firebase.firestore();
 // Evita demora/timeout na conexão do Firestore quando aberto via file:// (usa long-polling)
 db.settings({experimentalForceLongPolling:true});
+// Guarda uma cópia dos dados no aparelho: o app funciona sem internet e o que
+// for alterado offline entra numa fila e sobe sozinho quando a conexão voltar.
+db.enablePersistence({synchronizeTabs:true}).catch(e=>console.warn('Persistência offline do Firestore indisponível:',e&&e.code));
 // Login dura só enquanto a janela está aberta: ao FECHAR o app, exige login de novo.
 auth.setPersistence(firebase.auth.Auth.Persistence.SESSION).catch(()=>{});
 
@@ -7532,7 +7558,12 @@ function pushToCloud(){
 const _origSetItem=localStorage.setItem.bind(localStorage);
 localStorage.setItem=function(key,val){
   _origSetItem(key,val);
-  if(CLOUD_KEYS.includes(key))pushToCloud();
+  if(CLOUD_KEYS.includes(key)){
+    // Editou no modo offline (sem login): marca que o aparelho tem algo mais
+    // novo que a nuvem, para nao ser sobrescrito no proximo login.
+    if(offlineMode&&!applyingRemote)_origSetItem(OFFLINE_DIRTY_KEY,'1');
+    pushToCloud();
+  }
 };
 
 // Aplica os dados vindos da nuvem no localStorage sem disparar novo envio
@@ -7604,10 +7635,76 @@ function mapAuthError(code){
 
 let appStarted=false;
 
+// ===================== MODO OFFLINE =====================
+let offlineMode=false;
+const OFFLINE_DIRTY_KEY='medplanner_offline_dirty';
+
+function offlineBarShow(msg,online,actionLabel){
+  const bar=document.getElementById('offline-bar');
+  const m=document.getElementById('offline-bar-msg');
+  const b=document.getElementById('offline-bar-act');
+  if(!bar)return;
+  if(m)m.innerHTML=msg;
+  bar.classList.add('on');
+  bar.classList.toggle('online',!!online);
+  if(b){
+    if(actionLabel){b.textContent=actionLabel;b.style.display='';}
+    else b.style.display='none';
+  }
+}
+function offlineBarHide(){
+  const bar=document.getElementById('offline-bar');
+  if(bar){bar.classList.remove('on');bar.classList.remove('online');}
+}
+function offlineBarAction(){location.reload();}
+
+const MSG_SEM_NET='Sem internet &mdash; pode continuar estudando. Tudo sincroniza quando a conex&atilde;o voltar.';
+
+// Abre o app sem login, com os dados ja salvos no aparelho.
+function enterOfflineApp(){
+  if(appStarted)return;
+  appStarted=true;
+  offlineMode=true;
+  cloudUid=null;
+  cloudReady=false;
+  try{startApp();}catch(e){console.error(e);}
+  showApp();
+  offlineBarShow('Modo offline &mdash; suas altera&ccedil;&otilde;es ficam salvas no aparelho e sobem quando voc&ecirc; entrar com internet.',false,null);
+  if(navigator.onLine)offlineOnlineAgain();
+}
+
+// Chamado quando a internet volta estando no modo offline.
+function offlineOnlineAgain(){
+  if(!offlineMode)return;
+  offlineBarShow('Internet de volta. Entre com sua senha para sincronizar.',true,'Fazer login');
+}
+
+// Mostra/esconde o botao "Entrar offline" conforme a conexao.
+function refreshOfflineLoginBtn(){
+  const b=document.getElementById('login-offline');
+  if(!b)return;
+  const temDados=!!localStorage.getItem('medplanner26');
+  b.style.display=(temDados&&!navigator.onLine)?'block':'none';
+}
+window.addEventListener('online',()=>{
+  refreshOfflineLoginBtn();
+  if(offlineMode)offlineOnlineAgain();
+  else if(appStarted)offlineBarHide();
+});
+window.addEventListener('offline',()=>{
+  refreshOfflineLoginBtn();
+  if(appStarted&&!offlineMode)offlineBarShow(MSG_SEM_NET,false,null);
+});
+document.addEventListener('DOMContentLoaded',refreshOfflineLoginBtn);
+refreshOfflineLoginBtn();
+
 // Abre o app (chamado pelo sucesso do login OU pelo onAuthStateChanged — o que vier primeiro).
 function enterApp(user){
   if(appStarted)return;
   appStarted=true;
+  offlineMode=false;
+  if(navigator.onLine)offlineBarHide();
+  else offlineBarShow(MSG_SEM_NET,false,null);
   cloudUid=user.uid;
   cloudReady=false;
   // Mostra o app IMEDIATAMENTE com os dados locais (não espera a nuvem).
@@ -7617,6 +7714,15 @@ function enterApp(user){
   const docRef=db.collection('users').doc(cloudUid);
   unsubSnapshot=docRef.onSnapshot(snap=>{
     if(snap.exists){
+      // Se houve edicao no modo offline, o aparelho esta mais novo que a nuvem:
+      // manda o local para cima UMA vez em vez de deixar a nuvem sobrescrever.
+      if(localStorage.getItem(OFFLINE_DIRTY_KEY)&&!cloudReady){
+        localStorage.removeItem(OFFLINE_DIRTY_KEY);
+        cloudReady=true;
+        pushToCloud();
+        if(typeof toast==='function')toast('Enviando para a nuvem o que voce fez offline...','ok');
+        return;
+      }
       // A nuvem tem dados -> ela é a fonte da verdade; sobrescreve o local.
       applyCloudData(snap.data());
       cloudReady=true;
@@ -7658,11 +7764,20 @@ function doLogin(){
       console.error('Erro no login:',e);
       btn.disabled=false;btn.textContent='Entrar';
       err.textContent=mapAuthError(e&&e.code);
+      // Sem internet: libera o acesso offline aos dados ja salvos no aparelho.
+      if(e&&/network|unavailable|failed/i.test(e.code||'')){
+        err.textContent='Sem conexao com a internet.';
+        const b=document.getElementById('login-offline');
+        if(b&&localStorage.getItem('medplanner26'))b.style.display='block';
+      }
     });
 }
 
 function doLogout(){
   appStarted=false;
+  offlineMode=false;
+  offlineBarHide();
+  refreshOfflineLoginBtn();
   if(unsubSnapshot){unsubSnapshot();unsubSnapshot=null;}
   auth.signOut().catch(()=>{});
   cloudUid=null;cloudReady=false;
@@ -7673,6 +7788,7 @@ auth.onAuthStateChanged(user=>{
   if(user){
     enterApp(user); // backup: caso a sessão já exista ao carregar a página
   }else{
+    if(offlineMode)return; // esta usando o app offline, nao voltar para o login
     appStarted=false;
     cloudUid=null;
     cloudReady=false;
@@ -7681,20 +7797,33 @@ auth.onAuthStateChanged(user=>{
   }
 });
 
-// PWA: remove qualquer service worker antigo "fantasma" que esteja servindo
-// uma versão velha do app em cache, e limpa os caches. Isso garante que o
-// usuário sempre receba a versão mais nova publicada (sem ficar preso no cache).
+// PWA / OFFLINE: registra o service worker (sw.js).
+// Ele guarda o app no aparelho para abrir sem internet; COM internet ele busca
+// sempre a versao nova primeiro, entao voce nunca fica preso numa versao velha.
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
-  navigator.serviceWorker.getRegistrations().then(rs=>{
-    let hadOne=false;
-    rs.forEach(r=>{hadOne=true;r.unregister();});
-    if(window.caches&&caches.keys){caches.keys().then(ks=>ks.forEach(k=>caches.delete(k)));}
-    // Se havia um SW preso, recarrega uma única vez já com o cache limpo.
-    if(hadOne&&!sessionStorage.getItem('sw_killed')){
-      sessionStorage.setItem('sw_killed','1');
-      location.reload();
-    }
-  }).catch(()=>{});
+  const jaTinhaSW=!!navigator.serviceWorker.controller;
+  let swRecarregou=false;
+  navigator.serviceWorker.addEventListener('controllerchange',()=>{
+    if(!jaTinhaSW||swRecarregou)return; // 1a instalacao nao precisa recarregar
+    swRecarregou=true;
+    location.reload();
+  });
+  window.addEventListener('load',()=>{
+    navigator.serviceWorker.register('sw.js').then(reg=>{
+      reg.addEventListener('updatefound',()=>{
+        const novo=reg.installing;
+        if(!novo)return;
+        novo.addEventListener('statechange',()=>{
+          if(novo.state==='installed'&&navigator.serviceWorker.controller)novo.postMessage('SKIP_WAITING');
+        });
+      });
+      // Procura versao nova de hora em hora e ao voltar para a aba.
+      setInterval(()=>reg.update().catch(()=>{}),3600000);
+      document.addEventListener('visibilitychange',()=>{
+        if(!document.hidden&&navigator.onLine)reg.update().catch(()=>{});
+      });
+    }).catch(e=>console.warn('Service worker nao registrado:',e));
+  });
 }
 
 // ===== LOGIN: campo "antigravidade" interativo (canvas) =====
