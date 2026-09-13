@@ -32,6 +32,10 @@ Planner de estudos de medicina (MEDCURSO 2026) do Lucas. App de **arquivo único
   - Botão **"Entrar offline"** no login aparece quando `!navigator.onLine` e há dados locais → `enterOfflineApp()` abre o app sem senha (persistência SESSION continua igual).
   - Editar no modo offline grava `medplanner_offline_dirty`; no login seguinte o local **sobe** para a nuvem em vez de ser sobrescrito pelo doc remoto.
   - Faixa `#offline-bar` no rodapé mostra o estado da conexão.
+- **Questões e Erros** (aba `questoes`): registro rápido do desempenho do **MedSoft** (que é fechado — não dá pra importar nada, o Lucas digita). `qParse()` lê linhas tipo `Pneumonia 4/6` / `4 de 6` / `4-6`; salva em `medplanner26_qlog` (sincronizado) e soma na meta diária via `logActivity('q')`.
+  - `qAgg()` junta por assunto (normalizado) → ranking **por nº de erros** (pontos perdidos), não por %. `qArea()` deduz a área casando o assunto com `topic.ap`/`topic.ab`.
+  - Cada erro pode receber um motivo (não sabia / confundi / li errado / chutei) → card "Por que você erra".
+  - O Dashboard mostra o top 5 em `#dash-fracos` (`renderDashFracos()`).
 - **UI**: abas via `TAB_FN` (mapa aba→função de render), tema com CSS variables (`:root` / `[data-dark]`), Chart.js via CDN.
 
 ## Regras deste repositório
