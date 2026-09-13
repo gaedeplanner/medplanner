@@ -27,10 +27,15 @@ Planner de estudos de medicina (MEDCURSO 2026) do Lucas. App de **arquivo único
   - Nuvem é a fonte da verdade quando o doc existe; se não existe, dados locais sobem como base.
 - **Login**: persistência `SESSION` (pede senha ao reabrir a janela — **preferência explícita do Lucas, não mudar**). O login chama `enterApp()` direto no `.then()` do sign-in, sem esperar `onAuthStateChanged` (que trava em `file://`). Firestore usa `experimentalForceLongPolling`.
 - **PDFs (Resumos/Slides)**: ficam no **Google Drive do Lucas**; o planner guarda só o link. NÃO usar Firebase Storage (exige plano pago em projetos novos) nem subir PDFs neste repo (é público e os slides MEDCURSO têm copyright). Links antigos `file:///` mostram aviso via `legacyFileLinkWarn()`.
+- **Offline (PWA)**: `sw.js` guarda o app no aparelho. A página usa **rede primeiro** (com internet sempre baixa a versão nova — não existe cache preso); fontes/Chart.js/Firebase ficam em cache; Firestore e login nunca passam pelo cache. Ao mudar o `sw.js`, subir o `VERSION` dentro dele.
+  - `manifest.json` + `icon-192/512/180.png` = instalar na tela inicial.
+  - Botão **"Entrar offline"** no login aparece quando `!navigator.onLine` e há dados locais → `enterOfflineApp()` abre o app sem senha (persistência SESSION continua igual).
+  - Editar no modo offline grava `medplanner_offline_dirty`; no login seguinte o local **sobe** para a nuvem em vez de ser sobrescrito pelo doc remoto.
+  - Faixa `#offline-bar` no rodapé mostra o estado da conexão.
 - **UI**: abas via `TAB_FN` (mapa aba→função de render), tema com CSS variables (`:root` / `[data-dark]`), Chart.js via CDN.
 
 ## Regras deste repositório
-- O repo é **PÚBLICO**. O `.gitignore` libera apenas `index.html` e `CLAUDE.md` — **nunca** commitar outros arquivos (dados pessoais, transcripts, PDFs).
+- O repo é **PÚBLICO**. O `.gitignore` libera apenas `index.html`, `CLAUDE.md` e os arquivos do PWA (`sw.js`, `manifest.json`, `icon-*.png`) — **nunca** commitar outros arquivos (dados pessoais, transcripts, PDFs).
 - Existe uma cópia local `MEDPlanner.html` no PC principal (espelho do index.html); se ela existir na máquina, mantenha as duas iguais após editar.
 
 ## Testar localmente sem login
