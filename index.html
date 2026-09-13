@@ -2029,6 +2029,17 @@ body.sb-collapsed .sidebar-user-text,body.sb-collapsed .sidebar-user-chev{displa
 <div class="tab-panel" id="tab-dados">
   <div class="sec-header"><h2 class="sec-title">Gerenciar Dados</h2></div>
 
+  <div class="card" style="margin-bottom:18px">
+    <div class="card-title">Versão do app</div>
+    <p style="color:var(--muted);font-size:13px;margin-bottom:14px;line-height:1.6">
+      Se o site não estiver mostrando uma novidade que já foi publicada, o navegador
+      pode estar servindo uma cópia guardada. Este botão apaga tudo que está guardado
+      e baixa a versão mais nova. <b>Seus dados não são apagados.</b>
+    </p>
+    <div id="app-versao" style="font-size:13px;color:var(--muted);margin-bottom:14px"></div>
+    <button class="btn btn-o" onclick="forcarAtualizacao()">🔄 Forçar atualização do app</button>
+  </div>
+
   <div class="notion-banner">
     <p>📥 Seus dados do Notion (<span>25 tópicos</span> capturados) estão prontos para importar — com aulas, revisões e desempenho já marcados. Inclui 2 tópicos novos detectados.</p>
     <button class="btn btn-p" onclick="loadNotion()">Carregar dados do Notion</button>
@@ -2651,6 +2662,36 @@ function renderDashFracos(){
   const html=qRankHTML(agg,5);
   el.innerHTML=(html||'<div class="q-empty" style="padding:8px 0">Registre suas questões do MedSoft para o planner te mostrar onde você perde mais pontos.</div>')
     +'<button class="q-dash-btn" onclick="irParaQuestoes()">Registrar questões</button>';
+}
+
+// Apaga service worker + caches e recarrega buscando a versão nova no servidor.
+// Não toca nos dados (localStorage/nuvem continuam intactos).
+async function forcarAtualizacao(){
+  toast('Buscando a versão mais nova...','info');
+  try{
+    if('serviceWorker' in navigator){
+      const regs=await navigator.serviceWorker.getRegistrations();
+      await Promise.all(regs.map(r=>r.unregister().catch(()=>{})));
+    }
+    if(window.caches&&caches.keys){
+      const ks=await caches.keys();
+      await Promise.all(ks.map(k=>caches.delete(k).catch(()=>{})));
+    }
+  }catch(e){console.warn('Limpeza parcial:',e);}
+  // A query nova obriga o navegador a ignorar a cópia guardada da página.
+  const base=location.href.split('?')[0].split('#')[0];
+  location.replace(base+'?v='+Date.now());
+}
+
+// Mostra quando esta cópia do app foi baixada e se há service worker ativo.
+function renderVersaoApp(){
+  const el=document.getElementById('app-versao');
+  if(!el)return;
+  const dt=document.lastModified||'';
+  const sw=('serviceWorker' in navigator)
+    ? (navigator.serviceWorker.controller?'ativo (funciona offline)':'ainda não assumiu — recarregue uma vez')
+    : 'não suportado neste navegador';
+  el.innerHTML='Esta cópia é de <b>'+dt+'</b><br>Modo offline: '+sw;
 }
 
 function irParaQuestoes(){
@@ -3349,7 +3390,8 @@ function openResumoModal(id){
   setTimeout(()=>document.getElementById('res-f-semana').focus(),50);
 }
 function closeResumoModal(){document.getElementById('overlay-resumo').classList.remove('open');resEditId=null;}
-function renderDados(){}
+function renderDados(){
+  renderVersaoApp();}
 
 // Links antigos do tipo file:/// (arquivo do PC) não abrem no site hospedado —
 // avisa o usuário a trocar pelo link do Google Drive

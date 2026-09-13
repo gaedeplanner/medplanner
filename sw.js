@@ -7,7 +7,7 @@
    - Firebase/Firestore (dados e login) NUNCA passam pelo cache.
    - Se o navegador nao deixar usar cache, o app continua funcionando normal
      (so perde o offline) — nenhum erro aqui pode quebrar o planner. */
-const VERSION = 'v1';
+const VERSION = 'v2';
 const SHELL   = 'medplanner-app-' + VERSION;
 const LIBS    = 'medplanner-libs-' + VERSION;
 const SHELL_URLS = ['./', './index.html', './manifest.json', './icon-192.png', './icon-512.png', './icon-180.png'];
@@ -52,7 +52,10 @@ function networkFirst(req, cacheName, timeoutMs) {
       .then(r => r || new Response('<h1>Sem conex&atilde;o</h1><p>Abra o MEDPlanner uma vez com internet para poder usar offline.</p>',
                                    {status:503, headers:{'Content-Type':'text/html; charset=utf-8'}}));
     const timer = setTimeout(() => { if (!pronto) { pronto = true; doCache().then(resolve); } }, timeoutMs || 6000);
-    fetch(req).then(res => {
+    // 'no-store' e obrigatorio: o GitHub Pages manda Cache-Control max-age=600, entao
+    // um fetch normal devolveria a pagina de ate 10 min atras SEM ir na rede — e o
+    // "rede primeiro" viraria mentira (o usuario ficaria preso na versao velha).
+    fetch(req.url, {cache: 'no-store', credentials: 'same-origin'}).then(res => {
       if (res && res.ok) safePut(cacheName, req, res.clone());
       if (!pronto) { pronto = true; clearTimeout(timer); resolve(res); }
     }).catch(() => {
