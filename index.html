@@ -1344,8 +1344,10 @@ body.sb-collapsed .sidebar-user-text,body.sb-collapsed .sidebar-user-chev{displa
 .dash-chip-btn{cursor:pointer;transition:transform .12s ease,box-shadow .15s ease,border-color .15s ease}
 .dash-chip-btn:hover{transform:translateY(-2px);box-shadow:0 10px 24px -8px rgba(0,0,0,.22)}
 .dash-chip-btn:focus-visible{outline:2px solid var(--accent);outline-offset:3px}
-.dash-chip-plus{display:inline-flex;align-items:center;justify-content:center;width:17px;height:17px;
-  margin-left:auto;border-radius:50%;background:var(--accent);color:#fff;font-size:13px;font-weight:700;line-height:1}
+.dash-chip-plus{display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;
+  margin-left:auto;border-radius:50%;background:transparent;color:var(--muted);opacity:.45;
+  transition:background .15s ease,color .15s ease,opacity .15s ease}
+.dash-chip-btn:hover .dash-chip-plus,.dash-chip-btn:focus-visible .dash-chip-plus{background:var(--accent);color:#fff;opacity:1}
 .dash-chip-btn .dash-chip-lbl{display:flex;align-items:center;gap:7px}
 /* Detalhe por nota embaixo de "Flashcards hoje" */
 .dash-chip-notas{display:flex;align-items:center;gap:10px;margin-top:6px;flex-wrap:wrap}
@@ -3107,7 +3109,7 @@ function renderDashboard(){
   const AREA_NM={'CLÍNICA':'Clínica Médica','CIRURGIA':'Cirurgia','PEDIATRIA':'Pediatria','GO':'G. e Obstetrícia','PREVENTIVA':'Preventiva'};
 
   // CHIPS DE RESUMO
-  const chip=(ico,lbl,val,sub,acao,dica,rodape)=>`<div class="dash-chip${acao?' dash-chip-btn':''}"${acao?` onclick="${acao}" title="${dica||''}" role="button" tabindex="0" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();${acao}}"`:''}><div class="dash-chip-lbl">${ico}${lbl}${acao?'<span class="dash-chip-plus">+</span>':''}</div><div class="dash-chip-val">${val}<small> ${sub}</small></div>${rodape||''}</div>`;
+  const chip=(ico,lbl,val,sub,acao,dica,rodape)=>`<div class="dash-chip${acao?' dash-chip-btn':''}"${acao?` onclick="${acao}" title="${dica||''}" role="button" tabindex="0" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();${acao}}"`:''}><div class="dash-chip-lbl">${ico}${lbl}${acao?'<span class="dash-chip-plus"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></span>':''}</div><div class="dash-chip-val">${val}<small> ${sub}</small></div>${rodape||''}</div>`;
   const icC=document.getElementById('dash-chips');
   if(icC)icC.innerHTML=
     chip('<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#FF2D55" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>','Questões hoje',qHoje,'/ '+goal,'lancarQuestoes()','Clique para lançar quantas questões você fez hoje')+
