@@ -7679,6 +7679,12 @@ function offlineOnlineAgain(){
   offlineBarShow('Internet de volta. Entre com sua senha para sincronizar.',true,'Fazer login');
 }
 
+// Revela o botao offline (usado quando o login nao consegue falar com a internet).
+function mostrarBotaoOffline(){
+  const b=document.getElementById("login-offline");
+  if(b&&localStorage.getItem("medplanner26"))b.style.display="block";
+}
+
 // Mostra/esconde o botao "Entrar offline" conforme a conexao.
 function refreshOfflineLoginBtn(){
   const b=document.getElementById('login-offline');
@@ -7720,7 +7726,7 @@ function enterApp(user){
         localStorage.removeItem(OFFLINE_DIRTY_KEY);
         cloudReady=true;
         pushToCloud();
-        if(typeof toast==='function')toast('Enviando para a nuvem o que voce fez offline...','ok');
+        if(typeof toast==='function')toast('Enviando para a nuvem o que você fez offline...','ok');
         return;
       }
       // A nuvem tem dados -> ela é a fonte da verdade; sobrescreve o local.
@@ -7751,24 +7757,32 @@ function doLogin(){
   err.textContent='';
   if(!email||!pass){err.textContent='Preencha e-mail e senha.';return;}
   btn.disabled=true;btn.textContent='Entrando...';
+  // Se o Firebase travar (internet caiu no meio), libera a entrada offline.
+  const travou=setTimeout(()=>{
+    if(appStarted)return;
+    btn.disabled=false;btn.textContent='Entrar';
+    err.textContent='A internet não está respondendo.';
+    mostrarBotaoOffline();
+  },8000);
   // Garante a persistência de sessão ANTES do login, depois entra
   auth.setPersistence(firebase.auth.Auth.Persistence.SESSION)
     .catch(()=>{})
     .then(()=>auth.signInWithEmailAndPassword(email,pass))
     .then(cred=>{
+      clearTimeout(travou);
       // Abre o app na hora (sem esperar o onAuthStateChanged, que trava em file://).
       // setTimeout desacopla a renderização: um erro ao montar a tela não vira "erro de login".
       if(cred&&cred.user)setTimeout(()=>enterApp(cred.user),0);
     })
     .catch(e=>{
+      clearTimeout(travou);
       console.error('Erro no login:',e);
       btn.disabled=false;btn.textContent='Entrar';
       err.textContent=mapAuthError(e&&e.code);
-      // Sem internet: libera o acesso offline aos dados ja salvos no aparelho.
-      if(e&&/network|unavailable|failed/i.test(e.code||'')){
-        err.textContent='Sem conexao com a internet.';
-        const b=document.getElementById('login-offline');
-        if(b&&localStorage.getItem('medplanner26'))b.style.display='block';
+      // Sem internet: libera o acesso offline aos dados já salvos no aparelho.
+      if(e&&/network|unavailable|failed|timeout/i.test(e.code||'')){
+        err.textContent='Sem conexão com a internet.';
+        mostrarBotaoOffline();
       }
     });
 }
