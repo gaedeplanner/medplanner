@@ -8028,25 +8028,51 @@ function cloudWarnOnce(msg){
   if(typeof toast==='function')toast(msg,'err',12000);
 }
 
+// ── Compactação (o Firestore recusa documento acima de 1 MiB) ─────────
+// Os flashcards sozinhos já passam de 800 KB. Em gzip caem ~60%, então o
+// envio inteiro vai num único campo __gz. Leitura aceita os dois formatos.
+const temGzip=(typeof CompressionStream==='function'&&typeof DecompressionStream==='function');
+async function gzipB64(str){
+  const buf=await new Response(new Blob([str]).stream().pipeThrough(new CompressionStream('gzip'))).arrayBuffer();
+  const u8=new Uint8Array(buf);let bin='';
+  for(let i=0;i<u8.length;i+=8192)bin+=String.fromCharCode.apply(null,u8.subarray(i,i+8192));
+  return btoa(bin);
+}
+async function ungzipB64(b64){
+  const bin=atob(b64),u8=new Uint8Array(bin.length);
+  for(let i=0;i<bin.length;i++)u8[i]=bin.charCodeAt(i);
+  return await new Response(new Blob([u8]).stream().pipeThrough(new DecompressionStream('gzip'))).text();
+}
+
 // Envia (com debounce) o estado atual das chaves sincronizadas para o Firestore
 function pushToCloud(){
   if(!cloudUid||applyingRemote||!cloudReady)return;
   clearTimeout(pushTimer);
-  pushTimer=setTimeout(()=>{
-    const data={_updatedAt:Date.now()};
+  pushTimer=setTimeout(async ()=>{
+    const bruto={};
     CLOUD_KEYS.forEach(k=>{
       const v=localStorage.getItem(k);
-      if(v!==null)data[k]=v;
+      if(v!==null)bruto[k]=v;
     });
-    // O Firestore recusa documento acima de 1 MiB. Como os flashcards cresceram
-    // muito, é preciso avisar em vez de falhar calado (e ficar reaplicando sem parar).
-    let _bytes=0;CLOUD_KEYS.forEach(k=>{const v=data[k];if(typeof v==='string')_bytes+=v.length+k.length;});
-    cloudLastSize=_bytes;
-    if(_bytes>1000000){cloudWarnOnce('Seus dados passaram do limite de 1 MB por conta do Firebase ('+(_bytes/1048576).toFixed(2)+' MB) e pararam de salvar na nuvem. O que está no aparelho continua salvo.');return;}
-    db.collection('users').doc(cloudUid).set(data,{merge:true})
+    let data,bytes=0,merge=true;
+    if(temGzip){
+      try{
+        const gz=await gzipB64(JSON.stringify(bruto));
+        data={_updatedAt:Date.now(),__gz:gz};
+        bytes=gz.length;
+        merge=false; // sobrescreve o documento para apagar os campos antigos, sem gzip
+      }catch(e){console.error('Falha ao compactar:',e);}
+    }
+    if(!data){
+      data=Object.assign({_updatedAt:Date.now()},bruto);
+      Object.keys(bruto).forEach(k=>{bytes+=bruto[k].length+k.length;});
+    }
+    cloudLastSize=bytes;
+    if(bytes>1000000){cloudWarnOnce('Mesmo compactados, seus dados passaram do limite de 1 MB do Firebase ('+(bytes/1048576).toFixed(2)+' MB). O que está no aparelho continua salvo.');return;}
+    db.collection('users').doc(cloudUid).set(data,merge?{merge:true}:undefined)
       .then(()=>{cloudSyncOk=true;})
       .catch(err=>{console.error('Erro ao salvar na nuvem:',err);
-        cloudWarnOnce('Não consegui salvar na nuvem: '+(err&&err.message?err.message:err)+' (tamanho: '+(_bytes/1048576).toFixed(2)+' MB)');});
+        cloudWarnOnce('Não consegui salvar na nuvem: '+(err&&err.message?err.message:err)+' (tamanho: '+(bytes/1048576).toFixed(2)+' MB)');});
   },800);
 }
 
@@ -8063,12 +8089,20 @@ localStorage.setItem=function(key,val){
 };
 
 // Aplica os dados vindos da nuvem no localStorage sem disparar novo envio
-function applyCloudData(data){
+async function applyCloudData(data){
+  let campos=data;
+  if(typeof data.__gz==='string'){ // documento compactado
+    try{campos=JSON.parse(await ungzipB64(data.__gz));}
+    catch(e){console.error('Falha ao descompactar os dados da nuvem:',e);
+      cloudWarnOnce('Não consegui ler os dados da nuvem. O que está no aparelho continua salvo.');
+      return false;}
+  }
   applyingRemote=true;
   CLOUD_KEYS.forEach(k=>{
-    if(typeof data[k]==='string')_origSetItem(k,data[k]);
+    if(typeof campos[k]==='string')_origSetItem(k,campos[k]);
   });
   applyingRemote=false;
+  return true;
 }
 
 // Re-renderiza a tela atual + dashboard/badges após receber dados novos da nuvem
@@ -8214,7 +8248,7 @@ function enterApp(user){
   showApp();
   // Sincroniza com a nuvem em segundo plano via listener em tempo real.
   const docRef=db.collection('users').doc(cloudUid);
-  unsubSnapshot=docRef.onSnapshot(snap=>{
+  unsubSnapshot=docRef.onSnapshot(async snap=>{
     if(snap.exists){
       // Se houve edicao no modo offline, o aparelho esta mais novo que a nuvem:
       // manda o local para cima UMA vez em vez de deixar a nuvem sobrescrever.
@@ -8226,8 +8260,9 @@ function enterApp(user){
         return;
       }
       // A nuvem tem dados -> ela é a fonte da verdade; sobrescreve o local.
-      applyCloudData(snap.data());
+      const ok=await applyCloudData(snap.data());
       cloudReady=true;
+      if(!ok)return; // não conseguiu ler: mantém o que está no aparelho
       fcFixAuto(); // a nuvem pode ter trazido de volta um card com a pergunta pela metade
       fcLibAuto(); // e pode ter trazido dados de antes da biblioteca de aulas
       fcTopAuto();
