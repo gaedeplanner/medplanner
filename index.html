@@ -5791,13 +5791,20 @@ function fcLibApply(){
 
 // Roda sozinho na 1ª vez (e de novo quando a biblioteca muda de versão).
 // Nunca roda no meio de uma revisão.
+let fcLibAvisado=0; // versão da biblioteca que já foi anunciada NESTA sessão
 function fcLibAuto(){
   if(fcViewLocked)return;
   const d=getFC();
   if((d.libv||0)>=FC_LIB_V)return;
   const r=fcLibApply();
+  // Se a nuvem devolver dados antigos (ex.: a gravação falhou), o fcLibAuto roda
+  // de novo. Reaplicar tudo bem; repetir o aviso na tela, não.
+  const avisar=fcLibAvisado<FC_LIB_V;
+  fcLibAvisado=FC_LIB_V;
+  if(avisar){
   if(r.juntados)toast(r.juntados===1?'1 subtema repetido foi juntado com o da mesma aula.':(r.juntados+' subtemas repetidos foram juntados.'),'ok');
   else if(r.novos||r.aproveitados)toast(r.novos?(r.novos+' flashcards entraram, separados aula por aula!'):'Flashcards organizados aula por aula.','ok');
+  }
   if((document.querySelector('.tab-btn.active')?.dataset.tab)==='flashcards')renderFC();
 }
 
@@ -8012,6 +8019,14 @@ let applyingRemote=false;
 let cloudReady=false;
 let pushTimer=null;
 let unsubSnapshot=null;
+let cloudLastSize=0;      // tamanho do último envio, em bytes
+let cloudSyncOk=false;    // já conseguiu gravar na nuvem nesta sessão?
+let cloudWarned=false;    // o aviso de falha já foi mostrado?
+function cloudWarnOnce(msg){
+  if(cloudWarned)return;
+  cloudWarned=true;
+  if(typeof toast==='function')toast(msg,'err',12000);
+}
 
 // Envia (com debounce) o estado atual das chaves sincronizadas para o Firestore
 function pushToCloud(){
@@ -8023,8 +8038,15 @@ function pushToCloud(){
       const v=localStorage.getItem(k);
       if(v!==null)data[k]=v;
     });
+    // O Firestore recusa documento acima de 1 MiB. Como os flashcards cresceram
+    // muito, é preciso avisar em vez de falhar calado (e ficar reaplicando sem parar).
+    let _bytes=0;CLOUD_KEYS.forEach(k=>{const v=data[k];if(typeof v==='string')_bytes+=v.length+k.length;});
+    cloudLastSize=_bytes;
+    if(_bytes>1000000){cloudWarnOnce('Seus dados passaram do limite de 1 MB por conta do Firebase ('+(_bytes/1048576).toFixed(2)+' MB) e pararam de salvar na nuvem. O que está no aparelho continua salvo.');return;}
     db.collection('users').doc(cloudUid).set(data,{merge:true})
-      .catch(err=>console.error('Erro ao salvar na nuvem:',err));
+      .then(()=>{cloudSyncOk=true;})
+      .catch(err=>{console.error('Erro ao salvar na nuvem:',err);
+        cloudWarnOnce('Não consegui salvar na nuvem: '+(err&&err.message?err.message:err)+' (tamanho: '+(_bytes/1048576).toFixed(2)+' MB)');});
   },800);
 }
 
