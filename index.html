@@ -2992,6 +2992,12 @@ const RESUMOS_DRIVE=[
 ['39','Sofrimento fetal, Vitalidade fetal, Fórcipe e Puerpério','1P4vqK9ULLivOQYMdDkWtsEBPoRC0OfAv'],
 ['41','Neurologia II - Síndromes Neurológicas e AVE','1kge6urwkd7rVd-QbGNDK2M8AWTEcuk9N']
 ];
+/* ---- Resumos do MEDELETRO no Drive (Meu Drive › MEDELETRO › Resumos), mesmo formato ---- */
+const RESUMOS_ELETRO=[
+['01','Eletrofisiologia e Distúrbios eletrolíticos','11W4Q0BWOsxCQLJoy7J_6O3Foyj7vzt9w'],
+['02','Traçado eletrocardiográfico','1v4p3Uu0u1FOYvoX4IUuMgEUzru2Ge8Ta'],
+['03','Sobrecargas cavitárias','1YcdBRs9j3tvvC_XJWoI2gtgTFkERIFE_']
+];
 function _resDriveUrl(id){return 'https://drive.google.com/file/d/'+id+'/view';}
 function _resLista(itens,max){
   const m=max||12;
@@ -3073,8 +3079,18 @@ function resSeedAuto(){
       arr=arr.concat([{id,semana:q.sem,aula:_resAulaLabel(arr,q.sem,parseInt(q.sn)),titulo:q.titulo,linkResumo:q.url}]);
       used.add(id);novas++;
     }
+    // MEDELETRO: só preenche aula do MEDELETRO da mesma semana ainda sem link, ou cria
+    for(const [sn,titulo,fid] of RESUMOS_ELETRO){
+      const sem='SEMANA '+sn,url=_resDriveUrl(fid);
+      if(off.has(url)||arr.some(r=>r.linkResumo===url))continue;
+      const livre=arr.find(r=>resFonteOf(r)==='medeletro'&&!r.linkResumo&&_resNorm(r.semana)===_resNorm(sem)&&_resSim(r.titulo,titulo)>=0.34);
+      if(livre){livre.linkResumo=url;ligadas++;continue;}
+      const id=Date.now().toString(36)+Math.random().toString(36).slice(2,5);
+      arr=arr.concat([{id,semana:sem,aula:_resAulaLabel(arr.filter(r=>resFonteOf(r)==='medeletro'),sem,parseInt(sn)),titulo,linkResumo:url,fonte:'medeletro'}]);
+      novas++;
+    }
     if(!ligadas&&!novas)return;
-    const numSem=x=>parseInt((x||'').replace(/D/g,''))||0;
+    const numSem=x=>parseInt((x||'').replace(/\D/g,''))||0;
     arr.sort((a,b)=>(numSem(a.semana)-numSem(b.semana))||String(a.aula).localeCompare(String(b.aula)));
     setResumos(arr);
     if((document.querySelector('.tab-btn.active')?.dataset.tab)==='resumos')renderResumos();
@@ -3084,7 +3100,7 @@ function deleteResumoItem(id){
   if(!confirm('Remover esta aula?'))return;
   try{
     const alvo=getResumos().find(r=>r.id===id);
-    if(alvo&&alvo.linkResumo&&RESUMOS_DRIVE.some(x=>_resDriveUrl(x[2])===alvo.linkResumo)){
+    if(alvo&&alvo.linkResumo&&RESUMOS_DRIVE.concat(RESUMOS_ELETRO).some(x=>_resDriveUrl(x[2])===alvo.linkResumo)){
       const off=resDismissed();off.add(alvo.linkResumo);
       localStorage.setItem(RES_DISMISS_KEY,JSON.stringify([...off]));
     }
