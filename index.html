@@ -414,6 +414,19 @@ tbody tr:hover{background:var(--s2)}
 .sf-lbl{font-size:11px;font-weight:700}
 /* RESUMOS */
 .res-group{margin-bottom:10px}
+/* Abas MEDCURSO / MEDELETRO */
+.res-fontes{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:18px}
+.res-fonte{position:relative;display:flex;flex-direction:column;align-items:flex-start;gap:4px;padding:16px 18px;border-radius:16px;border:2px solid var(--border);background:var(--s1);cursor:pointer;text-align:left;font:inherit;color:var(--text);transition:all .18s;overflow:hidden}
+.res-fonte:hover{transform:translateY(-2px);box-shadow:var(--shadow-sm)}
+.res-fonte-nome{font-size:20px;font-weight:900;letter-spacing:.04em}
+.res-fonte-sub{font-size:12px;font-weight:600;color:var(--muted)}
+.res-fonte-num{position:absolute;right:16px;top:50%;transform:translateY(-50%);font-size:34px;font-weight:900;opacity:.18}
+.res-fonte.on{color:#fff;border-color:transparent;box-shadow:0 8px 24px rgba(0,0,0,.16)}
+.res-fonte.on .res-fonte-sub{color:rgba(255,255,255,.85)}
+.res-fonte.on .res-fonte-num{opacity:.35}
+.res-fonte.f-medcurso.on{background:linear-gradient(135deg,#0A84FF,#5E5CE6)}
+.res-fonte.f-medeletro.on{background:linear-gradient(135deg,#FF375F,#FF9F0A)}
+@media(max-width:820px){.res-fonte{padding:12px 14px}.res-fonte-nome{font-size:16px}.res-fonte-num{font-size:26px}}
 .res-group-header{font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.07em;padding:6px 4px;display:flex;align-items:center;gap:8px}
 .res-group-header::after{content:'';flex:1;height:1px;background:var(--border)}
 .res-row{display:flex;align-items:center;gap:12px;padding:10px 14px;background:var(--s1);border:1px solid var(--border);border-radius:10px;margin-bottom:6px;transition:box-shadow .15s}
@@ -1548,12 +1561,13 @@ body.sb-collapsed .sidebar-user-text,body.sb-collapsed .sidebar-user-chev{displa
   <div class="sec-header">
     <h2 class="sec-title">Resumos</h2>
     <div style="display:flex;gap:8px;flex-wrap:wrap">
-      <button class="btn btn-o btn-sm" onclick="importResumosFromCronograma()" title="Cria uma aula em Resumos para cada aula do seu Cronograma (semana 01 a 46)">↧ Importar do Cronograma</button>
-      <button class="btn btn-o btn-sm" onclick="syncResumosDrive()" title="Liga cada aula ao PDF do resumo que está no seu Google Drive — abre no celular também">☁️ Puxar resumos do Drive</button>
+      <button class="btn btn-o btn-sm res-only-medcurso" onclick="importResumosFromCronograma()" title="Cria uma aula em Resumos para cada aula do seu Cronograma (semana 01 a 46)">↧ Importar do Cronograma</button>
+      <button class="btn btn-o btn-sm res-only-medcurso" onclick="syncResumosDrive()" title="Liga cada aula ao PDF do resumo que está no seu Google Drive — abre no celular também">☁️ Puxar resumos do Drive</button>
       <button class="btn btn-o btn-sm" onclick="attachPdfsBulk()" title="Selecione vários PDFs de uma vez; o app encaixa cada um na aula certa pelo nome do arquivo (ex: 'Semana 16 - Leucemias.pdf')">📎 Anexar PDFs (lote)</button>
-      <button class="btn btn-p btn-sm" onclick="openResumoModal()">+ Adicionar Aula</button>
+      <button class="btn btn-p btn-sm" id="res-add-btn" onclick="openResumoModal()">+ Adicionar Aula</button>
     </div>
   </div>
+  <div class="res-fontes" id="res-fontes"></div>
   <input type="file" id="res-files-input" accept="application/pdf,.pdf" multiple style="display:none" onchange="onPdfsBulkPicked()">
   <div class="toolbar" style="margin-bottom:16px">
     <input type="text" id="res-search" placeholder="Buscar aula..." style="min-width:200px" oninput="renderResumos()">
@@ -1573,13 +1587,17 @@ body.sb-collapsed .sidebar-user-text,body.sb-collapsed .sidebar-user-chev{displa
     </div>
     <div class="form-row">
       <div class="fg">
-        <label>Semana</label>
+        <label id="res-f-semana-lbl">Semana</label>
         <input type="text" id="res-f-semana" placeholder="Ex: SEMANA 01">
       </div>
       <div class="fg">
         <label>Aula</label>
         <input type="text" id="res-f-aula" placeholder="Ex: Aula 01">
       </div>
+    </div>
+    <div class="fg" style="margin-bottom:12px">
+      <label>Curso</label>
+      <select id="res-f-fonte"><option value="medcurso">MEDCURSO</option><option value="medeletro">MEDELETRO</option></select>
     </div>
     <div class="fg" style="margin-bottom:12px">
       <label>Título</label>
@@ -2704,6 +2722,15 @@ const RES_KEY='medplanner_resumos';
 let resEditId=null;
 function getResumos(){try{return JSON.parse(localStorage.getItem(RES_KEY))||[];}catch{return[];}}
 function setResumos(arr){localStorage.setItem(RES_KEY,JSON.stringify(arr));}
+// Duas partes na aba: MEDCURSO (as aulas antigas, sem o campo "fonte") e MEDELETRO
+const RES_FONTE_KEY='medplanner_res_fonte';
+const RES_FONTES={medcurso:{nome:'MEDCURSO'},medeletro:{nome:'MEDELETRO'}};
+function resFonteOf(r){return r&&r.fonte==='medeletro'?'medeletro':'medcurso';}
+let resFonte=(()=>{try{return localStorage.getItem(RES_FONTE_KEY)==='medeletro'?'medeletro':'medcurso';}catch(e){return'medcurso';}})();
+function setResFonte(f){resFonte=f;try{localStorage.setItem(RES_FONTE_KEY,f);}catch(e){}
+  const s=document.getElementById('res-search');if(s)s.value='';
+  const se=document.getElementById('res-semana');if(se)se.value='';
+  renderResumos();}
 
 /* ---- PDFs anexados por aula (guardados no navegador via IndexedDB; NÃO sincronizam na nuvem) ---- */
 let resModalId=null, resAttachTipo=null, resPdfKeys=new Set(), _resPdfLoaded=false;
@@ -2745,7 +2772,7 @@ async function onPdfsBulkPicked(){
   files.sort((a,b)=>a.name.localeCompare(b.name,'pt'));
   const MAXMB=80;
   let arr=getResumos();
-  const used=new Set();
+  const used=new Set(arr.filter(r=>resFonteOf(r)!==resFonte).map(r=>r.id));
   const plan=[],skipped=[];
   for(const f of files){
     if(f.size>MAXMB*1024*1024){skipped.push(f.name+' (maior que '+MAXMB+'MB)');continue;}
@@ -2765,7 +2792,8 @@ async function onPdfsBulkPicked(){
       plan.push({file:f,aulaId:best.id,semana:best.semana,titulo:best.titulo,isNew:false});
     }else{
       const id=Date.now().toString(36)+Math.random().toString(36).slice(2,5);
-      const na={id,semana:sem,aula:_resAulaLabel(arr,sem,semNum),titulo,linkResumo:''};
+      const na={id,semana:sem,aula:_resAulaLabel(arr.filter(r=>resFonteOf(r)===resFonte),sem,semNum),titulo,linkResumo:''};
+      if(resFonte==='medeletro')na.fonte='medeletro';
       arr=arr.concat([na]);used.add(id);
       plan.push({file:f,aulaId:id,semana:sem,titulo,isNew:true});
     }
@@ -2833,6 +2861,10 @@ function openResumoModal(id){
   document.getElementById('res-f-aula').value=item?item.aula:'';
   document.getElementById('res-f-titulo').value=item?item.titulo:'';
   document.getElementById('res-f-resumo').value=item?(item.linkResumo||''):'';
+  document.getElementById('res-f-fonte').value=item?resFonteOf(item):resFonte;
+  const eletro=(item?resFonteOf(item):resFonte)==='medeletro';
+  document.getElementById('res-f-semana').placeholder=eletro?'Ex: MÓDULO 01':'Ex: SEMANA 01';
+  document.getElementById('res-f-semana-lbl').textContent=eletro?'Módulo / Semana':'Semana';
   refreshPdfKeys().then(updateModalFileLabels);
   document.getElementById('overlay-resumo').classList.add('open');
   setTimeout(()=>document.getElementById('res-f-semana').focus(),50);
@@ -2851,15 +2883,19 @@ function saveResumoItem(){
   const aula=(document.getElementById('res-f-aula')?.value||'').trim();
   const titulo=(document.getElementById('res-f-titulo')?.value||'').trim();
   const linkResumo=(document.getElementById('res-f-resumo')?.value||'').trim();
+  const fonte=document.getElementById('res-f-fonte')?.value==='medeletro'?'medeletro':'medcurso';
   if(!semana||!aula||!titulo){toast('Preencha semana, aula e título.','err');return;}
   const arr=getResumos();
   if(resEditId){
     const i=arr.findIndex(r=>r.id===resEditId);
-    if(i>=0)arr[i]={...arr[i],semana,aula,titulo,linkResumo};
+    if(i>=0){arr[i]={...arr[i],semana,aula,titulo,linkResumo};if(fonte==='medeletro')arr[i].fonte='medeletro';else delete arr[i].fonte;}
   } else {
-    arr.push({id:resModalId||(Date.now().toString(36)+Math.random().toString(36).slice(2,4)),semana,aula,titulo,linkResumo});
+    const nv={id:resModalId||(Date.now().toString(36)+Math.random().toString(36).slice(2,4)),semana,aula,titulo,linkResumo};
+    if(fonte==='medeletro')nv.fonte='medeletro';
+    arr.push(nv);
   }
   arr.sort((a,b)=>a.semana.localeCompare(b.semana)||a.aula.localeCompare(b.aula));
+  if(fonte!==resFonte){resFonte=fonte;try{localStorage.setItem(RES_FONTE_KEY,fonte);}catch(e){}}
   setResumos(arr);closeResumoModal();renderResumos();toast(resEditId?'Aula atualizada!':'Aula adicionada!','ok');
 }
 function importResumosFromCronograma(){
@@ -2867,7 +2903,7 @@ function importResumosFromCronograma(){
   if(!topics||!topics.length){toast('Seu Cronograma está vazio — nada para importar.','err');return;}
   const numSem=s=>parseInt((s||'').replace(/\D/g,''))||0;
   const norm=s=>(s||'').trim().toLowerCase().replace(/\s+/g,' ');
-  const existing=getResumos();
+  const all0=getResumos(),existing=all0.filter(r=>resFonteOf(r)==='medcurso'),outros=all0.filter(r=>resFonteOf(r)!=='medcurso');
   const sorted=[...topics].filter(t=>(t.ap||'').trim()&&(t.semana||'').trim())
     .sort((a,b)=>numSem(a.semana)-numSem(b.semana));
   const toAdd=[];
@@ -2883,7 +2919,7 @@ function importResumosFromCronograma(){
   }
   if(!toAdd.length){toast('Tudo certo! As aulas do Cronograma já estão nos Resumos.','info');return;}
   if(!confirm(`Importar ${toAdd.length} aula(s) do Cronograma para os Resumos?\n\nNão mexe nas aulas que você já criou.`))return;
-  const all=existing.concat(toAdd);
+  const all=existing.concat(toAdd,outros);
   all.sort((a,b)=>(numSem(a.semana)-numSem(b.semana))||a.aula.localeCompare(b.aula));
   setResumos(all);renderResumos();toast(`${toAdd.length} aula(s) importada(s) do Cronograma!`,'ok');
 }
@@ -2961,7 +2997,7 @@ function _resLista(itens,max){
 }
 function syncResumosDrive(){
   let arr=getResumos();
-  const used=new Set(),ligadas=[],porOrdem=[],trocadas=[],novas=[],pend=[];
+  const used=new Set(arr.filter(r=>resFonteOf(r)!=='medcurso').map(r=>r.id)),ligadas=[],porOrdem=[],trocadas=[],novas=[],pend=[];
   // 1ª passada: encaixa pelo nome da aula
   for(const [sn,titulo,fid] of RESUMOS_DRIVE){
     const sem='SEMANA '+sn, url=_resDriveUrl(fid);
@@ -3012,7 +3048,7 @@ function resSeedAuto(){
   try{
     let arr=getResumos();
     if(!Array.isArray(arr))return;
-    const off=resDismissed(),used=new Set();let novas=0,ligadas=0;
+    const off=resDismissed(),used=new Set(arr.filter(r=>resFonteOf(r)!=='medcurso').map(r=>r.id));let novas=0,ligadas=0;
     const pend=[];
     for(const [sn,titulo,fid] of RESUMOS_DRIVE){
       const sem='SEMANA '+sn,url=_resDriveUrl(fid);
@@ -3057,7 +3093,15 @@ function deleteResumoItem(id){
 }
 function renderResumos(){
   if(!_resPdfLoaded){_resPdfLoaded=true;refreshPdfKeys().then(renderResumos);}
-  const arr=getResumos();
+  const all=getResumos();
+  const arr=all.filter(r=>resFonteOf(r)===resFonte);
+  const fx=document.getElementById('res-fontes');
+  if(fx)fx.innerHTML=Object.entries(RES_FONTES).map(([k,f])=>{
+    const n=all.filter(r=>resFonteOf(r)===k).length;
+    return`<button type="button" class="res-fonte f-${k} ${k===resFonte?'on':''}" onclick="setResFonte('${k}')"><span class="res-fonte-nome">${f.nome}</span><span class="res-fonte-sub">${n?n+(n===1?' aula':' aulas'):'Nenhum resumo ainda'}</span><span class="res-fonte-num">${n}</span></button>`;
+  }).join('');
+  document.querySelectorAll('.res-only-medcurso').forEach(b=>b.style.display=resFonte==='medcurso'?'':'none');
+  const ab=document.getElementById('res-add-btn');if(ab)ab.textContent=resFonte==='medeletro'?'+ Adicionar Resumo':'+ Adicionar Aula';
   const search=(document.getElementById('res-search')?.value||'').toLowerCase();
   const filtSem=document.getElementById('res-semana')?.value||'';
   // atualiza filtro de semanas
@@ -3075,7 +3119,7 @@ function renderResumos(){
   const el=document.getElementById('resumos-list');
   if(!el)return;
   if(!filtered.length){
-    el.innerHTML=`<div class="empty"><div class="icon" style="opacity:.3"><svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg></div><h3>Nenhuma aula cadastrada</h3><p>Clique em "+ Adicionar Aula" para começar.</p></div>`;
+    el.innerHTML=`<div class="empty"><div class="icon" style="opacity:.3"><svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg></div>${resFonte==='medeletro'&&!arr.length?'<h3>MEDELETRO ainda vazio</h3><p>Quando seus resumos do MEDELETRO estiverem prontos, clique em "+ Adicionar Resumo" e cole o link do Google Drive.</p>':'<h3>Nenhuma aula encontrada</h3><p>Clique em "+ Adicionar Aula" para começar.</p>'}</div>`;
     return;
   }
   // agrupa por semana
