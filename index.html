@@ -1183,6 +1183,7 @@ body.sb-collapsed .sidebar-user-text,body.sb-collapsed .sidebar-user-chev{displa
 /* Barrinha dos 10 últimos cards (vermelho=errei, laranja=difícil, azul-esverdeado=bom, verde=fácil) */
 .fc-bottom-row{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:10px}
 .fc-streak{display:flex;align-items:center;gap:4px;justify-self:start}
+.fc-undo-btn{justify-self:end}
 .fcd{width:8px;height:8px;border-radius:50%;flex-shrink:0;transition:background .2s}
 .fcd-again{background:#e5484d;color:#e5484d}
 .fcd-hard{background:#f2a02a;color:#f2a02a}
@@ -3793,8 +3794,19 @@ function fcHistHTML(sys){
 }
 // Linha de baixo da revisão: bolinhas à esquerda, botão de sair no meio
 function fcBottomRow(sys,onEnd){
+  const voltar=sys==='fc'&&fcUndo.length?'<button class="btn btn-o btn-sm fc-undo-btn" onclick="fcUndoLast()" title="Desfaz a última nota e volta o card (Ctrl+Z)">↶ Voltar card</button>':'<span></span>';
   return '<div class="fc-bottom-row">'+fcHistHTML(sys)+
-    '<button class="btn btn-o btn-sm" onclick="'+onEnd+'">← Encerrar</button><span></span></div>';
+    '<button class="btn btn-o btn-sm" onclick="'+onEnd+'">← Encerrar</button>'+voltar+'</div>';
+}
+// Botão "Voltar card" das telas de fim de sessão / espera (só na revisão do planner)
+function fcUndoBtnHTML(mainId){
+  return mainId==='fc-main'&&fcUndo.length?' <button class="btn btn-o btn-sm" onclick="fcUndoLast()" title="Desfaz a última nota (Ctrl+Z)">↶ Voltar card</button>':'';
+}
+function fcHistPop(sys){
+  const hist=fcHistGet();
+  if(!(hist[sys]||[]).length)return;
+  hist[sys].pop();
+  try{localStorage.setItem(FCH_KEY,JSON.stringify(hist));}catch(e){}
 }
 
 // ── CORRIGIR O CARD DURANTE A REVISÃO + ATALHOS 1/2/3/4 ───────
@@ -3868,6 +3880,15 @@ function saveFCQuickEdit(){
 // Teclado: 1 = Errei, 2 = Difícil, 3 = Bom, 4 = Fácil (espaço revela a resposta).
 // Clica no próprio botão, então segue valendo qualquer mudança futura neles.
 document.addEventListener('keydown',e=>{
+  // Ctrl+Z = volta o card anterior (desfaz a última nota da revisão)
+  if((e.ctrlKey||e.metaKey)&&!e.shiftKey&&!e.altKey&&(e.key==='z'||e.key==='Z')){
+    const tz=e.target;
+    if(tz&&(tz.tagName==='INPUT'||tz.tagName==='TEXTAREA'||tz.isContentEditable))return; // Ctrl+Z normal do texto
+    if(document.querySelector('.overlay.open'))return;
+    if(!fcUndo.length||!fcIsVis(document.getElementById('fc-main')))return;
+    e.preventDefault();fcUndoLast();
+    return;
+  }
   if(e.ctrlKey||e.altKey||e.metaKey)return;
   const t=e.target;
   if(t&&(t.tagName==='INPUT'||t.tagName==='TEXTAREA'||t.isContentEditable))return;
@@ -3910,6 +3931,8 @@ const getFC=()=>{
 const setFC=d=>localStorage.setItem(FC_KEY,JSON.stringify(d));
 
 let fcSession=[];
+let fcUndo=[]; // notas desta sessão que dá pra desfazer (Ctrl+Z / "Voltar card"), mais recente no fim
+const FC_UNDO_MAX=30;
 let fcCurrent=null;
 let fcFlipped=false;
 let fcEditId=null;
@@ -4021,7 +4044,7 @@ function startFCReviewScoped(catId,subId,onlyTop){
   if(!fcSession.length){toast('Nenhum card para revisar!','info');return;}
   for(let i=fcSession.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[fcSession[i],fcSession[j]]=[fcSession[j],fcSession[i]];}
   if(includeAll)toast('Sem pendentes — revisando todos os cards.','info');
-  fcViewLocked=true;fcFlipped=false;nextFCCard();
+  fcUndo=[];fcViewLocked=true;fcFlipped=false;nextFCCard();
 }
 
 function fmtNextTs(ts){
@@ -4078,7 +4101,7 @@ function sessionWait(mainId,session,resumeFn,backFn){
       <h3>Quase lá…</h3>
       <p style="margin-top:6px">O próximo card de revisão fica pronto em<br><b id="sess-cd" style="font-size:18px">${fmt(soonest()-Date.now())}</b>.</p>
       <button class="btn btn-p" id="sess-skip" style="margin-top:20px">Revisar agora</button>
-      <div style="margin-top:10px"><button class="btn btn-o btn-sm" id="sess-end">← Encerrar</button></div>
+      <div style="margin-top:10px"><button class="btn btn-o btn-sm" id="sess-end">← Encerrar</button>${fcUndoBtnHTML(mainId)}</div>
     </div>`;
   const tick=()=>{
     const cd=document.getElementById('sess-cd');
@@ -5063,6 +5086,7 @@ function fcLibReorganizar(){
 function renderFC(){
   setFCFocus(false);
   clearSessWait();
+  fcUndo=[]; // saiu da revisão → não dá mais pra voltar card
   fcViewLocked=false; // voltou pra lista de cards → libera re-render da nuvem
   const d=getFC();
   const cats=d.cards.filter(c=>c.type==='category');
@@ -5773,7 +5797,7 @@ function startFCReview(){
   if(!fcSession.length){toast('Nenhum card para revisar!','info');return;}
   for(let i=fcSession.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[fcSession[i],fcSession[j]]=[fcSession[j],fcSession[i]];}
   if(includeAll)toast('Sem pendentes — revisando todos os cards.','info');
-  fcViewLocked=true;fcFlipped=false;nextFCCard();
+  fcUndo=[];fcViewLocked=true;fcFlipped=false;nextFCCard();
 }
 
 function nextFCCard(){
@@ -5786,6 +5810,7 @@ function nextFCCard(){
         <h3>Sessão concluída!</h3>
         <p style="margin-top:6px">Todos os cards foram revisados.</p>
         <button class="btn btn-p" style="margin-top:20px" onclick="renderFC()">Voltar</button>
+        <div style="margin-top:10px">${fcUndoBtnHTML('fc-main')}</div>
       </div>`;
     return;
   }
@@ -5837,6 +5862,11 @@ function renderFCCard(){
 function flipFCCard(){fcFlipped=true;renderFCCard();}
 
 function rateFCCard(rating){
+  // Guarda como tudo estava antes da nota, pra poder voltar (Ctrl+Z)
+  const antes=findLiveFCCard(getFC(),fcCurrent);
+  fcUndo.push({cur:fcCurrent,session:fcSession.slice(),rating,dia:today(),
+    nextTs:antes?antes.obj.nextTs:undefined,st:antes&&antes.obj.st?{...antes.obj.st}:undefined});
+  if(fcUndo.length>FC_UNDO_MAX)fcUndo.shift();
   fcHistPush('fc',rating);
   const d=getFC();
   const nextTs=Date.now()+FC_INTERVALS[rating];
@@ -5864,6 +5894,33 @@ function rateFCCard(rating){
   // depois do tempo. Bom=1dia / Fácil=4dias graduam e saem da sessão.
   sessReinject(fcSession,fcCurrent,rating);
   nextFCCard();
+}
+
+// Desfaz a última nota: o card volta pra tela (lado da pergunta) e o
+// agendamento, as estatísticas, a contagem do dia e as bolinhas voltam
+// a ser o que eram antes do clique.
+function fcUndoLast(){
+  const u=fcUndo.pop();
+  if(!u){toast('Não há card para voltar.','info');return;}
+  const d=getFC();
+  const f=findLiveFCCard(d,u.cur);
+  if(f){
+    if(u.nextTs===undefined)delete f.obj.nextTs;else f.obj.nextTs=u.nextTs;
+    if(u.st)f.obj.st=u.st;else delete f.obj.st;
+    setFC(d);
+  }
+  const act=getAct(),a=act[u.dia];
+  if(a){
+    a.fc=Math.max(0,(a.fc||0)-1);
+    const k=FC_NOTAS[u.rating].k;
+    if(a.fcr&&a.fcr[k])a.fcr[k]--;
+    setAct(act);
+  }
+  fcHistPop('fc');
+  clearSessWait();
+  fcSession=u.session;fcCurrent=u.cur;fcFlipped=false;fcViewLocked=true;
+  renderFCCard();
+  toast('↶ Card anterior de volta','info');
 }
 
 function escapeHtml(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
