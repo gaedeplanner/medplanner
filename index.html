@@ -326,6 +326,9 @@ tbody tr:hover{background:var(--s2)}
 /* FLASHCARDS */
 .fc-stats{display:flex;gap:12px;margin-bottom:18px;flex-wrap:wrap}
 .fc-stat{background:var(--s1);border:1px solid var(--border);border-radius:var(--r);padding:12px 20px;text-align:center;min-width:100px;box-shadow:var(--shadow-xs)}
+.fc-stat-feitos{background:var(--accent);border-color:var(--accent);color:#fff;min-width:170px}
+.fc-stat-feitos .fc-stat-val{color:#fff}
+.fc-stat-feitos .fc-stat-lbl{color:rgba(255,255,255,.88)}
 .fc-stat-val{font-size:22px;font-weight:800}
 .fc-stat-lbl{font-size:11px;color:var(--muted);text-transform:uppercase;font-weight:700;letter-spacing:.05em;margin-top:2px}
 .fc-card-wrap{display:flex;justify-content:center;margin-bottom:24px}
@@ -1109,6 +1112,7 @@ body.sb-collapsed .sidebar-user-text,body.sb-collapsed .sidebar-user-chev{displa
   /* ── FLASHCARDS ── */
   .fc-stats{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
   .fc-stat{min-width:0;padding:11px 5px}
+  .fc-stat-feitos{grid-column:1/-1}
   .fc-stat-val{font-size:20px}
   .fc-stat-lbl{font-size:9px;letter-spacing:.03em}
   .fc-card{min-height:250px;padding:34px 20px;border-radius:22px}
@@ -5087,6 +5091,16 @@ function fcLibReorganizar(){
   toast(r.novos?(r.novos+' cards novos · '+r.aproveitados+' já existiam'+(r.juntados?' · '+r.juntados+' subtema(s) juntado(s)':'')):(r.juntados?(r.juntados+' subtema(s) repetido(s) juntado(s)!'):'Tudo organizado aula por aula!'),'ok');
   renderFC();
 }
+// Total de cards já respondidos (qualquer nota conta, até "Errei").
+// Vem do registro diário de atividade; se as estatísticas dos cards
+// somarem mais (registro antigo), vale o maior dos dois.
+function fcTotalFeitos(){
+  const act=getAct();let total=0;
+  for(const k in act)total+=(act[k]&&act[k].fc)||0;
+  const pelosCards=collectFCUnits().reduce((n,u)=>n+u.st.a+u.st.h+u.st.g+u.st.e,0);
+  const hoje=(act[today()]&&act[today()].fc)||0;
+  return {total:Math.max(total,pelosCards),hoje};
+}
 function renderFC(){
   setFCFocus(false);
   clearSessWait();
@@ -5106,7 +5120,9 @@ function renderFC(){
     if(c.type==='deck')return n+c.subs.filter(s=>!isDueFc(s.nextTs)).length;
     return n+(isDueFc(c.nextTs)?0:1);
   },0);
+  const feitos=fcTotalFeitos();
   document.getElementById('fc-stats').innerHTML=`
+    <div class="fc-stat fc-stat-feitos" title="Toda vez que você dá uma nota (Errei, Difícil, Bom ou Fácil) conta 1 — acertando ou não"><div class="fc-stat-val">${feitos.total.toLocaleString('pt-BR')}</div><div class="fc-stat-lbl">Cards já feitos${feitos.hoje?` · <b>+${feitos.hoje} hoje</b>`:''}</div></div>
     <div class="fc-stat"><div class="fc-stat-val" style="color:var(--accent)">${due}</div><div class="fc-stat-lbl">Pendentes</div></div>
     <div class="fc-stat"><div class="fc-stat-val" style="color:var(--green)">${doneQ}</div><div class="fc-stat-lbl">Em dia</div></div>
     <div class="fc-stat"><div class="fc-stat-val" style="color:var(--muted)">${cats.length}</div><div class="fc-stat-lbl">Categorias</div></div>
