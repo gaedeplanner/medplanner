@@ -3986,7 +3986,87 @@ document.addEventListener('keydown',e=>{
 });
 
 const FC_KEY='medplanner26_fc';
-const FC_INTERVALS=[60000,600000,86400000,345600000];
+// ── AGENDAMENTO ESTILO ANKI (SM-2, com as configurações padrão do Anki) ──
+// Estado guardado no próprio card, além do nextTs (data da próxima revisão):
+//   iv = intervalo atual em dias (só existe depois que o card gradua)
+//   ef = facilidade em milésimos (2500 = 250%) — sobe no Fácil, cai no Difícil/Errei
+//   ls = passo de (re)aprendizado em que o card está (sem ls = card em revisão)
+const FC_MIN=60000,FC_DIA=86400000;
+const FC_ANKI={passos:[1,10],reaprender:[10],graduar:1,facil:4,efIni:2500,efMin:1300,
+  bonusFacil:1.3,multDificil:1.2,novoAposErro:0,maxDias:36500};
+// Em que fase o card está. Cards do sistema antigo (tempo fixo) não têm ef:
+// quem já levou Bom/Fácil entra como card de revisão; quem só errou, em aprendizado.
+function fcSrsEstado(o){
+  const A=FC_ANKI;
+  if(!o)return{tipo:'novo',ef:A.efIni};
+  if(o.ef){
+    if(o.ls!==undefined&&o.ls!==null)return{tipo:o.iv?'reaprendendo':'aprendendo',passo:o.ls,iv:o.iv||0,ef:o.ef};
+    return{tipo:'revisao',iv:o.iv||1,ef:o.ef};
+  }
+  const st=o.st;
+  if(o.nextTs&&st&&(st.g+st.e)>0)return{tipo:'revisao',iv:st.e>0?A.facil:A.graduar,ef:A.efIni};
+  if(o.nextTs||(st&&(st.a+st.h)>0))return{tipo:'aprendendo',passo:0,iv:0,ef:A.efIni};
+  return{tipo:'novo',ef:A.efIni};
+}
+// Calcula o que acontece com o card para cada nota (0 Errei, 1 Difícil, 2 Bom, 3 Fácil).
+// Devolve {ms: daqui a quanto tempo volta, iv, ef, ls (só se ficar em aprendizado)}.
+function fcSrsProximo(o,rating,agora){
+  agora=agora||Date.now();
+  const A=FC_ANKI,e=fcSrsEstado(o),ef=e.ef;
+  const passo=(m,ls,iv,efx)=>({ms:Math.round(m*FC_MIN),ls,iv:iv||0,ef:efx||ef});
+  const gradua=(d,efx)=>{d=Math.min(A.maxDias,Math.max(1,Math.round(d)));return{ms:d*FC_DIA,iv:d,ef:efx||ef};};
+  if(e.tipo==='novo'||e.tipo==='aprendendo'||e.tipo==='reaprendendo'){
+    const re=e.tipo==='reaprendendo',P=re?A.reaprender:A.passos,p=Math.min(e.passo||0,P.length-1);
+    if(rating===0)return passo(P[0],0,e.iv);
+    if(rating===1){ // Difícil repete o passo; no 1º passo é a média entre o 1º e o 2º
+      const m=p===0?(P.length>1?(P[0]+P[1])/2:P[0]*1.5):P[p];
+      return passo(m,p,e.iv);
+    }
+    if(rating===2){
+      if(p+1<P.length)return passo(P[p+1],p+1,e.iv);
+      return gradua(re?e.iv:A.graduar);
+    }
+    return gradua(re?e.iv+1:A.facil);
+  }
+  // card em revisão
+  const due=o&&o.nextTs?o.nextTs:agora;
+  const atraso=Math.max(0,(agora-due)/FC_DIA);
+  const cedo=agora<due;
+  // revisão adiantada (ex.: "revisar todos"): conta só o tempo que passou de fato
+  const base=cedo?Math.max(1,(agora-(due-e.iv*FC_DIA))/FC_DIA):e.iv;
+  const dif=Math.max(cedo?1:e.iv+1,Math.round(base*A.multDificil));
+  const bom=Math.max(dif+1,Math.round((base+atraso/2)*ef/1000));
+  const fac=Math.max(bom+1,Math.round((base+atraso)*ef/1000*A.bonusFacil));
+  if(rating===0){ // lapso: facilidade cai 20% e o card volta a ser reaprendido
+    const novoIv=Math.max(1,Math.round(e.iv*A.novoAposErro));
+    return passo(A.reaprender[0],0,novoIv,Math.max(A.efMin,ef-200));
+  }
+  if(rating===1)return gradua(dif,Math.max(A.efMin,ef-150));
+  if(rating===2)return gradua(bom);
+  return gradua(fac,ef+150);
+}
+// Pequena variação aleatória ("fuzz" do Anki) para os cards não vencerem todos no mesmo dia
+function fcSrsFuzz(d){
+  if(d<3)return d;
+  const v=Math.max(1,Math.round(d*(d<7?0.15:d<20?0.1:0.05)));
+  return Math.max(1,d+Math.floor(Math.random()*(2*v+1))-v);
+}
+// Texto curto do botão: "1 min", "6 min", "3 dias", "1,2 mês", "2,1 anos"
+function fcFmtIntervalo(ms){
+  const m=ms/FC_MIN;
+  if(m<60)return Math.max(1,Math.round(m))+' min';
+  const h=m/60;
+  if(h<24)return Math.round(h)+' h';
+  const d=Math.round(ms/FC_DIA);
+  if(d<30)return d+(d===1?' dia':' dias');
+  const f=x=>(Math.round(x*10)/10).toString().replace('.',',');
+  if(d<365){const x=d/30;return f(x)+(x<1.95?' mês':' meses');}
+  const a=d/365;return f(a)+(a<1.95?' ano':' anos');
+}
+// Copia/restaura o progresso de um card (usado no Ctrl+Z e ao mover cards)
+const FC_PROG=['nextTs','st','iv','ef','ls'];
+function fcProgSnap(o){const s={};FC_PROG.forEach(k=>{if(o&&o[k]!==undefined)s[k]=k==='st'?{...o[k]}:o[k];});return s;}
+function fcProgSet(o,s){FC_PROG.forEach(k=>{if(s&&s[k]!==undefined)o[k]=k==='st'?{...s[k]}:s[k];else delete o[k];});}
 
 const getFC=()=>{
   try{
@@ -4157,10 +4237,10 @@ function sessPickDueIdx(session){
   if(freshIdx>=0)return freshIdx;
   return waitIdx;
 }
-// Reinjeta o card na sessão se for passo curto (rating 0 ou 1).
-function sessReinject(session,item,rating){
-  if(rating>1)return; // 1dia/4dias: gradua, não volta
-  session.push({...item,_dueAt:Date.now()+FC_INTERVALS[rating]});
+// Reinjeta o card na sessão se ele volta ainda hoje (passo de aprendizado em minutos).
+function sessReinject(session,item,ms){
+  if(ms>=FC_DIA)return; // graduou: só volta em outro dia
+  session.push({...item,_dueAt:Date.now()+ms});
 }
 // Tela de espera quando só restam cards de passo curto ainda não prontos.
 function sessionWait(mainId,session,resumeFn,backFn){
@@ -4890,15 +4970,15 @@ const fcLibAntigas=q=>_fcRenom.get(fcLibKey(q))||[];
 // Índice de tudo que já existe no app: pergunta -> onde está e como tirar de lá
 function fcLibIndex(d){
   const idx=new Map();
-  const reg=(q,nextTs,cat,deck,del)=>{const k=fcLibKey(q);if(!k)return;
-    if(!idx.has(k))idx.set(k,[]);idx.get(k).push({nextTs:nextTs||null,cat:cat,deck:deck,del:del});};
+  const reg=(q,obj,cat,deck,del)=>{const k=fcLibKey(q);if(!k)return;
+    if(!idx.has(k))idx.set(k,[]);idx.get(k).push({nextTs:obj.nextTs||null,obj:obj,cat:cat,deck:deck,del:del});};
   d.cards.forEach(c=>{
     if(c.type==='category')(c.children||[]).forEach(dk=>{
       if(dk.type!=='deck')return;
-      (dk.subs||[]).forEach(s=>reg(s.q,s.nextTs,c,dk,()=>{dk.subs=(dk.subs||[]).filter(x=>x!==s);}));
+      (dk.subs||[]).forEach(s=>reg(s.q,s,c,dk,()=>{dk.subs=(dk.subs||[]).filter(x=>x!==s);}));
     });
-    else if(c.type==='deck')(c.subs||[]).forEach(s=>reg(s.q,s.nextTs,null,c,()=>{c.subs=(c.subs||[]).filter(x=>x!==s);}));
-    else reg(c.front,c.nextTs,null,null,()=>{d.cards=d.cards.filter(x=>x!==c);});
+    else if(c.type==='deck')(c.subs||[]).forEach(s=>reg(s.q,s,null,c,()=>{c.subs=(c.subs||[]).filter(x=>x!==s);}));
+    else reg(c.front,c,null,null,()=>{d.cards=d.cards.filter(x=>x!==c);});
   });
   return idx;
 }
@@ -4972,8 +5052,8 @@ function fcJuntarCards(alvo,origem,nid){
          (kx.endsWith(kq)||kq.endsWith(kx)||kx.startsWith(kq)||kq.startsWith(kx)))return true;
       return ka.length>15&&fcLibKey(x.a)===ka;
     });
-    if(igual){if((s.nextTs||0)>(igual.nextTs||0))igual.nextTs=s.nextTs;repetidos++;}
-    else{alvo.subs.push({id:nid(),q:s.q,a:s.a,nextTs:s.nextTs||null,top:s.top?1:undefined});entraram++;}
+    if(igual){if((s.nextTs||0)>(igual.nextTs||0))fcProgSet(igual,fcProgSnap(s));repetidos++;}
+    else{alvo.subs.push(Object.assign({id:nid(),q:s.q,a:s.a,nextTs:null,top:s.top?1:undefined},fcProgSnap(s)));entraram++;}
   });
   origem.subs=[];
   return{entraram:entraram,repetidos:repetidos};
@@ -5034,10 +5114,10 @@ function fcLibApply(){
     }
     if(!achados.length)return undefined;
     achados.sort((x,y)=>(y.nextTs||0)-(x.nextTs||0));
-    const ts=achados[0].nextTs||null;
+    const prog=fcProgSnap(achados[0].obj);
     achados.forEach(e=>{e.del();if(e.cat)mexidos.add(e.cat);if(e.deck)mexidos.add(e.deck);});
     idx.delete(k);
-    return ts;
+    return prog;
   };
   FC_LIB.forEach(a=>{
     const aula=a[0],blocos=a[1];
@@ -5052,7 +5132,7 @@ function fcLibApply(){
         const subs=[];
         b[1].forEach(c=>{const ts=pegar(c[0]);
           if(ts===undefined)novos++;else aproveitados++;
-          subs.push({id:nid(),q:c[0],a:c[1],nextTs:ts===undefined?null:ts,top:c[2]?1:undefined});});
+          subs.push(Object.assign({id:nid(),q:c[0],a:c[1],nextTs:null,top:c[2]?1:undefined},ts||{}));});
         dk.subs=subs;usados.add(dk);
       });
       return;
@@ -5072,7 +5152,7 @@ function fcLibApply(){
         if(ja){if(ja.a!==c[1])ja.a=c[1];if(c[2]&&!ja.top)ja.top=1;aproveitados++;idx.delete(k);return;}
         const ts=pegar(c[0]);
         if(ts===undefined)novos++;else aproveitados++;
-        const novo={id:nid(),q:c[0],a:c[1],nextTs:ts===undefined?null:ts,top:c[2]?1:undefined};
+        const novo=Object.assign({id:nid(),q:c[0],a:c[1],nextTs:null,top:c[2]?1:undefined},ts||{});
         dk.subs.push(novo);tem.set(k,novo);
       }));
       cat.children.sort((x,y)=>String(x.front||'').localeCompare(String(y.front||''),'pt',{numeric:true}));
@@ -5107,7 +5187,7 @@ function fcLibApply(){
       if(ja){if(ja.a!==c[1])ja.a=c[1];if(c[2]&&!ja.top)ja.top=1;aproveitados++;idx.delete(k);return;}
       const ts=pegar(c[0]);
       if(ts===undefined)novos++;else aproveitados++;
-      const novo={id:nid(),q:c[0],a:c[1],nextTs:ts===undefined?null:ts,top:c[2]?1:undefined};
+      const novo=Object.assign({id:nid(),q:c[0],a:c[1],nextTs:null,top:c[2]?1:undefined},ts||{});
       alvo.subs.push(novo);
       tem.set(k,novo);
     });
@@ -5923,14 +6003,20 @@ function renderFCCard(){
       <span style="font-size:13px;font-weight:700;color:var(--text)">${fcCurrent._parentFront}</span>
       ${fcCurrent._parentTag?`<span class="badge bg" style="margin-left:auto">${fcCurrent._parentTag}</span>`:''}
     </div>`:'';
-  const ratings=fcFlipped?`
+  let ratings='';
+  if(fcFlipped){
+    // Tempo de cada botão calculado na hora, como no Anki (cresce a cada acerto)
+    const live=findLiveFCCard(getFC(),fcCurrent);
+    const t=r=>fcFmtIntervalo(fcSrsProximo(live&&live.obj,r).ms);
+    ratings=`
     <div style="text-align:center;margin-bottom:10px;font-size:12px;color:var(--muted)">Como foi?</div>
     <div class="fc-ratings">
-      <button class="fc-btn-again" onclick="rateFCCard(0)">Errei<div style="font-size:10px;opacity:.7;margin-top:2px">1 min</div></button>
-      <button class="fc-btn-hard" onclick="rateFCCard(1)">Difícil<div style="font-size:10px;opacity:.7;margin-top:2px">10 min</div></button>
-      <button class="fc-btn-good" onclick="rateFCCard(2)">Bom<div style="font-size:10px;opacity:.7;margin-top:2px">1 dia</div></button>
-      <button class="fc-btn-easy" onclick="rateFCCard(3)">Fácil<div style="font-size:10px;opacity:.7;margin-top:2px">4 dias</div></button>
-    </div>`:'';
+      <button class="fc-btn-again" onclick="rateFCCard(0)">Errei<div style="font-size:10px;opacity:.7;margin-top:2px">${t(0)}</div></button>
+      <button class="fc-btn-hard" onclick="rateFCCard(1)">Difícil<div style="font-size:10px;opacity:.7;margin-top:2px">${t(1)}</div></button>
+      <button class="fc-btn-good" onclick="rateFCCard(2)">Bom<div style="font-size:10px;opacity:.7;margin-top:2px">${t(2)}</div></button>
+      <button class="fc-btn-easy" onclick="rateFCCard(3)">Fácil<div style="font-size:10px;opacity:.7;margin-top:2px">${t(3)}</div></button>
+    </div>`;
+  }
   document.getElementById('fc-main').innerHTML=`
     <div class="fc-progress fc-progress-row"><span>${fcSession.length+1} restante${fcSession.length+1!==1?'s':''}</span>${fcEditBtnHTML()}</div>
     ${parentBar}
@@ -5965,34 +6051,25 @@ function rateFCCard(rating){
   // Guarda como tudo estava antes da nota, pra poder voltar (Ctrl+Z)
   const antes=findLiveFCCard(getFC(),fcCurrent);
   fcUndo.push({cur:fcCurrent,session:fcSession.slice(),rating,dia:today(),
-    nextTs:antes?antes.obj.nextTs:undefined,st:antes&&antes.obj.st?{...antes.obj.st}:undefined});
+    prog:antes?fcProgSnap(antes.obj):null});
   if(fcUndo.length>FC_UNDO_MAX)fcUndo.shift();
   fcHistPush('fc',rating);
   const d=getFC();
-  const nextTs=Date.now()+FC_INTERVALS[rating];
-  if(fcCurrent._parentId){
-    let parent=d.cards.find(c=>c.id===fcCurrent._parentId);
-    if(!parent){
-      for(const cat of d.cards.filter(c=>c.type==='category')){
-        parent=(cat.children||[]).find(c=>c.id===fcCurrent._parentId);
-        if(parent)break;
-      }
-    }
-    if(parent){const sub=parent.subs.find(s=>s.id===fcCurrent.id);if(sub){sub.nextTs=nextTs;bumpFcStat(sub,rating);}}
-  } else {
-    let card=d.cards.find(c=>c.id===fcCurrent.id);
-    if(!card){
-      for(const cat of d.cards.filter(c=>c.type==='category')){
-        card=(cat.children||[]).find(c=>c.id===fcCurrent.id);
-        if(card)break;
-      }
-    }
-    if(card){card.nextTs=nextTs;bumpFcStat(card,rating);}
+  const live=findLiveFCCard(d,fcCurrent);
+  const r=fcSrsProximo(live&&live.obj,rating);
+  if(live){
+    const o=live.obj;
+    // dias ganham a variação do Anki; minutos não
+    o.nextTs=Date.now()+(r.ms>=FC_DIA?fcSrsFuzz(r.iv)*FC_DIA:r.ms);
+    o.ef=r.ef;
+    if(r.iv)o.iv=r.iv;else delete o.iv;
+    if(r.ls!==undefined)o.ls=r.ls;else delete o.ls;
+    bumpFcStat(o,rating);
   }
   setFC(d);logActivity('fc',1,rating);
-  // Passo curto (Errei=1min / Difícil=10min): o card volta na mesma sessão
-  // depois do tempo. Bom=1dia / Fácil=4dias graduam e saem da sessão.
-  sessReinject(fcSession,fcCurrent,rating);
+  // Ainda em aprendizado (minutos): o card volta na mesma sessão depois do tempo.
+  // Graduou (dias): sai da sessão.
+  sessReinject(fcSession,fcCurrent,r.ms);
   nextFCCard();
 }
 
@@ -6004,11 +6081,7 @@ function fcUndoLast(){
   if(!u){toast('Não há card para voltar.','info');return;}
   const d=getFC();
   const f=findLiveFCCard(d,u.cur);
-  if(f){
-    if(u.nextTs===undefined)delete f.obj.nextTs;else f.obj.nextTs=u.nextTs;
-    if(u.st)f.obj.st=u.st;else delete f.obj.st;
-    setFC(d);
-  }
+  if(f&&u.prog){fcProgSet(f.obj,u.prog);setFC(d);}
   const act=getAct(),a=act[u.dia];
   if(a){
     a.fc=Math.max(0,(a.fc||0)-1);
