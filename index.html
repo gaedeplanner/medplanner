@@ -1350,6 +1350,9 @@ body.sb-collapsed .sidebar-user-text,body.sb-collapsed .sidebar-user-chev{displa
 .lt-cap .idx i{font-style:normal;color:var(--lt-hot);margin-right:5px;font-weight:800}
 /* aula */
 .lt-aula{content-visibility:auto;contain-intrinsic-size:auto 1400px;scroll-margin-top:calc(var(--topbar-h) + 10px);padding-top:22px}
+/* traço entre uma aula e a próxima da mesma semana */
+.lt-aula+.lt-aula{margin-top:46px;padding-top:0}
+.lt-aula+.lt-aula::before{content:"";display:block;height:6px;border-radius:3px;background:linear-gradient(90deg,var(--lt-hot) 0 110px,var(--lt-ink) 110px);margin-bottom:30px}
 .lt-aula>header{display:flex;align-items:flex-end;gap:12px;margin-bottom:14px;padding-bottom:7px;border-bottom:3px solid var(--lt-ink)}
 .lt-aula>header .n{font:900 38px/.85 var(--lt-head);color:var(--lt-hot)}
 .lt-aula>header h3{font:800 21px/1.14 var(--lt-head);letter-spacing:-.2px;text-transform:uppercase;color:var(--lt-ink)}
