@@ -3451,7 +3451,9 @@ function ltCasca(){
   const zoom=ltEl('lt-zoom');zoom.onclick=()=>{zoom.classList.remove('on');zoom.firstChild.removeAttribute('src');};
   ltEl('lt-pagina').addEventListener('click',e=>{const c=e.target.closest('[data-ir]');if(c){ltIr(c.dataset.ir);return;}const f=e.target.closest('figure');if(!f)return;const im=f.querySelector('img');if(im&&im.src){zoom.firstChild.src=im.src;zoom.classList.add('on');}});
 }
+const LT_FORA=/^(Ginecologia e Obstetr[ií]cia|Geriatria|Psiquiatria)$/;
 async function ltMontar(idx){
+  idx={...idx,itens:idx.itens.filter(a=>!LT_FORA.test(a.g))};
   LT.indice=idx;LT.y=0;
   if(LT.obsImg)LT.obsImg.disconnect();if(LT.obsSpy)LT.obsSpy.disconnect();
   ltCasca();
