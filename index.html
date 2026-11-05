@@ -1363,11 +1363,25 @@ body.sb-collapsed .sidebar-user-text,body.sb-collapsed .sidebar-user-chev{displa
 .lt-corpo .ficha>.hd{background:var(--c);color:#fff;padding:9px 15px;font:900 16px/1.2 var(--lt-head);letter-spacing:.2px;text-transform:uppercase}
 .lt-corpo .ficha>.hd *{color:#fff!important;background:none!important;font-weight:inherit}
 .lt-corpo .ficha>.hd i.su,.lt-corpo .ficha>.hd i.de{font-style:normal}
-.lt-corpo .row{display:grid;grid-template-columns:136px minmax(0,1fr);border-top:1px solid var(--lt-rule)}
+.lt-corpo .row{display:grid;grid-template-columns:150px minmax(0,1fr);border-top:1px solid var(--lt-rule)}
 .lt-corpo .ficha>.hd+.row{border-top:0}
 .lt-corpo .row.sem{grid-template-columns:minmax(0,1fr)}
+.lt-corpo .subt{padding:7px 15px;font:800 13.5px/1.3 var(--lt-head);color:var(--c);background:color-mix(in srgb,var(--c) 14%,var(--lt-card));border-top:1px solid var(--lt-rule)}
+[data-dark] .lt-corpo .subt{color:color-mix(in srgb,var(--c) 45%,#fff)}
+.lt-corpo .subt *{background:none!important;font-weight:inherit}
+.lt-corpo .ficha>.hd+.subt{border-top:0}
+.lt-corpo .lcol{columns:2;column-gap:22px;margin:2px 0}
+.lt-corpo .lcol p{break-inside:avoid}
+.lt-corpo .steps{display:grid;gap:8px;margin:4px 0}
+.lt-corpo .steps.c2{grid-template-columns:1fr 1fr}.lt-corpo .steps.c3{grid-template-columns:repeat(3,1fr)}.lt-corpo .steps.c4{grid-template-columns:repeat(2,1fr)}
+.lt-corpo .step{min-width:0;border-radius:10px;padding:8px 11px;background:var(--lt-wash);border-top:4px solid var(--c)}
+.lt-corpo .st-h{font:800 13.5px/1.3 var(--lt-head);color:var(--c);margin-bottom:3px}
+[data-dark] .lt-corpo .st-h{color:color-mix(in srgb,var(--c) 45%,#fff)}
+.lt-corpo .step p.l1{padding-left:14px}.lt-corpo .step p.l2{padding-left:14px}
+.lt-corpo .step p.l2::before{left:1px}.lt-corpo .step p.l3{padding-left:24px}.lt-corpo .step p.l3::before{left:8px}
 .lt-corpo .row>.k{background:color-mix(in srgb,var(--c) 10%,var(--lt-card));color:var(--c);font:800 11.5px/1.3 var(--lt-head);text-transform:uppercase;letter-spacing:.2px;padding:11px 8px 10px 13px}
 [data-dark] .lt-corpo .row>.k{color:color-mix(in srgb,var(--c) 45%,#fff)}
+.lt-corpo .row>.k{overflow-wrap:normal}
 .lt-corpo .row>.k *{color:inherit!important;background:none!important;font-weight:inherit;text-decoration:none}
 .lt-corpo .row>.v{padding:9px 15px;min-width:0}
 .lt-corpo .row>.v>:first-child{margin-top:0}
@@ -1427,6 +1441,8 @@ body.sb-collapsed .sidebar-user-text,body.sb-collapsed .sidebar-user-chev{displa
   .lt-corpo{font-size:15.5px}
   .lt-corpo .row{grid-template-columns:minmax(0,1fr)}
   .lt-corpo .row>.k{padding:6px 12px}
+  .lt-corpo .steps.c2,.lt-corpo .steps.c3,.lt-corpo .steps.c4{grid-template-columns:minmax(0,1fr)}
+  .lt-corpo .lcol{column-gap:14px}
   .lt-corpo .row>.v{padding:8px 12px}
   .lt-corpo figure{width:100%}
   .lt-corpo p.l2{padding-left:28px}.lt-corpo p.l2::before{left:15px}
@@ -3443,24 +3459,112 @@ async function ltMontar(idx){
   await Promise.all(idx.itens.map(async a=>{const c=await ltGet(ltKA(a)).catch(()=>null);if(c)ltPreencher(a.id,c.html);}));
   ltMarcarMenu(idx.itens[0].id);
 }
-// Monta as fichas (visual dos PDFs) na hora de mostrar: cada tópico vira uma ficha e cada rótulo, uma linha.
+// Organiza o texto em fichas (visual dos PDFs) na hora de mostrar. Só muda a organização: nenhuma palavra é alterada.
+const LT_ROT=/^(cl[ií]nica( e diagn[oó]stico)?|quadro cl[ií]nico|manifesta[cç][oõ]es( cl[ií]nicas)?|sintomas|sinais|exame f[ií]sico|diagn[oó]stico( diferencial)?|dd|investiga[cç][aã]o|tratamento( cir[uú]rgico| cl[ií]nico)?|terapia|conduta|manejo|etiologias?|agente( etiol[oó]gico)?|causas?|fisiopatologia|patogenia|patog[eê]nese|mecanismo|a[cç][aã]o|complica[cç][oõ]es|complica[cç][aã]o|conceitos?( iniciais)?|defini[cç][aã]o|defini[cç][oõ]es|caracter[ií]sticas|epidemiologia|preval[eê]ncia|consequ[eê]ncias|objetivo|avalia[cç][aã]o( complementar)?|exames?( complementares)?|laborat[oó]rio|imagem|bi[oó]psia|estadiamento|fatores de (risco|prote[cç][aã]o)|preven[cç][aã]o|profilaxia|classifica[cç][aã]o|formas|tipos|progn[oó]stico|rastreio|rastreamento|introdu[cç][aã]o|indica[cç][aã]o|indica[cç][oõ]es|contraindica[cç][oõ]es|transmiss[aã]o|(per[ií]odo de )?incuba[cç][aã]o|localiza[cç][aã]o|representantes|efeitos? (adversos?|colaterais)|colaterais)$/i;
+const LT_NAO=/^(ex|exemplos?|obs|observa[cç][aã]o|nota|dica|lembrar|macete|mnem[oô]nico|importante|aten[cç][aã]o|extra|bizu|fonte|p[aá]gina|exce[cç][aã]o|detalhes|outros|outras)$/i;
+const ltTxt=h=>h.replace(/<[^>]+>/g,'').replace(/&nbsp;/g,' ').trim();
+const ltSemDois=h=>h.trim().replace(/:\s*((?:<\/[^>]+>\s*)*)$/,'$1');
+function ltValor(c){
+  // "Causas: Autoimune" -> ['Causas','Autoimune']
+  const m=c.match(/^<b class="k">([\s\S]*?):<\/b>\s*([\s\S]*)$/);
+  return m?[m[1],m[2]]:null;
+}
+function ltCompacta(ps){
+  // listas de itens curtos ocupam duas colunas
+  const fora=[];let i=0;
+  const ehPar=p=>p.startsWith('<p class="l1">')||p.startsWith('<p class="l2">');
+  while(i<ps.length){
+    if(ehPar(ps[i])){
+      const cl=ps[i].slice(0,14);let j=i;
+      while(j<ps.length&&ps[j].startsWith(cl)&&ltTxt(ps[j]).length<=34)j++;
+      if(j-i>=5){fora.push('<div class="lcol">'+ps.slice(i,j).join('')+'</div>');i=j;continue;}
+    }
+    fora.push(ps[i]);i++;
+  }
+  return fora;
+}
+function ltPassos(ps){
+  // só passos numerados: "1- ...", "2- ..." viram cartões lado a lado
+  if(!ps.length||!ps[0].startsWith('<p class="num">'))return null;
+  const g=[];
+  for(const p of ps){
+    if(p.startsWith('<figure')||p==='<hr>')return null;
+    if(p.startsWith('<p class="num">'))g.push({t:p.slice(15,-4),c:[]});else g[g.length-1].c.push(p);
+  }
+  if(g.length<2||g.length>4)return null;
+  if(g.every(x=>!x.c.length))return null;
+  return `<div class="steps c${g.length}">`+g.map(x=>`<div class="step"><div class="st-h">${x.t}</div>${x.c.join('')}</div>`).join('')+'</div>';
+}
 function ltFichas(html){
   const plano=html.replace(/<section class="bl">|<\/section>|<div class="cols">|<div>|<\/div>/g,'');
-  const linhas=c=>{
-    const ps=c.split(/(?=<h5 class="rot">)/);
-    return ps.map(p=>{
-      const m=p.match(/^<h5 class="rot">([\s\S]*?)<\/h5>/);
-      if(!m)return p.trim()?`<div class="row sem"><div class="v">${p}</div></div>`:'';
-      return `<div class="row"><div class="k">${m[1].replace(/:\s*$/,'')}</div><div class="v">${p.slice(m[0].length)}</div></div>`;
-    }).join('');
+  const blocos=plano.match(/<h[345](?: class="[a-z]+")?>[\s\S]*?<\/h[345]>|<p(?: class="[a-z0-9]+")?>[\s\S]*?<\/p>|<hr>|<figure[\s\S]*?<\/figure>/g)||[];
+  const saida=[];let ficha=null,linha=null;
+  const fecha=()=>{
+    if(!ficha)return;
+    let h='';
+    for(const l of ficha.linhas){
+      if(l.sub){h+=`<div class="subt">${l.sub}</div>`;continue;}
+      const passos=ltPassos(l.ps);
+      const corpo=passos||ltCompacta(l.ps).join('');
+      h+=l.k!==null?`<div class="row"><div class="k">${l.k}</div><div class="v">${corpo}</div></div>`:(corpo?`<div class="row sem"><div class="v">${corpo}</div></div>`:'');
+    }
+    if(h||ficha.t)saida.push(`<section class="ficha">${ficha.t?`<div class="hd">${ficha.t}</div>`:''}${h}</section>`);
+    ficha=null;linha=null;
   };
-  return plano.split(/(?=<h[34](?: class="st")?>)/).map(s=>{
-    let m=s.match(/^<h3 class="st">([\s\S]*?)<\/h3>/);
-    if(m){const r=s.slice(m[0].length);return m[0]+(r.trim()?`<section class="ficha">${linhas(r)}</section>`:'');}
-    m=s.match(/^<h4(?: class="st")?>([\s\S]*?)<\/h4>/);
-    if(m)return `<section class="ficha"><div class="hd">${m[1].replace(/:\s*$/,'')}</div>${linhas(s.slice(m[0].length))}</section>`;
-    return s.trim()?`<section class="ficha">${linhas(s)}</section>`:'';
-  }).join('');
+  const nova=t=>{fecha();ficha={t:ltSemDois(t),linhas:[]};};
+  const garante=()=>{if(!ficha)ficha={t:'',linhas:[]};};
+  const abre=(k,rot)=>{garante();linha={k:ltSemDois(k),ps:[],rot:!!rot};ficha.linhas.push(linha);return linha;};
+  const subt=h=>{garante();if(!ficha.t&&!ficha.linhas.length)ficha.t=ltSemDois(h);else ficha.linhas.push({sub:ltSemDois(h)});linha=null;};
+  const poe=b=>{garante();if(!linha)abre('');if(linha.k==='')linha.k=null;linha.ps.push(b);};
+  blocos.forEach((b,i)=>{
+    const prox=blocos[i+1]||'';
+    let m;
+    if((m=b.match(/^<h3 class="st">([\s\S]*?)<\/h3>$/))){fecha();saida.push(b);return;}
+    if((m=b.match(/^<h4(?: class="st")?>([\s\S]*?)<\/h4>$/))){
+      const inner=m[1].trim(),txt=ltTxt(inner),p=txt.indexOf(':');
+      const rot=p>0?txt.slice(0,p):txt;
+      if(LT_ROT.test(rot.trim())&&ficha){
+        const q=inner.indexOf(':');
+        if(p>0&&txt.slice(p+1).trim()&&q>0){abre(inner.slice(0,q),false);linha.ps.push(`<p>${inner.slice(q+1).trim()}</p>`);linha.rot=true;}
+        else abre(inner,true);
+        return;
+      }
+      nova(inner);return;
+    }
+    if((m=b.match(/^<h5 class="rot">([\s\S]*?)<\/h5>$/))){abre(m[1],true);return;}
+    if((m=b.match(/^<h5>([\s\S]*?)<\/h5>$/))){
+      const inner=m[1].trim();
+      const sublinhado=/^(<b>)*<u>[\s\S]*<\/u>(<\/b>)*$/.test(inner);
+      if(sublinhado&&ficha&&ficha.linhas.length){nova(inner);return;}
+      subt(inner);return;
+    }
+    if((m=b.match(/^<p class="num">([\s\S]*)<\/p>$/))&&!(linha&&linha.rot)){
+      // "1) Córtex 3 camadas:" seguido de lista vira subtítulo
+      if(ltTxt(m[1]).length<=60&&/^<p class="l[12]">/.test(prox)){subt(m[1].trim());return;}
+    }
+    if((m=b.match(/^<p(?: class="(l1)")?>([\s\S]*)<\/p>$/))){
+      const par=ltValor(m[2].trim());
+      const emRot=linha&&linha.rot;
+      if(par&&!LT_NAO.test(ltTxt(par[0]))&&(!emRot||LT_ROT.test(ltTxt(par[0])))){
+        // com valor na mesma linha ("Causas: X") a linha já está completa; sem valor, ela recebe os itens seguintes
+        const r=LT_ROT.test(ltTxt(par[0]))&&!par[1];
+        abre(par[0],r);
+        if(par[1])linha.ps.push(`<p>${par[1]}</p>`);
+        return;
+      }
+      if(!emRot){
+        // item sem rótulo não pertence à linha anterior
+        if(linha&&linha.k!==null)linha=null;
+        // frase curta seguida de lista funciona como subtítulo: "Primária (Addison) ..."
+        if(!m[1]&&/^[A-ZÀ-Ú]/.test(ltTxt(m[2]))&&ltTxt(m[2]).length<=90&&/^<p class="l[12]">/.test(prox)){subt(m[2].trim());return;}
+        // item curto com subitens: "ACTH-Dependente" + ". Causas: ..."
+        if(m[1]&&ltTxt(m[2]).length<=40&&prox.startsWith('<p class="l2">')&&(blocos[i+2]||'').startsWith('<p class="l2">')){subt(m[2].trim());return;}
+      }
+    }
+    poe(b);
+  });
+  fecha();
+  return saida.join('');
 }
 function ltPreencher(id,html){
   const s=ltEl('lt-'+id);if(!s)return;
