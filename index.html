@@ -1301,6 +1301,69 @@ body.sb-collapsed .sidebar-user-text,body.sb-collapsed .sidebar-user-chev{displa
   .login-title{font-size:32px}
 }
 @media(prefers-reduced-motion:reduce){.login-card,.login-ecg{animation:none;stroke-dasharray:none}}
+/* ── ABA FOTOS ───────────────────────────────────────────── */
+#tab-fotos .ft-topo{display:flex;justify-content:space-between;align-items:flex-end;gap:12px;margin-bottom:16px}
+#tab-fotos .ft-sub{color:var(--muted);font-size:13.5px;margin-top:4px}
+#tab-fotos .ft-vazio{padding:40px 20px;text-align:center;color:var(--muted);background:var(--s1);border:1px dashed var(--border);border-radius:var(--r)}
+.ft-grade-sem{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px}
+.ft-sem{min-width:0;position:relative;display:flex;flex-direction:column;align-items:flex-start;gap:6px;text-align:left;padding:16px 16px 14px;background:var(--s1);border:1px solid var(--border);border-radius:16px;cursor:pointer;color:var(--text);font:inherit;box-shadow:var(--shadow-xs);transition:transform .12s,box-shadow .12s}
+.ft-sem:hover{transform:translateY(-2px);box-shadow:var(--shadow-sm)}
+.ft-sem.tem{border-top:4px solid var(--orange)}
+.ft-pasta{font-size:26px;line-height:1}
+.ft-sem-n{font-weight:800;font-size:17px;letter-spacing:-.2px}
+.ft-sem-aulas{display:flex;flex-direction:column;gap:2px;font-size:12.5px;color:var(--muted);width:100%}
+.ft-sem-aulas i{font-style:normal;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ft-sem-aulas i::before{content:"📂 ";font-size:11px}
+.ft-badges{display:flex;flex-wrap:wrap;gap:6px;margin-top:4px}
+.ft-badges b{font-size:11.5px;font-weight:700;padding:3px 8px;border-radius:999px;background:var(--accent-wash);color:var(--text)}
+.ft-badges b.er{background:rgba(207,74,62,.12);color:var(--red)}
+.ft-nada{font-size:11.5px;color:var(--dim)}
+.ft-migalha{display:flex;align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:16px;font-size:15px}
+.ft-migalha button{background:none;border:0;color:var(--blue);font:inherit;font-weight:600;cursor:pointer;padding:0}
+.ft-migalha span{color:var(--dim)}
+.ft-migalha b{font-weight:800}
+.ft-grade-aula{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:14px}
+.ft-aula{min-width:0;display:flex;flex-direction:column;text-align:left;padding:0;background:var(--s1);border:1px solid var(--border);border-radius:18px;overflow:hidden;cursor:pointer;color:var(--text);font:inherit;box-shadow:var(--shadow-xs)}
+.ft-aula:hover{box-shadow:var(--shadow-sm)}
+.ft-capa{height:150px;display:grid;grid-template-columns:2fr 1fr;grid-template-rows:1fr 1fr;gap:2px;background:var(--s3)}
+.ft-capa img{width:100%;height:100%;object-fit:cover;display:block}
+.ft-capa img:first-child{grid-row:1/3}
+.ft-capa img:only-child{grid-column:1/3}
+.ft-capa span{grid-column:1/3;grid-row:1/3;display:flex;align-items:center;justify-content:center;font-size:40px;opacity:.5}
+.ft-aula-txt{padding:12px 14px 14px;display:flex;flex-direction:column;gap:3px}
+.ft-aula-txt small{font-size:11px;font-weight:700;letter-spacing:.6px;text-transform:uppercase;color:var(--muted)}
+.ft-aula-txt b{font-size:16px;font-weight:800;line-height:1.25}
+.ft-acoes{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px}
+.ft-btn-erro{color:var(--red)!important;border-color:var(--red)!important}
+.ft-filtro{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:14px}
+.ft-filtro button{border:1px solid var(--border);background:var(--s1);color:var(--text);border-radius:999px;padding:6px 12px;font:inherit;font-size:13px;font-weight:600;cursor:pointer}
+.ft-filtro button i{font-style:normal;color:var(--muted);margin-left:3px}
+.ft-filtro button.on{background:var(--accent);color:var(--s1);border-color:var(--accent)}
+.ft-filtro button.on i{color:inherit;opacity:.8}
+.ft-grade{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px}
+.ft-mini{position:relative;aspect-ratio:1;padding:0;border:0;border-radius:12px;overflow:hidden;background:var(--s3);cursor:zoom-in}
+.ft-mini img{width:100%;height:100%;object-fit:cover;display:block}
+.ft-mini.erro{outline:3px solid var(--red);outline-offset:-3px}
+.ft-mini span{position:absolute;top:6px;right:6px;font-size:16px;text-shadow:0 1px 3px rgba(0,0,0,.5)}
+.ft-zoom{position:fixed;inset:0;z-index:3000;background:rgba(8,8,10,.95);display:none;align-items:center;justify-content:center}
+.ft-zoom.on{display:flex}
+.ft-zoom img{max-width:calc(100% - 120px);max-height:calc(100% - 90px);object-fit:contain;border-radius:6px;color:#bbb}
+.ft-z-barra{position:absolute;top:0;left:0;right:0;display:flex;justify-content:space-between;align-items:center;padding:12px 16px;padding-top:calc(12px + var(--safe-t,0px));color:#eee;font-size:14px;font-weight:600}
+.ft-z-barra button{background:rgba(255,255,255,.12);border:0;color:#fff;border-radius:999px;padding:7px 13px;font:inherit;font-size:14px;cursor:pointer;margin-left:8px}
+.ft-z-apaga:hover{background:#c0392b!important}
+.ft-z-seta{position:absolute;top:50%;transform:translateY(-50%);width:48px;height:64px;border:0;border-radius:12px;background:rgba(255,255,255,.1);color:#fff;font-size:34px;cursor:pointer}
+.ft-z-seta.e{left:10px}.ft-z-seta.d{right:10px}
+.ft-z-seta:disabled{opacity:.15;cursor:default}
+@media (max-width:820px){
+  .ft-grade-sem{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+  .ft-sem{padding:12px}
+  .ft-sem-n{font-size:15px}
+  .ft-grade-aula{grid-template-columns:1fr}
+  .ft-grade{grid-template-columns:repeat(3,1fr);gap:4px}
+  .ft-mini{border-radius:8px}
+  .ft-zoom img{max-width:100%;max-height:calc(100% - 70px)}
+  .ft-z-seta{display:none}
+}
 /* ── ABA LEITURA ─────────────────────────────────────────── */
 #tab-leitura{
   --lt-paper:#F4F6FA;--lt-card:#FFFFFF;--lt-ink:#14213D;--lt-soft:#5B6478;--lt-rule:#DFE3EA;--lt-wash:#F4F6FA;
@@ -1529,6 +1592,7 @@ body.sb-collapsed .sidebar-user-text,body.sb-collapsed .sidebar-user-chev{displa
     <button class="tab-btn" data-tab="flashcards" title="Flashcards"><span class="nav-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 5.5h11.5A1.5 1.5 0 0 1 20 7v11.5"/><rect x="2.5" y="8" width="15" height="13.5" rx="2"/><path d="M7.6 12.6a2.4 2.4 0 1 1 3.2 2.3c-.6.25-.9.7-.9 1.3v.3"/><line x1="9.9" y1="19.1" x2="9.91" y2="19.1"/></svg></span><span class="nav-label">Flashcards</span></button>
     <button class="tab-btn" data-tab="resumos" title="Resumos"><span class="nav-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 7.5C10.6 6 8.6 5.2 5.5 5.2H2.8v12.4h3.1c2.7 0 4.6.7 6.1 2.1"/><path d="M12 7.5c1.4-1.5 3.4-2.3 6.5-2.3h2.7v12.4h-3.1c-2.7 0-4.6.7-6.1 2.1"/><line x1="12" y1="7.5" x2="12" y2="19.7"/></svg></span><span class="nav-label">Resumos</span></button>
     <button class="tab-btn" data-tab="escalas" title="Critérios e Escalas"><span class="nav-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1"/><path d="M8.5 13.2l2 2 4.2-4.4"/><line x1="8.5" y1="18" x2="15" y2="18"/></svg></span><span class="nav-label">Escalas</span></button>
+    <button class="tab-btn" data-tab="fotos" title="Fotos"><span class="nav-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg></span><span class="nav-label">Fotos</span></button>
     <div class="nav-group">Outros</div>
     <button class="tab-btn" data-tab="saude" title="Minha Saúde e Exames"><span class="nav-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg></span><span class="nav-label">Saúde</span></button>
     <div class="nav-group">Sistema</div>
@@ -1792,6 +1856,7 @@ body.sb-collapsed .sidebar-user-text,body.sb-collapsed .sidebar-user-chev{displa
 
 <!-- RESUMOS -->
 <div class="tab-panel" id="tab-leitura"></div>
+<div class="tab-panel" id="tab-fotos"></div>
 <div class="tab-panel" id="tab-resumos">
   <div class="sec-header">
     <h2 class="sec-title">Resumos</h2>
@@ -2531,8 +2596,8 @@ function autoNextTask(t){
 }
 
 // ── TABS ──────────────────────────────────────────────────────
-const TAB_FN={dashboard:renderDashboard,cronograma:renderTable,analise:renderAnalise,calendario:renderCalendar,flashcards:renderFC,leitura:renderLeitura,resumos:renderResumos,escalas:renderEscalas,saude:renderSaude,dados:renderDados};
-const TAB_TITLES={dashboard:'Dashboard',cronograma:'Cronograma',analise:'Análise de Desempenho',calendario:'Calendário',flashcards:'Flashcards',leitura:'Leitura',resumos:'Resumos',escalas:'Critérios e Escalas',saude:'Minha Saúde e Exames',dados:'Gerenciar Dados'};
+const TAB_FN={dashboard:renderDashboard,cronograma:renderTable,analise:renderAnalise,calendario:renderCalendar,flashcards:renderFC,leitura:renderLeitura,resumos:renderResumos,escalas:renderEscalas,fotos:renderFotos,saude:renderSaude,dados:renderDados};
+const TAB_TITLES={dashboard:'Dashboard',cronograma:'Cronograma',analise:'Análise de Desempenho',calendario:'Calendário',flashcards:'Flashcards',leitura:'Leitura',resumos:'Resumos',escalas:'Critérios e Escalas',fotos:'Fotos',saude:'Minha Saúde e Exames',dados:'Gerenciar Dados'};
 
 function switchToTab(tab){
   document.querySelectorAll('.tab-btn').forEach(x=>x.classList.remove('active'));
@@ -3353,6 +3418,180 @@ function deleteResumoItem(id){
   setResumos(getResumos().filter(r=>r.id!==id));
   refreshPdfKeys().then(renderResumos);toast('Aula removida.','info');
 }
+// ── ABA FOTOS ───────────────────────────────────────────────
+// Fotos da aula e de questões erradas, em pastas Semana › Aula (aulas vêm do cronograma).
+// As fotos NÃO ficam no repositório (público): moram em users/{uid}/leitura/ (mesma regra
+// privada da aba Leitura) — "_fotos" = índice, "foto-ID" = foto, "fmin-ID" = miniatura —
+// e ficam guardadas no aparelho (IndexedDB "medplannerFotos") para abrir sem internet.
+const FT={view:'semanas',sem:null,aula:null,filtro:'todas',idx:null,carregou:false,zoom:-1,lista:[]};
+let _ftDb=null;
+function ftIdb(){return _ftDb||(_ftDb=new Promise((res,rej)=>{const r=indexedDB.open('medplannerFotos',1);r.onupgradeneeded=()=>r.result.createObjectStore('kv');r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error);}));}
+async function ftTx(modo,fn){const d=await ftIdb();return new Promise((res,rej)=>{const t=d.transaction('kv',modo);const r=fn(t.objectStore('kv'));t.oncomplete=()=>res(r&&r.result);t.onerror=()=>rej(t.error);});}
+const ftGet=k=>ftTx('readonly',s=>s.get(k)).catch(()=>null);
+const ftPut=(k,v)=>ftTx('readwrite',s=>s.put(v,k)).catch(()=>{});
+const ftDel=k=>ftTx('readwrite',s=>s.delete(k)).catch(()=>{});
+const ftCol=()=>db.collection('users').doc(cloudUid).collection('leitura');
+const ftEsc=s=>String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+const ftOnline=()=>!!cloudUid&&navigator.onLine;
+
+// Semanas e aulas a partir do cronograma
+function ftPastas(){
+  const sems={};
+  (get().topics||[]).forEach(t=>{
+    const n=parseInt(String(t.semana||'').replace(/\D/g,''),10);if(!n)return;
+    (sems[n]=sems[n]||[]).push({id:t.id,nome:t.ap||'Aula sem nome',area:(Array.isArray(t.area)?t.area[0]:t.area)||''});
+  });
+  return Object.keys(sems).map(Number).sort((a,b)=>a-b).map(n=>({n,rot:'Semana '+String(n).padStart(2,'0'),aulas:sems[n]}));
+}
+const ftDaAula=id=>(FT.idx||[]).filter(f=>f.p===id).sort((a,b)=>a.ts-b.ts);
+
+async function ftCarregaIndice(){
+  const local=await ftGet('idx');
+  if(local&&!FT.idx)FT.idx=local;
+  if(ftOnline()){
+    try{
+      const s=await ftCol().doc('_fotos').get();
+      FT.idx=(s.exists&&s.data().itens)||[];
+      ftPut('idx',FT.idx);
+    }catch(e){if(!FT.idx)FT.idx=[];if(e&&e.code==='permission-denied')toast('O Firebase recusou as fotos: confira a regra da aba Leitura.','err');}
+  }
+  if(!FT.idx)FT.idx=[];
+  FT.carregou=true;
+}
+
+function renderFotos(){
+  const p=document.getElementById('tab-fotos');if(!p)return;
+  if(!FT.carregou){p.innerHTML='<div class="ft-vazio">Abrindo suas fotos…</div>';ftCarregaIndice().then(ftDesenha);return;}
+  ftDesenha();
+  if(ftOnline())ftCarregaIndice().then(()=>{if(document.getElementById('tab-fotos').classList.contains('active'))ftDesenha();});
+}
+function ftIr(view,sem,aula){FT.view=view;FT.sem=sem;FT.aula=aula;FT.filtro='todas';ftDesenha();window.scrollTo(0,0);}
+
+function ftDesenha(){
+  const p=document.getElementById('tab-fotos');
+  const pastas=ftPastas();
+  const conta=id=>ftDaAula(id).length;
+  const erros=id=>ftDaAula(id).filter(f=>f.t==='erro').length;
+  let h='';
+  if(FT.view==='semanas'){
+    const total=FT.idx.length,te=FT.idx.filter(f=>f.t==='erro').length;
+    h+=`<div class="ft-topo"><div><h2 class="sec-title">Fotos</h2><p class="ft-sub">${total} foto${total===1?'':'s'} · ${te} de questões erradas${ftOnline()?'':' · <b>sem internet: só as fotos já salvas no aparelho</b>'}</p></div></div>`;
+    if(!pastas.length)h+='<div class="ft-vazio">Seu cronograma ainda não tem aulas. As pastas aparecem a partir dele.</div>';
+    h+='<div class="ft-grade-sem">'+pastas.map(s=>{
+      const n=s.aulas.reduce((a,x)=>a+conta(x.id),0),e=s.aulas.reduce((a,x)=>a+erros(x.id),0);
+      return `<button class="ft-sem${n?' tem':''}" data-sem="${s.n}"><span class="ft-pasta">📁</span><span class="ft-sem-n">${s.rot}</span>
+        <span class="ft-sem-aulas">${s.aulas.map(a=>`<i>${ftEsc(a.nome)}</i>`).join('')}</span>
+        <span class="ft-badges">${n?`<b>${n} foto${n===1?'':'s'}</b>`:'<span class="ft-nada">vazia</span>'}${e?`<b class="er">❌ ${e}</b>`:''}</span></button>`;
+    }).join('')+'</div>';
+  }else if(FT.view==='semana'){
+    const s=pastas.find(x=>x.n===FT.sem);if(!s)return ftIr('semanas');
+    h+=`<div class="ft-migalha"><button data-ir="semanas">Fotos</button><span>›</span><b>${s.rot}</b></div>`;
+    h+='<div class="ft-grade-aula">'+s.aulas.map((a,i)=>{
+      const fs=ftDaAula(a.id),e=fs.filter(f=>f.t==='erro').length;
+      const capa=fs.slice(-3).reverse();
+      return `<button class="ft-aula" data-aula="${ftEsc(a.id)}"><div class="ft-capa">${capa.length?capa.map(f=>`<img data-min="${f.id}" alt="">`).join(''):'<span>📷</span>'}</div>
+        <div class="ft-aula-txt"><small>Aula ${i+1}${a.area?' · '+ftEsc(a.area):''}</small><b>${ftEsc(a.nome)}</b>
+        <span class="ft-badges">${fs.length?`<b>${fs.length} foto${fs.length===1?'':'s'}</b>`:'<span class="ft-nada">vazia</span>'}${e?`<b class="er">❌ ${e} questões erradas</b>`:''}</span></div></button>`;
+    }).join('')+'</div>';
+  }else{
+    const s=pastas.find(x=>x.n===FT.sem),a=s&&s.aulas.find(x=>x.id===FT.aula);if(!a)return ftIr('semanas');
+    const fs=ftDaAula(a.id),lista=fs.filter(f=>FT.filtro==='todas'||f.t===FT.filtro);FT.lista=lista;
+    const ne=fs.filter(f=>f.t==='erro').length;
+    h+=`<div class="ft-migalha"><button data-ir="semanas">Fotos</button><span>›</span><button data-ir="semana">${s.rot}</button><span>›</span><b>${ftEsc(a.nome)}</b></div>`;
+    h+=`<div class="ft-acoes">${ftOnline()?`<button class="btn btn-p" data-add="aula">📷 Foto da aula</button><button class="btn btn-o ft-btn-erro" data-add="erro">❌ Questão errada</button>`:'<span class="ft-sub">Sem internet: para adicionar fotos, conecte-se e entre com sua senha.</span>'}</div>`;
+    h+=`<div class="ft-filtro">${[['todas','Todas',fs.length],['aula','📷 Da aula',fs.length-ne],['erro','❌ Questões erradas',ne]].map(([k,r,n])=>`<button data-filtro="${k}" class="${FT.filtro===k?'on':''}">${r} <i>${n}</i></button>`).join('')}</div>`;
+    h+=lista.length?'<div class="ft-grade">'+lista.map((f,i)=>`<button class="ft-mini${f.t==='erro'?' erro':''}" data-i="${i}"><img data-min="${f.id}" alt=""><span>${f.t==='erro'?'❌':''}</span></button>`).join('')+'</div>'
+      :`<div class="ft-vazio">${fs.length?'Nenhuma foto neste filtro.':'Nenhuma foto nesta aula ainda. Use os botões acima para adicionar.'}</div>`;
+  }
+  p.innerHTML=h+'<div id="ft-zoom" class="ft-zoom"></div>';
+  p.querySelectorAll('[data-sem]').forEach(b=>b.onclick=()=>ftIr('semana',+b.dataset.sem));
+  p.querySelectorAll('[data-aula]').forEach(b=>b.onclick=()=>ftIr('aula',FT.sem,b.dataset.aula));
+  p.querySelectorAll('[data-ir]').forEach(b=>b.onclick=()=>ftIr(b.dataset.ir,FT.sem));
+  p.querySelectorAll('[data-filtro]').forEach(b=>b.onclick=()=>{FT.filtro=b.dataset.filtro;ftDesenha();});
+  p.querySelectorAll('[data-add]').forEach(b=>b.onclick=()=>ftEscolher(b.dataset.add));
+  p.querySelectorAll('.ft-mini').forEach(b=>b.onclick=()=>ftAbre(+b.dataset.i));
+  p.querySelectorAll('img[data-min]').forEach(async im=>{const d=await ftMini(im.dataset.min);if(d)im.src='data:image/jpeg;base64,'+d;});
+}
+
+async function ftMini(id){
+  const c=await ftGet('m:'+id);if(c)return c;
+  if(!ftOnline())return null;
+  try{const s=await ftCol().doc('fmin-'+id).get();if(!s.exists)return null;const d=s.data().d;ftPut('m:'+id,d);return d;}catch(e){return null;}
+}
+async function ftFoto(id){
+  const c=await ftGet('f:'+id);if(c)return c;
+  if(!ftOnline())return null;
+  try{const s=await ftCol().doc('foto-'+id).get();if(!s.exists)return null;const d=s.data().d;ftPut('f:'+id,d);return d;}catch(e){return null;}
+}
+
+// ---------- adicionar ----------
+function ftEscolher(tipo){
+  const inp=document.createElement('input');inp.type='file';inp.accept='image/*';inp.multiple=true;
+  inp.onchange=()=>ftEnviar([...inp.files],tipo);inp.click();
+}
+function ftReduz(file,lado,q){
+  return new Promise((res,rej)=>{
+    const url=URL.createObjectURL(file);const im=new Image();
+    im.onload=()=>{URL.revokeObjectURL(url);const k=Math.min(1,lado/Math.max(im.naturalWidth,im.naturalHeight));
+      const c=document.createElement('canvas');c.width=Math.round(im.naturalWidth*k);c.height=Math.round(im.naturalHeight*k);
+      const x=c.getContext('2d');x.fillStyle='#fff';x.fillRect(0,0,c.width,c.height);x.drawImage(im,0,0,c.width,c.height);
+      res({d:c.toDataURL('image/jpeg',q).split(',')[1],w:c.width,h:c.height});};
+    im.onerror=()=>{URL.revokeObjectURL(url);rej(new Error('não consegui abrir a imagem'));};
+    im.src=url;
+  });
+}
+async function ftEnviar(files,tipo){
+  if(!files.length)return;
+  if(!ftOnline()){toast('Para adicionar fotos é preciso internet e login.','err');return;}
+  const aula=FT.aula;let ok=0;
+  toast(files.length===1?'Enviando a foto…':`Enviando ${files.length} fotos…`,'info',2500);
+  for(let i=0;i<files.length;i++){
+    try{
+      let g=await ftReduz(files[i],1600,0.82);
+      if(g.d.length>900000)g=await ftReduz(files[i],1300,0.7);
+      const m=await ftReduz(files[i],360,0.7);
+      const id=Date.now().toString(36)+Math.random().toString(36).slice(2,7);
+      const item={id,p:aula,t:tipo==='erro'?'erro':'aula',ts:Date.now()};
+      await ftCol().doc('foto-'+id).set({d:g.d,w:g.w,h:g.h});
+      await ftCol().doc('fmin-'+id).set({d:m.d});
+      await ftCol().doc('_fotos').set({itens:firebase.firestore.FieldValue.arrayUnion(item)},{merge:true});
+      ftPut('f:'+id,g.d);ftPut('m:'+id,m.d);
+      FT.idx.push(item);ok++;
+    }catch(e){console.error(e);toast('Uma foto não foi enviada: '+(e&&e.message||e),'err');}
+  }
+  ftPut('idx',FT.idx);
+  if(ok)toast(ok===1?'Foto guardada!':`${ok} fotos guardadas!`,'ok');
+  ftDesenha();
+}
+
+// ---------- ver / apagar ----------
+async function ftAbre(i){
+  FT.zoom=i;const z=document.getElementById('ft-zoom');const f=FT.lista[i];if(!f)return;
+  z.innerHTML=`<div class="ft-z-barra"><span>${i+1} de ${FT.lista.length}${f.t==='erro'?' · ❌ Questão errada':' · 📷 Aula'}</span><span><button class="ft-z-apaga">🗑 Apagar</button><button class="ft-z-fecha">✕</button></span></div>
+    <button class="ft-z-seta e"${i>0?'':' disabled'}>‹</button><img alt="Foto"><button class="ft-z-seta d"${i<FT.lista.length-1?'':' disabled'}>›</button>`;
+  z.classList.add('on');document.body.style.overflow='hidden';
+  const im=z.querySelector('img');const m=await ftMini(f.id);if(m&&FT.zoom===i)im.src='data:image/jpeg;base64,'+m;
+  const d=await ftFoto(f.id);if(FT.zoom===i){if(d)im.src='data:image/jpeg;base64,'+d;else if(!m)im.alt='Esta foto ainda não foi salva no aparelho.';}
+  z.querySelector('.ft-z-fecha').onclick=ftFecha;
+  z.querySelector('.e').onclick=e=>{e.stopPropagation();if(i>0)ftAbre(i-1);};
+  z.querySelector('.d').onclick=e=>{e.stopPropagation();if(i<FT.lista.length-1)ftAbre(i+1);};
+  z.querySelector('.ft-z-apaga').onclick=()=>ftApaga(f);
+  let x0=null;z.ontouchstart=e=>{x0=e.touches[0].clientX;};
+  z.ontouchend=e=>{if(x0==null)return;const dx=e.changedTouches[0].clientX-x0;x0=null;if(dx>60&&i>0)ftAbre(i-1);else if(dx<-60&&i<FT.lista.length-1)ftAbre(i+1);};
+}
+function ftFecha(){const z=document.getElementById('ft-zoom');if(z){z.classList.remove('on');z.innerHTML='';}FT.zoom=-1;document.body.style.overflow='';}
+document.addEventListener('keydown',e=>{if(FT.zoom<0)return;if(e.key==='Escape')ftFecha();else if(e.key==='ArrowLeft'&&FT.zoom>0)ftAbre(FT.zoom-1);else if(e.key==='ArrowRight'&&FT.zoom<FT.lista.length-1)ftAbre(FT.zoom+1);});
+async function ftApaga(f){
+  if(!ftOnline()){toast('Para apagar é preciso internet e login.','err');return;}
+  if(!confirm('Apagar esta foto? Não dá para desfazer.'))return;
+  try{
+    await ftCol().doc('_fotos').set({itens:firebase.firestore.FieldValue.arrayRemove(f)},{merge:true});
+    await ftCol().doc('foto-'+f.id).delete();await ftCol().doc('fmin-'+f.id).delete();
+    FT.idx=FT.idx.filter(x=>x.id!==f.id);ftPut('idx',FT.idx);ftDel('f:'+f.id);ftDel('m:'+f.id);
+    ftFecha();toast('Foto apagada.','ok');ftDesenha();
+  }catch(e){console.error(e);toast('Não consegui apagar: '+(e&&e.message||e),'err');}
+}
+
 // ── ABA LEITURA ─────────────────────────────────────────────
 // Os textos e imagens NÃO ficam neste arquivo (o repositório é público): moram em
 // users/{uid}/leitura/* no Firestore e são guardados no aparelho (IndexedDB) para ler offline.
