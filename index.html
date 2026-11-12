@@ -3515,7 +3515,7 @@ function ftDesenha(){
   let h='';
   if(FT.view==='semanas'){
     const total=FT.idx.length,te=FT.idx.filter(f=>f.t==='erro').length;
-    h+=`<div class="ft-topo"><div><h2 class="sec-title">Fotos</h2><p class="ft-sub">${total} foto${total===1?'':'s'} · ${te} de questões erradas${ftOnline()?'':' · <b>sem internet: só as fotos já salvas no aparelho</b>'}</p></div></div>`;
+    h+=`<div class="ft-topo"><div><h2 class="sec-title">Fotos</h2><p class="ft-sub">${total} foto${total===1?'':'s'}${te?` · ${te} de questões erradas`:''}${ftOnline()?'':' · <b>sem internet: só as fotos já salvas no aparelho</b>'}</p></div></div>`;
     if(!pastas.length)h+='<div class="ft-vazio">Seu cronograma ainda não tem aulas. As pastas aparecem a partir dele.</div>';
     h+='<div class="ft-grade-sem">'+pastas.map(s=>{
       const n=s.aulas.reduce((a,x)=>a+conta(x.id),0),e=s.aulas.reduce((a,x)=>a+erros(x.id),0);
@@ -3538,10 +3538,10 @@ function ftDesenha(){
     const fs=ftDaAula(a.id),lista=fs.filter(f=>FT.filtro==='todas'||f.t===FT.filtro);FT.lista=lista;
     const ne=fs.filter(f=>f.t==='erro').length;
     h+=`<div class="ft-migalha"><button data-ir="semanas">Fotos</button><span>›</span><button data-ir="semana">${s.rot}</button><span>›</span><b>${ftEsc(a.nome)}</b></div>`;
-    h+=`<div class="ft-acoes">${ftOnline()?`<button class="btn btn-p" data-add="aula">📷 Foto da aula</button><button class="btn btn-o ft-btn-erro" data-add="erro">❌ Questão errada</button>`:'<span class="ft-sub">Sem internet: para adicionar fotos, conecte-se e entre com sua senha.</span>'}</div>`;
-    h+=`<div class="ft-filtro">${[['todas','Todas',fs.length],['aula','📷 Da aula',fs.length-ne],['erro','❌ Questões erradas',ne]].map(([k,r,n])=>`<button data-filtro="${k}" class="${FT.filtro===k?'on':''}">${r} <i>${n}</i></button>`).join('')}</div>`;
+    h+=`<div class="ft-acoes">${ftOnline()?`<button class="btn btn-p" data-add="aula">📷 Foto da aula</button>`:'<span class="ft-sub">Sem internet: para adicionar fotos, conecte-se e entre com sua senha.</span>'}</div>`;
+    if(ne)h+=`<div class="ft-filtro">${[['todas','Todas',fs.length],['aula','📷 Da aula',fs.length-ne],['erro','❌ Questões erradas',ne]].map(([k,r,n])=>`<button data-filtro="${k}" class="${FT.filtro===k?'on':''}">${r} <i>${n}</i></button>`).join('')}</div>`;
     h+=lista.length?'<div class="ft-grade">'+lista.map((f,i)=>`<button class="ft-mini${f.t==='erro'?' erro':''}" data-i="${i}"><img data-min="${f.id}" alt=""><span>${f.t==='erro'?'❌':''}</span></button>`).join('')+'</div>'
-      :`<div class="ft-vazio">${fs.length?'Nenhuma foto neste filtro.':'Nenhuma foto nesta aula ainda. Use os botões acima para adicionar.'}</div>`;
+      :`<div class="ft-vazio">${fs.length?'Nenhuma foto neste filtro.':'Nenhuma foto nesta aula ainda. Use o botão acima para adicionar.'}</div>`;
   }
   p.innerHTML=h+'<div id="ft-zoom" class="ft-zoom"></div>';
   p.querySelectorAll('[data-sem]').forEach(b=>b.onclick=()=>ftIr('semana',+b.dataset.sem));
