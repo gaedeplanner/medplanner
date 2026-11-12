@@ -1334,6 +1334,45 @@ body.sb-collapsed .sidebar-user-text,body.sb-collapsed .sidebar-user-chev{displa
 .ft-aula-txt small{font-size:11px;font-weight:700;letter-spacing:.6px;text-transform:uppercase;color:var(--muted)}
 .ft-aula-txt b{font-size:16px;font-weight:800;line-height:1.25}
 .ft-acoes{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px}
+/* painel de envio de fotos */
+.ft-up{position:fixed;left:50%;bottom:24px;z-index:9000;width:min(440px,calc(100vw - 32px));transform:translate(-50%,140%);opacity:0;transition:transform .45s cubic-bezier(.2,.9,.25,1.15),opacity .3s;
+  background:#111114;color:#fff;border-radius:22px;padding:14px 16px 14px;box-shadow:0 24px 60px -18px rgba(0,0,0,.55),0 0 0 1px rgba(255,255,255,.08);font-family:var(--font-m)}
+.ft-up.on{transform:translate(-50%,0);opacity:1}
+.ft-up-topo{display:flex;align-items:center;gap:12px}
+.ft-up-ic{width:42px;height:42px;flex-shrink:0;border-radius:50%;display:grid;place-items:center;background:var(--accent);position:relative}
+.ft-up-ic svg{width:20px;height:20px;animation:ftSobe 1.1s ease-in-out infinite}
+.ft-up-ic::after{content:"";position:absolute;inset:-5px;border-radius:50%;border:3px solid transparent;border-top-color:var(--accent);animation:ftGira .9s linear infinite}
+.ft-up-txt{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
+.ft-up-tit{font-size:15px;font-weight:700;letter-spacing:-.2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ft-up-sub{font-size:12px;color:rgba(255,255,255,.62)}
+.ft-up-pct{font:800 26px/1 var(--font-d);letter-spacing:-1px;font-variant-numeric:tabular-nums}
+.ft-up-x{display:none;background:rgba(255,255,255,.12);border:0;color:#fff;width:28px;height:28px;border-radius:50%;cursor:pointer;font-size:12px}
+.ft-up.fim .ft-up-x{display:block}
+.ft-up-barra{margin:12px 0 10px;height:10px;border-radius:99px;background:rgba(255,255,255,.12);overflow:hidden}
+.ft-up-barra i{display:block;height:100%;width:0;border-radius:inherit;background:linear-gradient(90deg,var(--accent),#5AC8FA);position:relative;overflow:hidden}
+.ft-up-barra i::after{content:"";position:absolute;inset:0;background:repeating-linear-gradient(-45deg,rgba(255,255,255,.28) 0 8px,transparent 8px 16px);background-size:22.6px 100%;animation:ftListra .6s linear infinite}
+.ft-up-minis{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none}
+.ft-up-minis::-webkit-scrollbar{display:none}
+.ft-up-m{position:relative;flex-shrink:0;width:42px;height:42px;border-radius:10px;overflow:hidden;background:rgba(255,255,255,.1)}
+.ft-up-m img{width:100%;height:100%;object-fit:cover;display:block}
+.ft-up-m em{position:absolute;inset:0;display:grid;place-items:center;font-style:normal;font-weight:800;font-size:16px}
+.ft-up-m.espera img{opacity:.35;filter:grayscale(1)}
+.ft-up-m.indo{box-shadow:0 0 0 2px var(--accent)}
+.ft-up-m.indo em{background:rgba(0,0,0,.35)}
+.ft-up-m.indo em::before{content:"";width:18px;height:18px;border-radius:50%;border:2.5px solid rgba(255,255,255,.35);border-top-color:#fff;animation:ftGira .8s linear infinite}
+.ft-up-m.ok em{background:rgba(52,199,89,.55)}.ft-up-m.ok em::before{content:"✓"}
+.ft-up-m.erro{cursor:pointer;box-shadow:0 0 0 2px var(--red)}.ft-up-m.erro em{background:rgba(255,59,48,.6)}.ft-up-m.erro em::before{content:"✕"}
+.ft-up.fim .ft-up-ic{background:var(--green)}
+.ft-up.fim .ft-up-ic::after,.ft-up.fim .ft-up-barra i::after{display:none}
+.ft-up.fim .ft-up-ic svg{animation:none}
+.ft-up.fim .ft-up-pct{color:var(--green)}
+.ft-up.fim .ft-up-barra i{background:var(--green)}
+.ft-up.com-erro .ft-up-ic,.ft-up.com-erro .ft-up-barra i{background:var(--red)}
+@keyframes ftGira{to{transform:rotate(360deg)}}
+@keyframes ftSobe{0%,100%{transform:translateY(2px)}50%{transform:translateY(-3px)}}
+@keyframes ftListra{to{background-position:22.6px 0}}
+@media(max-width:820px){.ft-up{bottom:calc(var(--tabbar-h,58px) + var(--safe-b,0px) + 12px)}}
+@media(prefers-reduced-motion:reduce){.ft-up-ic svg,.ft-up-ic::after,.ft-up-barra i::after{animation:none}}
 .ft-btn-erro{color:var(--red)!important;border-color:var(--red)!important}
 .ft-filtro{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:14px}
 .ft-filtro button{border:1px solid var(--border);background:var(--s1);color:var(--text);border-radius:999px;padding:6px 12px;font:inherit;font-size:13px;font-weight:600;cursor:pointer}
@@ -3541,28 +3580,84 @@ function ftReduz(file,lado,q){
     im.src=url;
   });
 }
-async function ftEnviar(files,tipo){
+// Painel de envio: barra de progresso + miniatura de cada foto com o estado dela.
+// Firestore não informa bytes enviados, então cada foto anda por etapas
+// (preparar → enviar foto → miniatura → salvar na pasta) e a barra "avança devagar"
+// dentro da etapa longa para nunca parecer travada.
+const FT_ETAPAS=[['Preparando a foto…',0,.15],['Enviando a foto…',.15,.78],['Enviando a miniatura…',.78,.88],['Salvando na pasta…',.88,1]];
+const FTU={fila:[],rodando:false,el:null,tFecha:null};
+function ftUpEl(){
+  if(FTU.el&&document.body.contains(FTU.el))return FTU.el;
+  const d=document.createElement('div');d.id='ft-up';d.className='ft-up';d.setAttribute('role','status');d.setAttribute('aria-live','polite');
+  d.innerHTML=`<div class="ft-up-topo"><div class="ft-up-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5"/><path d="M5 12l7-7 7 7"/></svg></div>
+    <div class="ft-up-txt"><b class="ft-up-tit">Enviando…</b><small class="ft-up-sub"></small></div><div class="ft-up-pct">0%</div><button class="ft-up-x" title="Fechar" aria-label="Fechar">✕</button></div>
+    <div class="ft-up-barra"><i></i></div><div class="ft-up-minis"></div>`;
+  d.querySelector('.ft-up-x').onclick=()=>{if(!FTU.rodando)ftUpFecha();};
+  document.body.appendChild(d);FTU.el=d;requestAnimationFrame(()=>d.classList.add('on'));return d;
+}
+function ftUpFecha(){const d=FTU.el;if(!d)return;d.classList.remove('on');setTimeout(()=>{if(!FTU.rodando){d.remove();FTU.el=null;FTU.fila=[];}},350);}
+function ftUpBarra(v,dur){
+  const d=ftUpEl(),b=d.querySelector('.ft-up-barra i');
+  b.style.transition=`width ${dur}s cubic-bezier(.2,.7,.3,1)`;b.style.width=(v*100).toFixed(1)+'%';
+}
+function ftUpPinta(){
+  const d=ftUpEl(),q=FTU.fila,n=q.length,feitos=q.filter(x=>x.st==='ok'||x.st==='erro').length,ok=q.filter(x=>x.st==='ok').length,er=q.filter(x=>x.st==='erro').length;
+  const at=q.find(x=>x.st==='indo');const iAt=at?q.indexOf(at):-1;
+  // progresso total = fotos terminadas + fração da atual
+  const fr=at?FT_ETAPAS[at.etapa][1]:0;const tot=n?(feitos+fr)/n:0;
+  d.querySelector('.ft-up-pct').textContent=Math.round(tot*100)+'%';
+  d.classList.toggle('fim',!FTU.rodando);d.classList.toggle('com-erro',!FTU.rodando&&er>0);
+  d.querySelector('.ft-up-ic svg').innerHTML=FTU.rodando?'<path d="M12 19V5"/><path d="M5 12l7-7 7 7"/>':(er?'<path d="M7 7l10 10"/><path d="M17 7L7 17"/>':'<path d="M5 12.5l4.5 4.5L19 7"/>');
+  if(FTU.rodando){
+    d.querySelector('.ft-up-tit').textContent=n===1?'Enviando a foto':`Enviando foto ${Math.min(iAt+1||feitos+1,n)} de ${n}`;
+    d.querySelector('.ft-up-sub').textContent=(at?FT_ETAPAS[at.etapa][0]:'Preparando…')+' Não feche o app.';
+  }else{
+    d.querySelector('.ft-up-tit').textContent=er?(ok?`${ok} enviada${ok===1?'':'s'}, ${er} com erro`:(er===1?'A foto não foi enviada':`${er} fotos não foram enviadas`)):(ok===1?'Foto guardada!':`${ok} fotos guardadas!`);
+    d.querySelector('.ft-up-sub').textContent=er?'Toque na foto com ✕ para tentar de novo.':(ok===1?'Já está salva na nuvem e no aparelho.':'Já estão salvas na nuvem e no aparelho.');
+    d.querySelector('.ft-up-pct').textContent=er?'':'✓';
+  }
+  const m=d.querySelector('.ft-up-minis');
+  m.innerHTML=q.map((x,i)=>`<span class="ft-up-m ${x.st}" data-i="${i}" title="${x.st==='erro'?ftEsc(x.erro||'Erro'):''}">${x.url?`<img src="${x.url}" alt="">`:''}<em></em></span>`).join('');
+  m.querySelectorAll('.ft-up-m.erro').forEach(s=>s.onclick=()=>{const x=q[+s.dataset.i];x.st='espera';x.etapa=0;ftUpRoda();});
+}
+async function ftUpRoda(){
+  if(FTU.rodando)return;FTU.rodando=true;clearTimeout(FTU.tFecha);
+  ftUpEl();ftUpPinta();
+  let x;
+  while((x=FTU.fila.find(y=>y.st==='espera'))){
+    if(!ftOnline()){x.st='erro';x.erro='Sem internet';ftUpPinta();continue;}
+    x.st='indo';
+    const passo=k=>{x.etapa=k;ftUpPinta();const n=FTU.fila.length,feitos=FTU.fila.filter(y=>y.st==='ok'||y.st==='erro').length,[,a,b]=FT_ETAPAS[k];
+      ftUpBarra((feitos+a)/n,.25);setTimeout(()=>{if(x.st==='indo'&&x.etapa===k)ftUpBarra((feitos+a+(b-a)*.9)/n,k===1?6:2.5);},260);};
+    try{
+      passo(0);
+      let g=await ftReduz(x.file,1600,0.82);
+      if(g.d.length>900000)g=await ftReduz(x.file,1300,0.7);
+      const m=await ftReduz(x.file,360,0.7);
+      if(!x.url){x.url='data:image/jpeg;base64,'+m.d;}
+      const id=Date.now().toString(36)+Math.random().toString(36).slice(2,7);
+      const item={id,p:x.aula,t:x.tipo==='erro'?'erro':'aula',ts:Date.now()};
+      passo(1);await ftCol().doc('foto-'+id).set({d:g.d,w:g.w,h:g.h});
+      passo(2);await ftCol().doc('fmin-'+id).set({d:m.d});
+      passo(3);await ftCol().doc('_fotos').set({itens:firebase.firestore.FieldValue.arrayUnion(item)},{merge:true});
+      ftPut('f:'+id,g.d);ftPut('m:'+id,m.d);
+      FT.idx.push(item);ftPut('idx',FT.idx);x.st='ok';
+      const tab=document.getElementById('tab-fotos');if(tab&&tab.classList.contains('active')&&FT.zoom<0)ftDesenha();
+    }catch(e){console.error(e);x.st='erro';x.erro=(e&&e.message)||String(e);}
+    const n=FTU.fila.length,feitos=FTU.fila.filter(y=>y.st==='ok'||y.st==='erro').length;ftUpBarra(feitos/n,.3);ftUpPinta();
+  }
+  FTU.rodando=false;ftUpPinta();
+  if(!FTU.fila.some(y=>y.st==='erro'))FTU.tFecha=setTimeout(ftUpFecha,3500);
+}
+window.addEventListener('beforeunload',e=>{if(FTU.rodando){e.preventDefault();e.returnValue='';}});
+function ftEnviar(files,tipo){
   if(!files.length)return;
   if(!ftOnline()){toast('Para adicionar fotos é preciso internet e login.','err');return;}
-  const aula=FT.aula;let ok=0;
-  toast(files.length===1?'Enviando a foto…':`Enviando ${files.length} fotos…`,'info',2500);
-  for(let i=0;i<files.length;i++){
-    try{
-      let g=await ftReduz(files[i],1600,0.82);
-      if(g.d.length>900000)g=await ftReduz(files[i],1300,0.7);
-      const m=await ftReduz(files[i],360,0.7);
-      const id=Date.now().toString(36)+Math.random().toString(36).slice(2,7);
-      const item={id,p:aula,t:tipo==='erro'?'erro':'aula',ts:Date.now()};
-      await ftCol().doc('foto-'+id).set({d:g.d,w:g.w,h:g.h});
-      await ftCol().doc('fmin-'+id).set({d:m.d});
-      await ftCol().doc('_fotos').set({itens:firebase.firestore.FieldValue.arrayUnion(item)},{merge:true});
-      ftPut('f:'+id,g.d);ftPut('m:'+id,m.d);
-      FT.idx.push(item);ok++;
-    }catch(e){console.error(e);toast('Uma foto não foi enviada: '+(e&&e.message||e),'err');}
-  }
-  ftPut('idx',FT.idx);
-  if(ok)toast(ok===1?'Foto guardada!':`${ok} fotos guardadas!`,'ok');
-  ftDesenha();
+  // lote novo depois de um envio já terminado começa painel limpo
+  if(!FTU.rodando){FTU.fila=FTU.fila.filter(y=>y.st==='erro');}
+  files.forEach(f=>{let url='';try{if(/^image\/(jpe?g|png|webp|gif)$/i.test(f.type))url=URL.createObjectURL(f);}catch(e){}
+    FTU.fila.push({file:f,aula:FT.aula,tipo,st:'espera',etapa:0,url});});
+  ftUpRoda();
 }
 
 // ---------- ver / apagar ----------
