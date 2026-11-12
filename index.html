@@ -3562,7 +3562,7 @@ function ftDesenha(){
     const fs=ftDaAula(a.id),lista=fs.filter(f=>FT.filtro==='todas'||f.t===FT.filtro);FT.lista=lista;
     const ne=fs.filter(f=>f.t==='erro').length;
     h+=`<div class="ft-migalha"><button data-ir="semanas">Fotos</button><span>›</span><button data-ir="semana">${s.rot}</button><span>›</span><b>${ftEsc(a.nome)}</b></div>`;
-    h+=`<div class="ft-acoes">${ftOnline()?`<button class="btn btn-p" data-add="aula">📷 Foto da aula</button>`:'<span class="ft-sub">Sem internet: para adicionar fotos, conecte-se e entre com sua senha.</span>'}</div>`;
+    h+=`<div class="ft-acoes">${ftOnline()?`<button class="btn btn-p" data-add="aula">📷 Foto da aula</button>${fs.length?`<button class="btn btn-o" data-baixar>⬇️ Baixar todas (${lista.length})</button>`:''}`:(fs.length?`<button class="btn btn-o" data-baixar>⬇️ Baixar todas (${lista.length})</button> `:'')+'<span class="ft-sub">Sem internet: para adicionar fotos, conecte-se e entre com sua senha.</span>'}</div>`;
     if(ne)h+=`<div class="ft-filtro">${[['todas','Todas',fs.length],['aula','📷 Da aula',fs.length-ne],['erro','❌ Questões erradas',ne]].map(([k,r,n])=>`<button data-filtro="${k}" class="${FT.filtro===k?'on':''}">${r} <i>${n}</i></button>`).join('')}</div>`;
     h+=lista.length?'<div class="ft-grade">'+lista.map((f,i)=>`<button class="ft-mini${f.t==='erro'?' erro':''}" data-i="${i}"><img data-min="${f.id}" alt=""><span>${f.t==='erro'?'❌':''}</span></button>`).join('')+'</div>'
       :`<div class="ft-vazio">${fs.length?'Nenhuma foto neste filtro.':'Nenhuma foto nesta aula ainda. Use o botão acima para adicionar.'}</div>`;
@@ -3573,6 +3573,7 @@ function ftDesenha(){
   p.querySelectorAll('[data-ir]').forEach(b=>b.onclick=()=>ftIr(b.dataset.ir,FT.sem));
   p.querySelectorAll('[data-filtro]').forEach(b=>b.onclick=()=>{FT.filtro=b.dataset.filtro;ftDesenha();});
   p.querySelectorAll('[data-add]').forEach(b=>b.onclick=()=>ftEscolher(b.dataset.add));
+  p.querySelectorAll('[data-baixar]').forEach(b=>b.onclick=()=>ftBaixarTodas(b));
   p.querySelectorAll('.ft-mini').forEach(b=>b.onclick=()=>ftAbre(+b.dataset.i));
   p.querySelectorAll('img[data-min]').forEach(async im=>{const d=await ftMini(im.dataset.min);if(d)im.src='data:image/jpeg;base64,'+d;});
 }
@@ -3684,10 +3685,59 @@ function ftEnviar(files,tipo){
   ftUpRoda();
 }
 
+
+// ---------- baixar para o computador ----------
+// Nome do arquivo: "Semana 43 - Psiquiatria I - 03.jpg" (o número é a ordem da foto na aula).
+function ftNomeFoto(f){
+  const s=ftPastas().find(x=>x.aulas.some(a=>a.id===f.p)),a=s&&s.aulas.find(x=>x.id===f.p);
+  const base=((s?s.rot:'Fotos')+' - '+(a?a.nome:'Aula')).replace(/[\\/:*?"<>|]+/g,'-').replace(/\s+/g,' ').trim().slice(0,120);
+  const n=ftDaAula(f.p).findIndex(x=>x.id===f.id)+1;
+  return base+' - '+String(n||1).padStart(2,'0')+(f.t==='erro'?' (questao errada)':'')+'.jpg';
+}
+async function ftBlobFoto(f){
+  const d=await ftFoto(f.id);if(!d)return null;
+  const bin=atob(d),u=new Uint8Array(bin.length);for(let i=0;i<bin.length;i++)u[i]=bin.charCodeAt(i);
+  return new Blob([u],{type:'image/jpeg'});
+}
+function ftSalvaBlob(b,nome){
+  const url=URL.createObjectURL(b),a=document.createElement('a');a.href=url;a.download=nome;document.body.appendChild(a);a.click();a.remove();
+  setTimeout(()=>URL.revokeObjectURL(url),4000);
+}
+async function ftBaixarUma(f){
+  const b=await ftBlobFoto(f);
+  if(!b){toast('Esta foto não está no aparelho e precisa de internet para baixar.','err');return;}
+  ftSalvaBlob(b,ftNomeFoto(f));toast('Foto baixada (pasta Downloads).','ok');
+}
+async function ftBaixarTodas(btn){
+  const lista=FT.lista.slice();if(!lista.length)return;
+  const rot=btn?btn.textContent:'';const marca=t=>{if(btn)btn.textContent=t;};
+  let pasta=null;
+  // Chrome/Edge no computador: deixa escolher a pasta (ex.: projetoplanner > fotos-questoes > Psiquiatria I)
+  if(window.showDirectoryPicker&&!/Android|iPhone|iPad/i.test(navigator.userAgent)){
+    try{pasta=await window.showDirectoryPicker({id:'fotos-planner',mode:'readwrite',startIn:'downloads'});}
+    catch(e){if(e&&e.name==='AbortError')return;pasta=null;}
+  }
+  let ok=0,falha=0;if(btn)btn.disabled=true;
+  for(let i=0;i<lista.length;i++){
+    marca('⬇️ Baixando '+(i+1)+' de '+lista.length+'…');
+    try{
+      const b=await ftBlobFoto(lista[i]);if(!b){falha++;continue;}
+      const nome=ftNomeFoto(lista[i]);
+      if(pasta){const h=await pasta.getFileHandle(nome,{create:true});const w=await h.createWritable();await w.write(b);await w.close();}
+      else{ftSalvaBlob(b,nome);await new Promise(r=>setTimeout(r,350));}
+      ok++;
+    }catch(e){console.error(e);falha++;}
+  }
+  if(btn){btn.disabled=false;btn.textContent=rot;}
+  const onde=pasta?'na pasta "'+pasta.name+'"':'na pasta Downloads';
+  if(ok)toast((ok===1?'1 foto salva ':ok+' fotos salvas ')+onde+(falha?' · '+falha+' sem internet para baixar':'')+'.','ok',4000);
+  else toast('Nenhuma foto baixada: as fotos não estão no aparelho e falta internet.','err');
+}
+
 // ---------- ver / apagar ----------
 async function ftAbre(i){
   FT.zoom=i;const z=document.getElementById('ft-zoom');const f=FT.lista[i];if(!f)return;
-  z.innerHTML=`<div class="ft-z-barra"><span>${i+1} de ${FT.lista.length}${f.t==='erro'?' · ❌ Questão errada':' · 📷 Aula'}</span><span><button class="ft-z-apaga">🗑 Apagar</button><button class="ft-z-fecha">✕</button></span></div>
+  z.innerHTML=`<div class="ft-z-barra"><span>${i+1} de ${FT.lista.length}${f.t==='erro'?' · ❌ Questão errada':' · 📷 Aula'}</span><span><button class="ft-z-baixa">⬇️ Baixar</button><button class="ft-z-apaga">🗑 Apagar</button><button class="ft-z-fecha">✕</button></span></div>
     <button class="ft-z-seta e"${i>0?'':' disabled'}>‹</button><img alt="Foto"><button class="ft-z-seta d"${i<FT.lista.length-1?'':' disabled'}>›</button>`;
   z.classList.add('on');document.body.style.overflow='hidden';
   const im=z.querySelector('img');const m=await ftMini(f.id);if(m&&FT.zoom===i)im.src='data:image/jpeg;base64,'+m;
@@ -3696,6 +3746,7 @@ async function ftAbre(i){
   z.querySelector('.e').onclick=e=>{e.stopPropagation();if(i>0)ftAbre(i-1);};
   z.querySelector('.d').onclick=e=>{e.stopPropagation();if(i<FT.lista.length-1)ftAbre(i+1);};
   z.querySelector('.ft-z-apaga').onclick=()=>ftApaga(f);
+  z.querySelector('.ft-z-baixa').onclick=e=>{e.stopPropagation();ftBaixarUma(f);};
   let x0=null;z.ontouchstart=e=>{x0=e.touches[0].clientX;};
   z.ontouchend=e=>{if(x0==null)return;const dx=e.changedTouches[0].clientX-x0;x0=null;if(dx>60&&i>0)ftAbre(i-1);else if(dx<-60&&i<FT.lista.length-1)ftAbre(i+1);};
 }
