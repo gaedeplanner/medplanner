@@ -1475,6 +1475,14 @@ body.sb-collapsed .sidebar-user-text,body.sb-collapsed .sidebar-user-chev{displa
 [data-dark] .lt-corpo .subt{color:color-mix(in srgb,var(--c) 45%,#fff)}
 .lt-corpo .subt *{background:none!important;font-weight:inherit}
 .lt-corpo .ficha>.hd+.subt{border-top:0}
+/* "✦ Parte" do resumo: divisória grande entre as partes da aula */
+.lt-corpo .lt-parte{display:flex;align-items:center;gap:10px;margin:30px 0 14px;padding:0 0 8px;border-bottom:3px solid var(--lt-hot);font:900 21px/1.15 var(--lt-head);color:var(--lt-ink);letter-spacing:-.2px}
+.lt-corpo .lt-parte:first-child{margin-top:4px}
+.lt-corpo .lt-parte .es{color:var(--lt-hot);font-size:18px}
+.lt-corpo .lt-parte *:not(.es){text-decoration:none;font-weight:inherit;background:none!important}
+/* título sem conteúdo próprio ("Pneumoaids"): agrupa as fichas que vêm logo abaixo */
+.lt-corpo .lt-grupo-t{margin:18px 0 10px;font:800 13px/1.2 var(--lt-head);letter-spacing:1.6px;text-transform:uppercase;color:var(--lt-soft)}
+.lt-corpo .lt-grupo-t *{background:none!important;color:inherit!important}
 .lt-corpo .lcol{columns:2;column-gap:22px;margin:2px 0}
 .lt-corpo .lcol p{break-inside:avoid}
 .lt-corpo .steps{display:grid;gap:8px;margin:4px 0}
@@ -3962,7 +3970,8 @@ function ltFichas(html){
       const corpo=passos||ltCompacta(l.ps).join('');
       h+=l.k!==null?`<div class="row"><div class="k">${l.k}</div><div class="v">${corpo}</div></div>`:(corpo?`<div class="row sem"><div class="v">${corpo}</div></div>`:'');
     }
-    if(h||ficha.t)saida.push(`<section class="ficha">${ficha.t?`<div class="hd">${ficha.t}</div>`:''}${h}</section>`);
+    if(h)saida.push(`<section class="ficha">${ficha.t?`<div class="hd">${ficha.t}</div>`:''}${h}</section>`);
+    else if(ficha.t)saida.push(`<div class="lt-grupo-t">${ficha.t}</div>`);
     ficha=null;linha=null;
   };
   const nova=t=>{fecha();ficha={t:ltSemDois(t),linhas:[]};};
@@ -3974,6 +3983,10 @@ function ltFichas(html){
     const prox=blocos[i+1]||'';
     let m;
     if((m=b.match(/^<h3 class="st">([\s\S]*?)<\/h3>$/))){fecha();saida.push(b);return;}
+    // "✦ Parte da aula": fecha a ficha e vira divisória; a linha "————" logo antes some
+    const ehParte=x=>/^<(?:p|h5)>/.test(x)&&/^\s*✦/.test(ltTxt(x.replace(/^<(?:p|h5)>|<\/(?:p|h5)>$/g,'')));
+    if(b==='<hr>'&&ehParte(prox))return;
+    if(ehParte(b)){fecha();const inner=b.replace(/^<(?:p|h5)>|<\/(?:p|h5)>$/g,'').replace(/✦\s*/,'').trim();saida.push(`<div class="lt-parte"><span class="es">✦</span><span>${inner}</span></div>`);return;}
     if((m=b.match(/^<h4(?: class="st")?>([\s\S]*?)<\/h4>$/))){
       const inner=m[1].trim(),txt=ltTxt(inner),p=txt.indexOf(':');
       const rot=p>0?txt.slice(0,p):txt;
