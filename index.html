@@ -1519,6 +1519,42 @@ body.sb-collapsed .sidebar-user-text,body.sb-collapsed .sidebar-user-chev{displa
 .lt-corpo i.su{color:var(--lt-red)}.lt-corpo i.de{color:var(--lt-blue)}
 .lt-corpo .c-red{color:var(--lt-red);font-weight:600}.lt-corpo .c-orange{color:var(--lt-orange);font-weight:600}.lt-corpo .c-yellow{color:var(--lt-yellow);font-weight:600}.lt-corpo .c-green{color:var(--lt-green);font-weight:600}.lt-corpo .c-blue{color:var(--lt-blue);font-weight:600}.lt-corpo .c-purple{color:var(--lt-purple);font-weight:600}.lt-corpo .c-pink{color:var(--lt-pink);font-weight:600}.lt-corpo .c-brown{color:var(--lt-brown);font-weight:600}.lt-corpo .c-gray{color:var(--lt-gray)}
 .lt-esp{color:var(--lt-soft);font-style:italic;font-size:14px;padding:14px 0}
+/* questões que ele errou, no meio do resumo */
+.ltq-grupo{margin:18px 0 26px;padding:16px;border-radius:18px;border:2px dashed color-mix(in srgb,var(--lt-hot) 55%,transparent);background:color-mix(in srgb,var(--lt-hot) 6%,var(--lt-paper))}
+.ltq-tit{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:0 2px 12px;font-family:var(--lt-head)}
+.ltq-tit span{font-size:20px}
+.ltq-tit b{font:900 15px/1.1 var(--lt-head);text-transform:uppercase;letter-spacing:.6px;color:var(--lt-hot)}
+.ltq-tit small{font:600 12.5px var(--lt-text);color:var(--lt-soft)}
+.ltq{background:var(--lt-card);border:1px solid var(--lt-rule);border-left:5px solid var(--lt-hot);border-radius:14px;padding:16px 18px;margin-top:12px;box-shadow:0 6px 24px -18px rgba(0,0,0,.5)}
+.ltq-grupo>.ltq:first-of-type{margin-top:0}
+.ltq-hd{display:flex;align-items:center;gap:8px;margin-bottom:8px}
+.ltq-banca{font:800 11.5px var(--lt-head);letter-spacing:.8px;text-transform:uppercase;background:var(--lt-navy);color:#fff;padding:4px 10px;border-radius:999px}
+.ltq-n{font:600 12px var(--lt-text);color:var(--lt-soft)}
+.ltq-enun{font:500 15.5px/1.6 var(--lt-text);color:var(--lt-ink);margin:0 0 12px}
+.ltq-ops{display:flex;flex-direction:column;gap:8px}
+.ltq-row{display:flex;gap:6px;align-items:stretch}
+.ltq-op{flex:1;min-width:0;display:flex;gap:10px;align-items:flex-start;text-align:left;font:400 14.5px/1.45 var(--lt-text);color:var(--lt-ink);background:var(--lt-wash);border:1.5px solid var(--lt-rule);border-radius:10px;padding:10px 13px;cursor:pointer;transition:border-color .15s,background .15s}
+.ltq-op:hover{border-color:var(--lt-hot)}
+.ltq-op b{font:900 14px/1.45 var(--lt-head);color:var(--lt-hot);flex-shrink:0}
+.ltq-risca{flex:0 0 36px;border:1.5px solid var(--lt-rule);background:var(--lt-wash);color:var(--lt-soft);border-radius:10px;cursor:pointer;font-size:12px}
+.ltq-risca:hover{border-color:var(--lt-red);color:var(--lt-red)}
+.ltq-row.riscada .ltq-op{opacity:.42}.ltq-row.riscada .ltq-op span{text-decoration:line-through}
+.ltq-row.riscada .ltq-risca{background:var(--lt-red);border-color:var(--lt-red);color:#fff}
+.ltq.feito .ltq-op{cursor:default}.ltq.feito .ltq-op:hover{border-color:var(--lt-rule)}.ltq.feito .ltq-risca{visibility:hidden}
+.ltq-row.certa .ltq-op,.ltq-row.certa .ltq-op:hover{border-color:#22A55B!important;background:color-mix(in srgb,#22A55B 16%,var(--lt-card))}
+.ltq-row.certa .ltq-op b{color:#22A55B}
+.ltq-row.errada .ltq-op,.ltq-row.errada .ltq-op:hover{border-color:#E5484D!important;background:color-mix(in srgb,#E5484D 14%,var(--lt-card))}
+.ltq-row.errada .ltq-op b{color:#E5484D}
+.ltq-fb{display:none;margin-top:12px;padding:12px 14px;border-radius:10px;font:400 14px/1.58 var(--lt-text);color:var(--lt-ink)}
+.ltq.feito .ltq-fb{display:block}
+.ltq.ok .ltq-fb{background:color-mix(in srgb,#22A55B 12%,var(--lt-card));border:1px solid #22A55B}
+.ltq.bad .ltq-fb{background:color-mix(in srgb,#E5484D 10%,var(--lt-card));border:1px solid #E5484D}
+.ltq-res{font:900 15px var(--lt-head);margin-bottom:6px}
+.ltq.ok .ltq-res{color:#22A55B}.ltq.bad .ltq-res{color:#E5484D}
+.ltq-fb p{margin:4px 0}
+.ltq-nota{font-size:12.5px;color:var(--lt-soft);font-style:italic}
+.ltq-refaz{margin-top:8px;background:none;border:1.5px solid var(--lt-ink);color:var(--lt-ink);border-radius:999px;padding:5px 13px;font:700 12.5px var(--lt-text);cursor:pointer}
+@media (max-width:820px){.ltq-grupo{margin:14px -4px 22px;padding:12px}.ltq{padding:14px}.ltq-enun{font-size:15px}}
 /* semanas intercaladas: uma faixa no tema atual, a seguinte no tema oposto (escuro ↔ branco) */
 .lt-sem{margin:0 -28px;padding:44px 28px 60px;background:var(--lt-paper);color:var(--lt-ink)}
 .lt-sem:first-child{padding-top:22px}
@@ -3862,7 +3898,7 @@ function ltCasca(){
   ltEl('lt-fundo').onclick=fecha;
   ltEl('lt-imp').onclick=ltEscolherPacote;
   const zoom=ltEl('lt-zoom');zoom.onclick=()=>{zoom.classList.remove('on');zoom.firstChild.removeAttribute('src');};
-  ltEl('lt-pagina').addEventListener('click',e=>{const c=e.target.closest('[data-ir]');if(c){ltIr(c.dataset.ir);return;}const f=e.target.closest('figure');if(!f)return;const im=f.querySelector('img');if(im&&im.src){zoom.firstChild.src=im.src;zoom.classList.add('on');}});
+  ltEl('lt-pagina').addEventListener('click',e=>{if(ltQClique(e))return;const c=e.target.closest('[data-ir]');if(c){ltIr(c.dataset.ir);return;}const f=e.target.closest('figure');if(!f)return;const im=f.querySelector('img');if(im&&im.src){zoom.firstChild.src=im.src;zoom.classList.add('on');}});
 }
 const LT_FORA=/^(Ginecologia e Obstetr[ií]cia|Geriatria|Psiquiatria)$/;
 async function ltMontar(idx){
@@ -3987,7 +4023,49 @@ function ltFichas(html){
 function ltPreencher(id,html){
   const s=ltEl('lt-'+id);if(!s)return;
   s.querySelector('.lt-corpo').innerHTML=ltFichas(html);
+  ltQuestoes(s,html);
   if(s.dataset.perto)ltImagensDaAula(s,true);
+}
+// Questões que ele errou (vêm no fim da aula num comentário <!--LTQ [...] -->, gerado por
+// aplica-questoes.js). Cada uma aparece logo depois da ficha do assunto, sem mostrar a resposta:
+// ele escolhe a alternativa e só então vê se acertou e o comentário.
+const ltQNorm=t=>String(t||'').normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/[:\s]+$/,'').replace(/\s+/g,' ').trim().toLowerCase();
+const ltQRico=t=>ltEsc(t).replace(/&lt;(\/?)b&gt;/g,'<$1b>');
+function ltQuestoes(sec,html){
+  const m=html.match(/<!--LTQ ([\s\S]*?) -->/);if(!m)return;
+  let qs;try{qs=JSON.parse(m[1]);}catch(e){return;}
+  if(!Array.isArray(qs)||!qs.length)return;
+  const corpo=sec.querySelector('.lt-corpo');
+  const fichas=[...corpo.querySelectorAll(':scope>section.ficha')];
+  const grupos=new Map();
+  qs.forEach(q=>{
+    const alvo=fichas.find(f=>{const hd=f.querySelector(':scope>.hd');return hd&&ltQNorm(hd.textContent)===ltQNorm(q.depois);})||null;
+    if(!grupos.has(alvo))grupos.set(alvo,[]);grupos.get(alvo).push(q);
+  });
+  const L='ABCDEFGH';let k=0;
+  grupos.forEach((lista,alvo)=>{
+    const g=document.createElement('div');g.className='ltq-grupo';
+    g.innerHTML=`<div class="ltq-tit"><span>✍️</span><b>${lista.length===1?'Questão que você errou':lista.length+' questões que você errou'}</b><small>refaça antes de seguir</small></div>`+
+      lista.map((q,i)=>{const id=sec.dataset.id+'-q'+(k++);
+        return `<div class="ltq" id="${id}" data-c="${+q.c}"><div class="ltq-hd"><span class="ltq-banca">${ltEsc(q.banca||'Questão de prova')}</span>${lista.length>1?`<span class="ltq-n">${i+1} de ${lista.length}</span>`:''}</div>
+          <p class="ltq-enun">${ltEsc(q.enunciado)}</p>
+          <div class="ltq-ops">${(q.alts||[]).map((a,j)=>`<div class="ltq-row"><button class="ltq-op" data-i="${j}"><b>${L[j]}</b><span>${ltEsc(a)}</span></button><button class="ltq-risca" title="Riscar alternativa" aria-label="Riscar alternativa">✕</button></div>`).join('')}</div>
+          <div class="ltq-fb"><div class="ltq-res"></div>${q.coment?`<p>${ltQRico(q.coment)}</p>`:''}${q.nota?`<p class="ltq-nota">${ltQRico(q.nota)}</p>`:''}<button class="ltq-refaz">↺ Refazer</button></div></div>`;}).join('');
+    if(alvo)alvo.after(g);else corpo.appendChild(g);
+  });
+}
+function ltQClique(e){
+  const r=e.target.closest('.ltq-risca');
+  if(r){const row=r.closest('.ltq-row');if(!row.closest('.ltq').classList.contains('feito'))row.classList.toggle('riscada');return true;}
+  const f=e.target.closest('.ltq-refaz');
+  if(f){const c=f.closest('.ltq');c.classList.remove('feito','ok','bad');c.querySelectorAll('.ltq-row').forEach(x=>x.classList.remove('riscada','certa','errada'));return true;}
+  const op=e.target.closest('.ltq-op');if(!op)return false;
+  const c=op.closest('.ltq');if(c.classList.contains('feito'))return true;
+  const i=+op.dataset.i,certa=+c.dataset.c,rows=c.querySelectorAll('.ltq-row'),ok=i===certa;
+  rows[certa]&&rows[certa].classList.add('certa');if(!ok)op.closest('.ltq-row').classList.add('errada');
+  c.classList.add('feito',ok?'ok':'bad');
+  c.querySelector('.ltq-res').innerHTML=ok?'✓ Acertou!':`✗ Errou — a resposta é a <b>${'ABCDEFGH'[certa]}</b>`;
+  return true;
 }
 function ltImagensDaAula(sec,perto){
   if(perto)sec.dataset.perto='1';else delete sec.dataset.perto;
