@@ -1524,6 +1524,10 @@ body.sb-collapsed .sidebar-user-text,body.sb-collapsed .sidebar-user-chev{displa
 .lt-corpo i.su{color:var(--lt-red)}.lt-corpo i.de{color:var(--lt-blue)}
 .lt-corpo .c-red{color:var(--lt-red);font-weight:600}.lt-corpo .c-orange{color:var(--lt-orange);font-weight:600}.lt-corpo .c-yellow{color:var(--lt-yellow);font-weight:600}.lt-corpo .c-green{color:var(--lt-green);font-weight:600}.lt-corpo .c-blue{color:var(--lt-blue);font-weight:600}.lt-corpo .c-purple{color:var(--lt-purple);font-weight:600}.lt-corpo .c-pink{color:var(--lt-pink);font-weight:600}.lt-corpo .c-brown{color:var(--lt-brown);font-weight:600}.lt-corpo .c-gray{color:var(--lt-gray)}
 .lt-esp{color:var(--lt-soft);font-style:italic;font-size:14px;padding:14px 0}
+.lt-pdf{margin:6px 0 4px;border-radius:14px;overflow:hidden;background:#fff;box-shadow:0 1px 0 rgba(0,0,0,.06),0 8px 24px rgba(0,0,0,.10)}
+.lt-pdf iframe{display:block;width:100%;height:82vh;min-height:520px;border:0;background:#fff}
+.lt-pdf-pe{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-top:10px;font-size:13px;color:var(--lt-soft)}
+.lt-pdf-pe a{font-weight:600;color:#fff;background:#0A84FF;padding:8px 14px;border-radius:999px;text-decoration:none}
 /* questões que ele errou, no meio do resumo */
 .ltq-grupo{margin:18px 0 26px;padding:16px;border-radius:18px;border:2px dashed color-mix(in srgb,var(--lt-hot) 55%,transparent);background:color-mix(in srgb,var(--lt-hot) 6%,var(--lt-paper))}
 .ltq-tit{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:0 2px 12px;font-family:var(--lt-head)}
@@ -3898,7 +3902,7 @@ function ltCasca(){
     const dois=n=>String(n+1).padStart(2,'0');
     const chips=b.itens.map((a,n)=>`<button data-ir="${a.id}"><i>${dois(n)}</i>${ltEsc(a.t)}</button>`).join('');
     texto+=`<div class="lt-sem${i%2?' alt':''}"><div class="lt-col"><div class="lt-cap" id="lt-b${i}">${num?`<div class="big">${num}</div>`:''}<div class="kick">${b.med?'MEDCURSO · Fichas clínicas':'Resumos · Fichas clínicas'}</div><h2>${ltEsc(b.k)}</h2><div class="idx">${chips}</div></div>`;
-    b.itens.forEach((a,n)=>{texto+=`<section class="lt-aula" id="lt-${a.id}" data-id="${a.id}"><header><span class="n">${dois(n)}</span><h3>${ltEsc(a.t)}</h3></header><div class="lt-corpo"><p class="lt-esp">Carregando…</p></div></section>`;});
+    b.itens.forEach((a,n)=>{texto+=`<section class="lt-aula" id="lt-${a.id}" data-id="${a.id}"><header><span class="n">${dois(n)}</span><h3>${ltEsc(a.t)}</h3></header><div class="lt-corpo">${ltPdfDe(a)?ltPdfHtml(ltPdfDe(a)):'<p class="lt-esp">Carregando…</p>'}</div></section>`;});
     texto+='</div></div>';
   });
   p.innerHTML=`<aside id="lt-menu"><div class="lt-m-top"><div><b>Leitura</b><small>${idx.itens.length} aulas</small></div><button class="lt-m-x" aria-label="Fechar">×</button></div><div class="lt-m-lista">${menu}</div>
@@ -3921,6 +3925,10 @@ function ltCasca(){
   const zoom=ltEl('lt-zoom');zoom.onclick=()=>{zoom.classList.remove('on');zoom.firstChild.removeAttribute('src');};
   ltEl('lt-pagina').addEventListener('click',e=>{if(ltQClique(e))return;const c=e.target.closest('[data-ir]');if(c){ltIr(c.dataset.ir);return;}const f=e.target.closest('figure');if(!f)return;const im=f.querySelector('img');if(im&&im.src){zoom.firstChild.src=im.src;zoom.classList.add('on');}});
 }
+// Aulas que, a pedido dele, mostram o PDF do resumo no Drive em vez do texto do Notion (chave: "Semana|Título").
+const LT_PDF={'Semana 01|Lesões renais':'1CJHMzJCRYQBX2nTOIvseApaYc_4g4ZGi'};
+const ltPdfDe=a=>a&&LT_PDF[a.s+'|'+a.t];
+function ltPdfHtml(fid){return `<div class="lt-pdf"><iframe src="https://drive.google.com/file/d/${fid}/preview" loading="lazy" allow="autoplay" title="Resumo em PDF"></iframe></div><div class="lt-pdf-pe"><span>PDF do seu Drive (precisa de internet e da sua conta Google aberta no navegador).</span><a href="${_resDriveUrl(fid)}" target="_blank" rel="noopener">Abrir no Drive ↗</a></div>`;}
 const LT_FORA=/^(Ginecologia e Obstetr[ií]cia|Geriatria|Psiquiatria)$/;
 async function ltMontar(idx){
   idx={...idx,itens:idx.itens.filter(a=>!LT_FORA.test(a.g))};
@@ -4049,6 +4057,7 @@ function ltFichas(html){
 }
 function ltPreencher(id,html){
   const s=ltEl('lt-'+id);if(!s)return;
+  if(ltPdfDe((LT.indice&&LT.indice.itens||[]).find(a=>a.id===id)))return;
   s.querySelector('.lt-corpo').innerHTML=ltFichas(html);
   ltQuestoes(s,html);
   if(s.dataset.perto)ltImagensDaAula(s,true);
