@@ -1900,7 +1900,7 @@ body.sb-collapsed .sidebar-user-text,body.sb-collapsed .sidebar-user-chev{displa
           <th style="color:var(--accent)" title="Flashcards feitos">Flash</th>
           <th>Desempenho</th><th>Próxima Tarefa</th>
           <th title="Rev 1 Semana">1 Sem</th><th title="Rev 1 Mês">1 Mês</th><th title="Rev 2 Meses">2 Meses</th>
-          <th title="Rev 4 Meses">4 Meses</th><th title="Rev 6 Meses">6 Meses</th><th title="Data calculada com base no desempenho" style="color:var(--accent)">Próx. Revisão</th><th></th>
+          <th title="Rev 4 Meses">4 Meses</th><th title="Rev 6 Meses">6 Meses</th><th title="Data da próxima revisão: 1 semana, 1 mês, 2, 4 e 6 meses depois da aula" style="color:var(--accent)">Próx. Revisão</th><th></th>
         </tr>
       </thead>
       <tbody id="t-body"></tbody>
@@ -2445,20 +2445,31 @@ const diffD=s=>{if(!s)return null;return Math.round((new Date(s)-new Date(today(
 const fmtD=s=>{if(!s)return '—';const[y,m,d]=s.split('-');return`${d}/${m}/${y}`;};
 const AREA_CLR={'CLÍNICA':'#f97316','CIRURGIA':'#10b981','PEDIATRIA':'#ec4899','GO':'#1f5f8f','PREVENTIVA':'#6d4f9e'};
 
-// Prazos das revisões em cadeia (fonte única — tabela, dashboard e calendário usam isto).
-// Cada etapa parte da CONCLUSÃO real da anterior (rXXAt, gravada ao marcar o ☑); se não
-// houver registro, parte do prazo teórico. Assim, pôr uma revisão atrasada em dia faz a
-// próxima contar a partir de hoje, em vez de já nascer atrasada.
+// Prazos das revisões (fonte única — tabela, dashboard e calendário usam isto).
+// Cada revisão vence exatamente no tempo do nome, contado a partir do dia da aula:
+// 1 semana, 1 mês, 2 meses, 4 meses e 6 meses depois. Se a revisão anterior foi feita
+// atrasada, a próxima espera pelo menos o intervalo normal entre as duas (para não
+// já nascer atrasada), mas nunca vence antes do tempo do nome.
+const REV_SEQ=[{k:'r1s',m:0,d:7},{k:'r1m',m:1},{k:'r2m',m:2},{k:'r4m',m:4},{k:'r6m',m:6}];
+function addMeses(s,m,d){
+  const[y,mo,dd]=s.split('-').map(Number);
+  const ult=new Date(y,mo-1+m+1,0).getDate(); // último dia do mês de destino (31/01 + 1 mês = 28/02)
+  const x=new Date(y,mo-1+m,Math.min(dd,ult)+(d||0));
+  return x.getFullYear()+'-'+String(x.getMonth()+1).padStart(2,'0')+'-'+String(x.getDate()).padStart(2,'0');
+}
 function revDates(t){
   if(!t.data)return{};
-  const seq=[{k:'r1s',d:7},{k:'r1m',d:14},{k:'r2m',d:25},{k:'r4m',d:50},{k:'r6m',d:75}];
-  const mult=t.desemp==='≥ 80%'?1.0:t.desemp==='61 - 79%'?0.85:t.desemp==='≤ 60%'?0.65:1.0;
-  const out={};let base=t.data,prevD=0;
-  for(const s of seq){
-    const due=addD(base,Math.round((s.d-prevD)*mult));
-    out[s.k]=due;
-    base=(t[s.k]&&t[s.k+'At'])?t[s.k+'At']:due;
-    prevD=s.d;
+  const out={};let prev=null;
+  for(const s of REV_SEQ){
+    let due=addMeses(t.data,s.m,s.d);
+    if(prev){
+      // intervalo normal entre a anterior e esta, contado de quando a anterior foi feita (ou do prazo dela)
+      const gap=Math.round((new Date(due)-new Date(addMeses(t.data,prev.m,prev.d)))/864e5);
+      const base=(t[prev.k]&&t[prev.k+'At'])?t[prev.k+'At']:out[prev.k];
+      const min=addMeses(base,0,gap);
+      if(min>due)due=min;
+    }
+    out[s.k]=due;prev=s;
   }
   return out;
 }
