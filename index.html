@@ -1529,9 +1529,18 @@ body.sb-collapsed .sidebar-user-text,body.sb-collapsed .sidebar-user-chev{displa
 .lt-pdf-pe{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-top:10px;font-size:13px;color:var(--lt-soft)}
 .lt-pdf-pe a{font-weight:600;color:#fff;background:#0A84FF;padding:8px 14px;border-radius:999px;text-decoration:none}
 /* aula no formato do PDF "Caderno" (pedido do Lucas): mesma estrutura do PDF, cores da Leitura; sempre branca por dentro */
-#tab-leitura .lt-cad{--k:#14213D;--s:#5B6478;--ln:#DFE3EA;--nv:#24406F;--hot:#FF4D2E;--rd:#B42318;--or:#B85A0B;--gr:#166534;--mk:#FFD400;
+#tab-leitura .lt-cad{--lt-paper:#FFFFFF;--lt-card:#FFFFFF;--lt-ink:#14213D;--lt-soft:#5B6478;--lt-rule:#DFE3EA;--lt-wash:#F4F6FA;--lt-red:#B42318;--lt-orange:#B85A0B;--lt-yellow:#8F6D00;--lt-green:#166534;--lt-blue:#1D5FA8;--lt-purple:#6B3FA0;--lt-pink:#B02A6B;--lt-brown:#7A5230;--lt-gray:#5B6478;
+  --k:#14213D;--s:#5B6478;--ln:#DFE3EA;--nv:#24406F;--hot:#FF4D2E;--rd:#B42318;--or:#B85A0B;--gr:#166534;--mk:#FFD400;
   background:#fff;color:var(--k);border-radius:16px;border-left:5px solid var(--hot);padding:22px 26px 24px 28px;box-shadow:0 1px 0 rgba(0,0,0,.05),0 10px 30px -14px rgba(20,33,61,.35)}
 #tab-leitura .lt-cad p{margin:7px 0}
+#tab-leitura .lt-cad .cd-q{display:none}
+#tab-leitura .lt-cad figure{display:block;margin:12px auto;width:82%;border-radius:12px;overflow:hidden;background:var(--ln);border:1px solid var(--ln);cursor:zoom-in}
+#tab-leitura .lt-cad figure img{display:block;width:100%;height:100%;object-fit:contain}
+#tab-leitura .lt-cad table{border-collapse:collapse;width:100%;margin:10px 0;font-size:14px}
+#tab-leitura .lt-cad th,#tab-leitura .lt-cad td{border:1px solid var(--ln);padding:6px 9px;text-align:left;vertical-align:top}
+#tab-leitura .lt-cad th{background:var(--nv);color:#fff;font:800 12.5px/1.3 var(--lt-head);text-transform:uppercase;letter-spacing:.3px}
+#tab-leitura .lt-cad tr:nth-child(even) td{background:#F4F6FA}
+#tab-leitura .lt-cad .cd-tabwrap{overflow-x:auto}
 #tab-leitura .lt-cad .cd-indice{background:#F4F6FA;border:1px solid var(--ln);border-top:4px solid var(--nv);border-radius:12px;padding:12px 18px;margin-bottom:24px}
 #tab-leitura .lt-cad .cd-indice .cd-t{font:900 12.5px/1.2 var(--lt-head);text-transform:uppercase;letter-spacing:.8px;color:var(--nv);margin-bottom:8px}
 #tab-leitura .lt-cad .cd-indice ol{margin:0;padding:0;list-style:none;counter-reset:ci}
@@ -4142,9 +4151,11 @@ function ltQuestoes(sec,html){
   if(!Array.isArray(qs)||!qs.length)return;
   const corpo=sec.querySelector('.lt-corpo');
   const fichas=[...corpo.querySelectorAll(':scope>section.ficha')];
+  // aula no formato do PDF: o lugar de cada questão é marcado com <div class="cd-q" data-q="..."></div>
+  const cad=corpo.querySelector(':scope>.lt-cad'),marcas=cad?[...cad.querySelectorAll('.cd-q[data-q]')]:[];
   const grupos=new Map();
   qs.forEach(q=>{
-    const alvo=fichas.find(f=>{const hd=f.querySelector(':scope>.hd');return hd&&ltQNorm(hd.textContent)===ltQNorm(q.depois);})||null;
+    const alvo=cad?(marcas.find(m=>ltQNorm(m.dataset.q)===ltQNorm(q.depois))||null):(fichas.find(f=>{const hd=f.querySelector(':scope>.hd');return hd&&ltQNorm(hd.textContent)===ltQNorm(q.depois);})||null);
     if(!grupos.has(alvo))grupos.set(alvo,[]);grupos.get(alvo).push(q);
   });
   const L='ABCDEFGH';let k=0;
@@ -4156,7 +4167,7 @@ function ltQuestoes(sec,html){
           <p class="ltq-enun">${ltEsc(q.enunciado)}</p>
           <div class="ltq-ops">${(q.alts||[]).map((a,j)=>`<div class="ltq-row"><button class="ltq-op" data-i="${j}"><b>${L[j]}</b><span>${ltEsc(a)}</span></button><button class="ltq-risca" title="Riscar alternativa" aria-label="Riscar alternativa">✕</button></div>`).join('')}</div>
           <div class="ltq-fb"><div class="ltq-res"></div>${q.coment?`<p>${ltQRico(q.coment)}</p>`:''}${q.nota?`<p class="ltq-nota">${ltQRico(q.nota)}</p>`:''}<button class="ltq-refaz">↺ Refazer</button></div></div>`;}).join('');
-    if(alvo)alvo.after(g);else corpo.appendChild(g);
+    if(alvo)alvo.after(g);else (cad||corpo).appendChild(g);
   });
 }
 function ltQClique(e){
