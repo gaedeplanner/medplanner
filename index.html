@@ -3937,7 +3937,7 @@ function ltCasca(){
   ltEl('lt-pagina').addEventListener('click',e=>{if(ltQClique(e))return;const c=e.target.closest('[data-ir]');if(c){ltIr(c.dataset.ir);return;}const f=e.target.closest('figure');if(!f)return;const im=f.querySelector('img');if(im&&im.src){zoom.firstChild.src=im.src;zoom.classList.add('on');}});
 }
 // Aulas que, a pedido dele, mostram o PDF do resumo no Drive em vez do texto do Notion (chave: "Semana|Título").
-const LT_PDF={'Semana 01|Lesões renais':'1CJHMzJCRYQBX2nTOIvseApaYc_4g4ZGi'};
+const LT_PDF={};
 const ltPdfDe=a=>a&&LT_PDF[a.s+'|'+a.t];
 function ltPdfHtml(fid){return `<div class="lt-pdf"><iframe src="https://drive.google.com/file/d/${fid}/preview" loading="lazy" allow="autoplay" title="Resumo em PDF"></iframe></div><div class="lt-pdf-pe"><span>PDF do seu Drive (precisa de internet e da sua conta Google aberta no navegador).</span><a href="${_resDriveUrl(fid)}" target="_blank" rel="noopener">Abrir no Drive ↗</a></div>`;}
 const LT_FORA=/^(Ginecologia e Obstetr[ií]cia|Geriatria|Psiquiatria)$/;
