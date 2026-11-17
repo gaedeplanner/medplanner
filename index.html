@@ -1333,6 +1333,15 @@ body.sb-collapsed .sidebar-user-text,body.sb-collapsed .sidebar-user-chev{displa
 .ft-aula-txt{padding:12px 14px 14px;display:flex;flex-direction:column;gap:3px}
 .ft-aula-txt small{font-size:11px;font-weight:700;letter-spacing:.6px;text-transform:uppercase;color:var(--muted)}
 .ft-aula-txt b{font-size:16px;font-weight:800;line-height:1.25}
+.ft-qs{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px;margin-bottom:22px}
+.ft-q{min-width:0;display:flex;flex-direction:column;align-items:flex-start;gap:2px;text-align:left;padding:12px 13px 11px;background:var(--s1);border:1px solid var(--border);border-radius:14px;cursor:pointer;color:var(--text);font:inherit;transition:transform .15s,box-shadow .15s}
+.ft-q:hover{transform:translateY(-2px);box-shadow:var(--shadow-sm)}
+.ft-q.tem{border-top:4px solid var(--orange)}
+.ft-q-ic{font-size:22px;line-height:1;margin-bottom:4px}
+.ft-q b{font-weight:800;font-size:14.5px;letter-spacing:-.2px}
+.ft-q small{font-size:11.5px;color:var(--muted)}
+.ft-q-tit{font-weight:800;font-size:15px;margin:0 0 10px}
+@media (max-width:820px){.ft-qs{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}}
 .ft-acoes{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px}
 /* painel de envio de fotos */
 .ft-up{position:fixed;left:50%;bottom:24px;z-index:9000;width:min(440px,calc(100vw - 32px));transform:translate(-50%,140%);opacity:0;transition:transform .45s cubic-bezier(.2,.9,.25,1.15),opacity .3s;
@@ -3625,7 +3634,8 @@ function deleteResumoItem(id){
 // As fotos NÃO ficam no repositório (público): moram em users/{uid}/leitura/ (mesma regra
 // privada da aba Leitura) — "_fotos" = índice, "foto-ID" = foto, "fmin-ID" = miniatura —
 // e ficam guardadas no aparelho (IndexedDB "medplannerFotos") para abrir sem internet.
-const FT={view:'semanas',sem:null,aula:null,filtro:'todas',idx:null,carregou:false,zoom:-1,lista:[]};
+const FT_NQ=10; // pastas Questão 1..10 dentro de cada aula (pedido do Lucas, 16/11/2026)
+const FT={view:'semanas',sem:null,aula:null,q:0,filtro:'todas',idx:null,carregou:false,zoom:-1,lista:[]};
 let _ftDb=null;
 function ftIdb(){return _ftDb||(_ftDb=new Promise((res,rej)=>{const r=indexedDB.open('medplannerFotos',1);r.onupgradeneeded=()=>r.result.createObjectStore('kv');r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error);}));}
 async function ftTx(modo,fn){const d=await ftIdb();return new Promise((res,rej)=>{const t=d.transaction('kv',modo);const r=fn(t.objectStore('kv'));t.oncomplete=()=>res(r&&r.result);t.onerror=()=>rej(t.error);});}
@@ -3667,7 +3677,7 @@ function renderFotos(){
   ftDesenha();
   if(ftOnline())ftCarregaIndice().then(()=>{if(document.getElementById('tab-fotos').classList.contains('active'))ftDesenha();});
 }
-function ftIr(view,sem,aula){FT.view=view;FT.sem=sem;FT.aula=aula;FT.filtro='todas';ftDesenha();window.scrollTo(0,0);}
+function ftIr(view,sem,aula,q){FT.view=view;FT.sem=sem;FT.aula=aula;FT.q=q||0;FT.filtro='todas';ftDesenha();window.scrollTo(0,0);}
 
 function ftDesenha(){
   const p=document.getElementById('tab-fotos');
@@ -3697,18 +3707,26 @@ function ftDesenha(){
     }).join('')+'</div>';
   }else{
     const s=pastas.find(x=>x.n===FT.sem),a=s&&s.aulas.find(x=>x.id===FT.aula);if(!a)return ftIr('semanas');
-    const fs=ftDaAula(a.id),lista=fs.filter(f=>FT.filtro==='todas'||f.t===FT.filtro);FT.lista=lista;
+    const naQ=FT.view==='questao'?FT.q:0;
+    const todas=ftDaAula(a.id),fs=todas.filter(f=>(f.q||0)===naQ),lista=fs.filter(f=>FT.filtro==='todas'||f.t===FT.filtro);FT.lista=lista;
     const ne=fs.filter(f=>f.t==='erro').length;
-    h+=`<div class="ft-migalha"><button data-ir="semanas">Fotos</button><span>›</span><button data-ir="semana">${s.rot}</button><span>›</span><b>${ftEsc(a.nome)}</b></div>`;
-    h+=`<div class="ft-acoes">${ftOnline()?`<button class="btn btn-p" data-add="aula">📷 Foto da aula</button>${fs.length?`<button class="btn btn-o" data-baixar>⬇️ Baixar todas (${lista.length})</button>`:''}`:(fs.length?`<button class="btn btn-o" data-baixar>⬇️ Baixar todas (${lista.length})</button> `:'')+'<span class="ft-sub">Sem internet: para adicionar fotos, conecte-se e entre com sua senha.</span>'}</div>`;
+    h+=naQ?`<div class="ft-migalha"><button data-ir="semanas">Fotos</button><span>›</span><button data-ir="semana">${s.rot}</button><span>›</span><button data-ir="aula">${ftEsc(a.nome)}</button><span>›</span><b>Questão ${naQ}</b></div>`
+      :`<div class="ft-migalha"><button data-ir="semanas">Fotos</button><span>›</span><button data-ir="semana">${s.rot}</button><span>›</span><b>${ftEsc(a.nome)}</b></div>`;
+    if(!naQ){
+      h+='<div class="ft-qs">'+Array.from({length:FT_NQ},(_,i)=>{const n=todas.filter(f=>f.q===i+1).length;
+        return `<button class="ft-q${n?' tem':''}" data-q="${i+1}"><span class="ft-q-ic">📁</span><b>Questão ${i+1}</b><small>${n?n+' foto'+(n===1?'':'s'):'vazia'}</small></button>`;}).join('')+'</div>';
+      h+='<div class="ft-q-tit">📷 Fotos da aula</div>';
+    }
+    h+=`<div class="ft-acoes">${ftOnline()?`<button class="btn btn-p" data-add="aula">📷 ${naQ?'Foto da questão '+naQ:'Foto da aula'}</button>${fs.length?`<button class="btn btn-o" data-baixar>⬇️ Baixar todas (${lista.length})</button>`:''}`:(fs.length?`<button class="btn btn-o" data-baixar>⬇️ Baixar todas (${lista.length})</button> `:'')+'<span class="ft-sub">Sem internet: para adicionar fotos, conecte-se e entre com sua senha.</span>'}</div>`;
     if(ne)h+=`<div class="ft-filtro">${[['todas','Todas',fs.length],['aula','📷 Da aula',fs.length-ne],['erro','❌ Questões erradas',ne]].map(([k,r,n])=>`<button data-filtro="${k}" class="${FT.filtro===k?'on':''}">${r} <i>${n}</i></button>`).join('')}</div>`;
     h+=lista.length?'<div class="ft-grade">'+lista.map((f,i)=>`<button class="ft-mini${f.t==='erro'?' erro':''}" data-i="${i}"><img data-min="${f.id}" alt=""><span>${f.t==='erro'?'❌':''}</span></button>`).join('')+'</div>'
-      :`<div class="ft-vazio">${fs.length?'Nenhuma foto neste filtro.':'Nenhuma foto nesta aula ainda. Use o botão acima para adicionar.'}</div>`;
+      :`<div class="ft-vazio">${fs.length?'Nenhuma foto neste filtro.':(naQ?'Nenhuma foto nesta questão ainda. Use o botão acima para adicionar.':'Nenhuma foto nesta aula ainda. Use o botão acima para adicionar.')}</div>`;
   }
   p.innerHTML=h+'<div id="ft-zoom" class="ft-zoom"></div>';
   p.querySelectorAll('[data-sem]').forEach(b=>b.onclick=()=>ftIr('semana',+b.dataset.sem));
   p.querySelectorAll('[data-aula]').forEach(b=>b.onclick=()=>ftIr('aula',FT.sem,b.dataset.aula));
-  p.querySelectorAll('[data-ir]').forEach(b=>b.onclick=()=>ftIr(b.dataset.ir,FT.sem));
+  p.querySelectorAll('[data-ir]').forEach(b=>b.onclick=()=>ftIr(b.dataset.ir,FT.sem,FT.aula));
+  p.querySelectorAll('.ft-q[data-q]').forEach(b=>b.onclick=()=>ftIr('questao',FT.sem,FT.aula,+b.dataset.q));
   p.querySelectorAll('[data-filtro]').forEach(b=>b.onclick=()=>{FT.filtro=b.dataset.filtro;ftDesenha();});
   p.querySelectorAll('[data-add]').forEach(b=>b.onclick=()=>ftEscolher(b.dataset.add));
   p.querySelectorAll('[data-baixar]').forEach(b=>b.onclick=()=>ftBaixarTodas(b));
@@ -3799,7 +3817,7 @@ async function ftUpRoda(){
       const m=await ftReduz(x.file,360,0.7);
       if(!x.url){x.url='data:image/jpeg;base64,'+m.d;}
       const id=Date.now().toString(36)+Math.random().toString(36).slice(2,7);
-      const item={id,p:x.aula,t:x.tipo==='erro'?'erro':'aula',ts:Date.now()};
+      const item={id,p:x.aula,t:x.tipo==='erro'?'erro':'aula',ts:Date.now()};if(x.q)item.q=x.q;
       passo(1);await ftCol().doc('foto-'+id).set({d:g.d,w:g.w,h:g.h});
       passo(2);await ftCol().doc('fmin-'+id).set({d:m.d});
       passo(3);await ftCol().doc('_fotos').set({itens:firebase.firestore.FieldValue.arrayUnion(item)},{merge:true});
@@ -3819,7 +3837,7 @@ function ftEnviar(files,tipo){
   // lote novo depois de um envio já terminado começa painel limpo
   if(!FTU.rodando){FTU.fila=FTU.fila.filter(y=>y.st==='erro');}
   files.forEach(f=>{let url='';try{if(/^image\/(jpe?g|png|webp|gif)$/i.test(f.type))url=URL.createObjectURL(f);}catch(e){}
-    FTU.fila.push({file:f,aula:FT.aula,tipo,st:'espera',etapa:0,url});});
+    FTU.fila.push({file:f,aula:FT.aula,q:FT.view==='questao'?FT.q:0,tipo,st:'espera',etapa:0,url});});
   ftUpRoda();
 }
 
@@ -3829,8 +3847,8 @@ function ftEnviar(files,tipo){
 function ftNomeFoto(f){
   const s=ftPastas().find(x=>x.aulas.some(a=>a.id===f.p)),a=s&&s.aulas.find(x=>x.id===f.p);
   const base=((s?s.rot:'Fotos')+' - '+(a?a.nome:'Aula')).replace(/[\\/:*?"<>|]+/g,'-').replace(/\s+/g,' ').trim().slice(0,120);
-  const n=ftDaAula(f.p).findIndex(x=>x.id===f.id)+1;
-  return base+' - '+String(n||1).padStart(2,'0')+(f.t==='erro'?' (questao errada)':'')+'.jpg';
+  const n=ftDaAula(f.p).filter(x=>(x.q||0)===(f.q||0)).findIndex(x=>x.id===f.id)+1;
+  return base+(f.q?' - Questao '+f.q:'')+' - '+String(n||1).padStart(2,'0')+(f.t==='erro'?' (questao errada)':'')+'.jpg';
 }
 async function ftBlobFoto(f){
   const d=await ftFoto(f.id);if(!d)return null;
