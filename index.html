@@ -1771,6 +1771,14 @@ body.sb-collapsed .sidebar-user-text,body.sb-collapsed .sidebar-user-chev{displa
 .rot-load{margin-top:8px;font-size:10.5px;font-weight:600;color:var(--muted);cursor:pointer}
 .rot-bar{height:5px;border-radius:9px;background:var(--border);overflow:hidden;margin-bottom:3px}
 .rot-bar i{display:block;height:100%;background:var(--green);border-radius:9px}
+.reorg-banner.roll{background:linear-gradient(120deg,#0a84ff 0%,#5e5ce6 100%);box-shadow:0 10px 28px rgba(10,132,255,.25)}
+.reorg-banner.roll .reorg-banner-btn{color:#0a5cc2}
+.day-done-btn{flex-shrink:0;border:1.5px solid var(--green);background:transparent;color:var(--green);font:inherit;font-size:12px;font-weight:700;padding:6px 12px;border-radius:999px;cursor:pointer;white-space:nowrap;transition:all .15s}
+.day-done-btn:hover{background:var(--green);color:#fff}
+.day-done-btn.on{background:var(--green);color:#fff}
+.day-task-row.is-done{opacity:.6}
+.day-task-sub{display:block;font-size:11px;color:var(--muted);margin-top:2px;font-weight:500}
+.day-task-auto{font-size:10px;color:var(--dim);flex-shrink:0;font-weight:600}
 .rot-load.over{color:var(--red)}.rot-load.over .rot-bar i{background:var(--red)}
 @media(max-width:1100px){.rot-grid{grid-template-columns:repeat(4,minmax(0,1fr))}}
 @media(max-width:820px){
@@ -2408,7 +2416,7 @@ body.sb-collapsed .sidebar-user-text,body.sb-collapsed .sidebar-user-chev{displa
 <div class="overlay" id="reorg-overlay" onclick="if(event.target===this)closeReorg()">
 <div class="modal" style="max-width:640px">
   <div class="modal-head">
-    <div class="modal-title">Reorganizar atrasados</div>
+    <div class="modal-title">Tarefas que passam para o dia seguinte</div>
     <button class="modal-close" onclick="closeReorg()">×</button>
   </div>
   <div id="reorg-body"></div>
@@ -4870,6 +4878,7 @@ function calShift(dir){
 }
 
 function renderCalendar(){
+  autoRollover();
   renderReorgBanner('cal');renderRotina();
   const seg=document.getElementById('cal-view-seg');
   if(seg)seg.querySelectorAll('.cal-seg-btn').forEach(b=>b.classList.toggle('on',b.dataset.view===calView));
@@ -4939,11 +4948,7 @@ function renderCalDay(){
   document.getElementById('cal-month-title').textContent=`${weekDays[d.getDay()]}, ${d.getDate()} de ${MONTHS_PT[d.getMonth()]}${isT?' · Hoje':''}`;
   const ev=getCal();
   const tasks=ev[ds]||[];
-  const rows=tasks.length?tasks.map(t=>`<div class="day-task-row${t.auto?' auto-task':''}">
-      ${t.auto?'<span style="font-size:16px;flex-shrink:0">📚</span>':'<input type="checkbox" '+(t.done?'checked':'')+' onchange="toggleCalTask(\''+t.id+'\')">'}
-      <span class="day-task-text${t.done?' done':''}" style="${t.auto?'font-size:13px;color:var(--muted)':''}">${t.auto?escapeHtml(t.text.replace('📚 ','')):escapeHtml(t.text)}</span>
-      ${t.auto?'<span style="font-size:10px;color:var(--dim);flex-shrink:0;font-weight:600">AUTO</span>':'<button class="day-task-del" onclick="delCalTask(\''+t.id+'\')" title="Remover">×</button>'}
-    </div>`).join(''):'<div class="cal-empty-day">Nenhuma tarefa neste dia. Adicione uma abaixo!</div>';
+  const rows=tasks.length?tasks.map(calTaskRowHTML).join(''):'<div class="cal-empty-day">Nenhuma tarefa neste dia. Adicione uma abaixo!</div>';
   document.getElementById('cal-body').innerHTML=`
     <div class="cal-dayview">
       <div class="cal-dayview-list">${rows}</div>
@@ -5036,7 +5041,7 @@ function reorgCollect(){
     if(!t.aula){if(t.data<T)out.push({tipo:'aula',id:t.id,txt:nome,tag:'Aula nova',peso:3,ord:3,late:-diffD(t.data)});return;}
     const info=nextRevInfo(t);if(!info||info.done||!info.date||info.date>=T)return;
     const k=!t.qpos?'qpos':(REV_SEQ.find(s=>!t[s.k])||{}).k;if(!k)return;
-    out.push({tipo:'rev',k,id:t.id,txt:nome,tag:REV_NOME[k],peso:k==='qpos'?2:1,ord:k==='qpos'?1:2,late:-info.diff});
+    out.push({tipo:'rev',k,id:t.id,from:info.date,txt:nome,tag:REV_NOME[k],peso:k==='qpos'?2:1,ord:k==='qpos'?1:2,late:-info.diff});
   });
   // ordem: tarefas suas (faculdade etc.) → questões → revisões → aulas novas; dentro de cada, o mais antigo primeiro
   out.sort((a,b)=>a.ord-b.ord||b.late-a.late);
@@ -5050,8 +5055,8 @@ function reorgLoad(){
   return L;
 }
 const reorgCap=(cfg,ds)=>Math.max(1,dsFds(ds)?cfg.we:cfg.wd);
-function reorgPlan(cfg){
-  const items=reorgCollect(),L=reorgLoad();const start=addMeses(today(),0,1);
+function reorgPlan(cfg,fromToday){
+  const items=reorgCollect(),L=reorgLoad();const start=fromToday?today():addMeses(today(),0,1);
   items.forEach(it=>{
     for(let i=0;i<500;i++){const d=addMeses(start,0,i);
       if(it.tipo==='aula'&&cfg.aulaFds&&!dsFds(d))continue;
@@ -5069,7 +5074,17 @@ function reorgCounts(items){
 function renderReorgBanner(where){
   const el=document.getElementById('reorg-banner-'+where);if(!el)return;
   const items=reorgCollect();
-  if(!items.length){el.innerHTML='';return;}
+  if(!items.length){
+    const r=_rollInfo;
+    if(r&&r.dia===today()&&r.n){
+      el.innerHTML=`<div class="reorg-banner roll">
+        <div class="reorg-banner-num">↻</div>
+        <div class="reorg-banner-txt"><b>${r.n} ${r.n===1?'tarefa não concluída passou':'tarefas não concluídas passaram'} para frente</b><span>${r.hoje?`${r.hoje} ${r.hoje===1?'caiu':'caíram'} para hoje`:'Hoje já estava cheio'}${r.n>r.hoje?` · o resto foi para os próximos dias com espaço (até ${fmtD(r.ate)})`:''}. Nenhum dia passa do seu limite.</span></div>
+        <button class="reorg-banner-btn" onclick="openReorg()">Ajustar limite por dia</button>
+      </div>`;
+    }else el.innerHTML='';
+    return;
+  }
   const maxLate=Math.max(...items.map(x=>x.late));
   el.innerHTML=`<div class="reorg-banner">
     <div class="reorg-banner-num">${items.length}</div>
@@ -5089,7 +5104,13 @@ function reorgUndoHTML(){
 function reorgRender(){
   const body=document.getElementById('reorg-body');if(!body)return;
   const cfg=getReorgCfg();const plan=reorgPlan(cfg);
-  if(!plan.length){body.innerHTML=`<div class="reorg-zero">🎉 Nada atrasado. Está tudo em dia!</div>${reorgUndoHTML()}`;return;}
+  const cfgHTML=`<div class="reorg-cfg">
+      <label>Limite por dia útil<input type="number" min="1" max="15" value="${cfg.wd}" onchange="reorgSetNum('wd',this.value)"></label>
+      <label>Limite no sábado e domingo<input type="number" min="1" max="15" value="${cfg.we}" onchange="reorgSetNum('we',this.value)"></label>
+      <label class="reorg-chk"><input type="checkbox" ${cfg.aulaFds?'checked':''} onchange="setReorgCfg({aulaFds:this.checked});reorgRender()"> Aulas novas só no fim de semana</label>
+    </div>
+    <div class="reorg-hint">O que você não concluir passa <b>sozinho</b> para o dia seguinte. Se aquele dia já estiver no limite, vai para o próximo com espaço. Como o limite conta: <b>1</b> = uma revisão ou tarefa (~30 min) · <b>2</b> = um bloco de questões · <b>3</b> = uma aula nova.</div>`;
+  if(!plan.length){body.innerHTML=`<div class="reorg-zero">✅ Nada atrasado. O que ficar sem concluir passa sozinho para o dia seguinte.</div>${cfgHTML}`;return;}
   const dias={};plan.forEach(x=>{if(x.to)(dias[x.to]=dias[x.to]||[]).push(x);});
   const ks=Object.keys(dias).sort();const ult=ks[ks.length-1];
   const nDias=Math.round((new Date(ult)-new Date(today()))/864e5);
@@ -5103,18 +5124,39 @@ function reorgRender(){
     </div>
     <div class="reorg-hint">Como o limite conta: <b>1</b> = uma revisão ou tarefa (~30 min) · <b>2</b> = um bloco de questões · <b>3</b> = uma aula nova. O que já estava marcado em cada dia também entra na conta, então nenhum dia passa do limite. Ordem: suas tarefas do calendário → questões → revisões → aulas novas, sempre a mais antiga primeiro.</div>
     <div class="reorg-list">${lista}</div>
-    <div class="reorg-actions">${reorgUndoHTML()}<button class="btn btn-p" onclick="reorgApply()">Aplicar no calendário e no cronograma</button></div>`;
+    <div class="reorg-actions"><button class="btn btn-p" onclick="reorgApply()">Aplicar no calendário e no cronograma</button></div>`;
 }
-function reorgApply(){
-  const cfg=getReorgCfg();const plan=reorgPlan(cfg).filter(x=>x.to);if(!plan.length)return;
-  try{localStorage.setItem(REORG_BAK,JSON.stringify({at:new Date().toISOString(),topics:localStorage.getItem(KEY),cal:localStorage.getItem(CAL_KEY)}));}catch(e){}
+function reorgMove(plan){
   const ev=getCal();
-  plan.filter(x=>x.tipo==='cal').forEach(x=>{const arr=ev[x.from]||[];const i=arr.findIndex(y=>y.id===x.id);if(i<0)return;const task=arr.splice(i,1)[0];if(!arr.length)delete ev[x.from];(ev[x.to]=ev[x.to]||[]).push({...task,movedFrom:x.from});});
+  plan.filter(x=>x.tipo==='cal').forEach(x=>{const arr=ev[x.from]||[];const i=arr.findIndex(y=>y.id===x.id);if(i<0)return;const task=arr.splice(i,1)[0];if(!arr.length)delete ev[x.from];(ev[x.to]=ev[x.to]||[]).push({...task,movedFrom:x.from,origFrom:task.origFrom||x.from});});
   setCal(ev);
   const d=get();const now=new Date().toISOString();
-  plan.forEach(x=>{if(x.tipo==='cal')return;const t=d.topics.find(y=>y.id===x.id);if(!t)return;if(x.tipo==='aula')t.data=x.to;else t.reag={k:x.k,date:x.to};t.updatedAt=now;});
+  plan.forEach(x=>{if(x.tipo==='cal')return;const t=d.topics.find(y=>y.id===x.id);if(!t)return;if(x.tipo==='aula')t.data=x.to;else t.reag={k:x.k,date:x.to,orig:(t.reag&&t.reag.k===x.k&&t.reag.orig)||x.from||null};t.updatedAt=now;});
   set(d);
   syncAllRevToCalendar();
+}
+// Tarefa não concluída passa sozinha para frente: vai para hoje; se hoje já estiver no limite, para o próximo dia com espaço.
+let _rollBusy=false,_rollDay=null,_rollInfo=null;
+function autoRollover(){
+  if(_rollBusy)return 0;_rollBusy=true;
+  try{
+    _rollDay=today();
+    const plan=reorgPlan(getReorgCfg(),true).filter(x=>x.to);
+    if(!plan.length)return 0;
+    reorgMove(plan);
+    const hoje=plan.filter(x=>x.to===today()).length;
+    _rollInfo={n:(_rollInfo&&_rollInfo.dia===today()?_rollInfo.n:0)+plan.length,hoje:(_rollInfo&&_rollInfo.dia===today()?_rollInfo.hoje:0)+hoje,ate:plan.map(x=>x.to).sort().pop(),dia:today()};
+    return plan.length;
+  }catch(e){console.error('autoRollover',e);return 0;}
+  finally{_rollBusy=false;}
+}
+// virou o dia com o app aberto → roda de novo
+function _rollCheckDay(){if(_rollDay&&_rollDay!==today()&&document.getElementById('app-root')?.classList.contains('ready')){if(autoRollover())reRenderAll();}}
+setInterval(_rollCheckDay,5*60*1000);
+document.addEventListener('visibilitychange',()=>{if(!document.hidden)_rollCheckDay();});
+function reorgApply(){
+  const cfg=getReorgCfg();const plan=reorgPlan(cfg).filter(x=>x.to);if(!plan.length)return;
+  reorgMove(plan);
   const ult=plan.map(x=>x.to).sort().pop();
   closeReorg();toast(`${plan.length} atrasados espalhados até ${fmtD(ult)} ✔`,'ok',5000);
   renderCalendar();renderReorgBanner('crono');if(typeof activeTab!=='undefined'&&activeTab==='cronograma')renderTable();
@@ -5151,7 +5193,7 @@ function renderRotina(){
   }).join('');
   el.innerHTML=`<div class="rot-card">
     <div class="rot-head"><div><div class="rot-title">Sua rotina · próximos 7 dias</div><div class="rot-sub">2–4h nos dias úteis · sábado e domingo mais longos · faculdade vem primeiro</div></div>
-      <div class="rot-btns">${rotinaEdit?`<button class="btn btn-o btn-sm" onclick="rotinaPadrao()">Restaurar padrão</button><button class="btn btn-p btn-sm" onclick="rotinaSalvar()">Salvar</button>`:`<button class="btn btn-o btn-sm" onclick="rotinaEdit=true;renderRotina()">✏️ Editar</button>`}</div></div>
+      <div class="rot-btns">${rotinaEdit?`<button class="btn btn-o btn-sm" onclick="rotinaPadrao()">Restaurar padrão</button><button class="btn btn-p btn-sm" onclick="rotinaSalvar()">Salvar</button>`:`<button class="btn btn-o btn-sm" onclick="openReorg()">⚙️ Limite por dia</button><button class="btn btn-o btn-sm" onclick="rotinaEdit=true;renderRotina()">✏️ Editar</button>`}</div></div>
     ${rotinaEdit?'<div class="rot-sub" style="margin:-4px 0 10px">Um bloco por linha.</div>':''}
     <div class="rot-grid">${cols}</div>
   </div>`;
@@ -5163,15 +5205,40 @@ function rotinaSalvar(){
 }
 function rotinaPadrao(){if(!confirm('Voltar para a rotina sugerida?'))return;setReorgCfg({rotina:ROTINA_PADRAO});rotinaEdit=false;renderRotina();}
 
+// Uma linha de tarefa do dia, com o botão "Concluir"
+function calTaskRowHTML(t){
+  let sub='';
+  if(t.auto){
+    const tp=get().topics.find(x=>'rev_'+x.id===t.id);
+    if(tp){const k=!tp.aula?'aula':!tp.qpos?'qpos':(REV_SEQ.find(s=>!tp[s.k])||{}).k;
+      sub=k==='aula'?'Aula nova':(REV_NOME[k]||'');
+      const o=tp.reag&&tp.reag.orig;if(o&&o<calActiveDay)sub+=` · ↻ era para ${fmtD(o)}`;}
+  }else if(t.origFrom&&!t.done)sub=`↻ veio de ${fmtD(t.origFrom)}`;
+  const btn=t.auto
+    ?`<button class="day-done-btn" onclick="calConcluirAuto('${t.id.slice(4)}')">✓ Concluir</button>`
+    :`<button class="day-done-btn${t.done?' on':''}" onclick="toggleCalTask('${t.id}')">${t.done?'✓ Concluída':'✓ Concluir'}</button>`;
+  return`<div class="day-task-row${t.auto?' auto-task':''}${t.done?' is-done':''}">
+      ${btn}
+      <span class="day-task-text${t.done?' done':''}">${escapeHtml(t.auto?t.text.replace('📚 ',''):t.text)}${sub?`<small class="day-task-sub">${t.auto?'📚 ':''}${escapeHtml(sub)}</small>`:''}</span>
+      ${t.auto?'<span class="day-task-auto">AUTO</span>':`<button class="day-task-del" onclick="delCalTask('${t.id}')" title="Remover">×</button>`}
+    </div>`;
+}
+// Concluir uma tarefa automática = marcar o passo atual daquela aula no Cronograma
+function calConcluirAuto(tid){
+  const t=get().topics.find(x=>x.id===tid);if(!t)return;
+  let msg;
+  if(!t.aula){toggleField(tid,'aula');msg='Aula marcada como vista';}
+  else if(!t.qpos){toggleField(tid,'qpos');msg='Questões concluídas';}
+  else{const s=REV_SEQ.find(s=>!t[s.k]);if(!s)return;markRev(tid,s.k);msg=REV_NOME[s.k]+' concluída';}
+  const nt=get().topics.find(x=>x.id===tid);const i=nt&&nextRevInfo(nt);
+  toast(`✔ ${msg}${i&&!i.done&&i.date?' · próxima: '+fmtD(i.date):''}`,'ok',4500);
+  refreshDayUI();
+}
 function renderDayTasks(){
   const ev=getCal();
   const tasks=(ev[calActiveDay]||[]);
   const html=tasks.length
-    ?tasks.map(t=>`<div class="day-task-row${t.auto?' auto-task':''}">
-      ${t.auto?'<span style="font-size:14px;flex-shrink:0">📚</span>':'<input type="checkbox" '+(t.done?'checked':'')+' onchange="toggleCalTask(\''+t.id+'\')">'}
-      <span class="day-task-text${t.done?' done':''}" style="${t.auto?'font-size:13px;color:var(--muted)':''}">${t.auto?t.text.replace('📚 ',''):t.text}</span>
-      ${t.auto?'<span style="font-size:10px;color:var(--dim);flex-shrink:0;font-weight:600">AUTO</span>':'<button class="day-task-del" onclick="delCalTask(\''+t.id+'\')" title="Remover">×</button>'}
-    </div>`).join('')
+    ?tasks.map(calTaskRowHTML).join('')
     :`<div class="cal-empty-day">Nenhuma tarefa para este dia. Adicione uma abaixo!</div>`;
   document.getElementById('day-modal-tasks').innerHTML=html;
 }
@@ -7896,6 +7963,7 @@ async function applyCloudData(data){
 
 // Re-renderiza a tela atual + dashboard/badges após receber dados novos da nuvem
 function reRenderAll(){
+  autoRollover();
   const activeTab=document.querySelector('.tab-btn.active')?.dataset.tab||'dashboard';
   renderDashboard();
   // Não re-renderiza flashcards se há revisão/formulário aberto (não fechar no meio)
@@ -7921,6 +7989,7 @@ function startApp(){
   resSeedAuto();
   fillMissingAulaDates();
   syncAllRevToCalendar();
+  autoRollover();
   renderDashboard();
   renderTable();
 }
