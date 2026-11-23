@@ -1779,6 +1779,12 @@ body.sb-collapsed .sidebar-user-text,body.sb-collapsed .sidebar-user-chev{displa
 .day-task-row.is-done{opacity:.6}
 .day-task-sub{display:block;font-size:11px;color:var(--muted);margin-top:2px;font-weight:500}
 .day-task-auto{font-size:10px;color:var(--dim);flex-shrink:0;font-weight:600}
+/* concluído fica marcado no calendário (verde, com ✓) */
+.cal-task-pill.done{opacity:1!important;text-decoration:none!important;background:color-mix(in srgb,var(--green) 16%,transparent)!important;color:var(--green)!important;border:none!important}
+.cal-day.all-done,.cal-week-col.all-done{border-color:color-mix(in srgb,var(--green) 55%,transparent)!important;background:color-mix(in srgb,var(--green) 7%,var(--s1))!important}
+.cal-day-ok{display:inline-flex;align-items:center;justify-content:center;width:16px;height:16px;margin-left:5px;border-radius:50%;background:var(--green);color:#fff;font-size:10px;font-weight:800;vertical-align:middle}
+.day-task-row.hist{opacity:.85}
+.day-task-row.hist .day-done-btn{cursor:default}
 .prova-btn{background:linear-gradient(120deg,#7c3aed,#c026d3);color:#fff;border:0;font-weight:700;box-shadow:0 6px 16px rgba(124,58,237,.3)}
 .prova-btn:hover{filter:brightness(1.08);color:#fff}
 .provas-strip{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:10px;margin-bottom:16px}
@@ -4938,7 +4944,7 @@ function renderCalendar(){
 }
 
 function renderCalMonth(){
-  const ev=getCal();
+  const ev=getCal(),hm=calHistMap();
   const T=today();
   const y=calCursor.getFullYear(),m=calCursor.getMonth();
   document.getElementById('cal-month-title').textContent=`${MONTHS_PT[m]} ${y}`;
@@ -4950,14 +4956,15 @@ function renderCalMonth(){
   for(let i=firstDOW-1;i>=0;i--)cells+=`<div class="cal-day other-month"><div class="cal-day-num">${prevDays-i}</div></div>`;
   for(let d=1;d<=daysInMonth;d++){
     const ds=`${y}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
-    const tasks=ev[ds]||[];
+    const tasks=calTasksDia(ev,hm,ds);
     const isT=ds===T;
     const isMissed=ds<T&&tasks.length>0&&tasks.some(t=>!t.done);
+    const allDone=ds<=T&&tasks.length>0&&tasks.every(t=>t.done);
     const shown=tasks.slice(0,3);
     const more=tasks.length-3;
-    const pills=shown.map((t,i)=>`<div class="cal-task-pill ${CP[i%5]} ${t.done?'done':''}">${escapeHtml(t.text)}</div>`).join('');
+    const pills=shown.map(calPillHTML).join('');
     const pv=provaPillsHTML(ds);
-    cells+=`<div class="cal-day${isT?' today':''}${isMissed?' missed':''}${pv?' has-prova':''}" onclick="openDayModal('${ds}')"><div class="cal-day-num">${d}</div>${pv}${pills}${more>0?`<div class="cal-more">+${more} mais</div>`:''}</div>`;
+    cells+=`<div class="cal-day${isT?' today':''}${isMissed?' missed':''}${allDone?' all-done':''}${pv?' has-prova':''}" onclick="openDayModal('${ds}')"><div class="cal-day-num">${d}${allDone?'<span class="cal-day-ok">✓</span>':''}</div>${pv}${pills}${more>0?`<div class="cal-more">+${more} mais</div>`:''}</div>`;
   }
   const total=firstDOW+daysInMonth;
   const trail=total%7===0?0:7-(total%7);
@@ -4968,7 +4975,7 @@ function renderCalMonth(){
 }
 
 function renderCalWeek(){
-  const ev=getCal();
+  const ev=getCal(),hm=calHistMap();
   const T=today();
   const start=new Date(calCursor);start.setDate(start.getDate()-start.getDay());
   const days=[...Array(7)].map((_,i)=>{const d=new Date(start);d.setDate(start.getDate()+i);return d;});
@@ -4980,12 +4987,13 @@ function renderCalWeek(){
   const DOW=['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
   const cols=days.map((d,i)=>{
     const ds=calDs(d);
-    const tasks=ev[ds]||[];
+    const tasks=calTasksDia(ev,hm,ds);
     const isT=ds===T;
     const isMissed=ds<T&&tasks.length>0&&tasks.some(t=>!t.done);
-    const pills=tasks.length?tasks.map((t,j)=>`<div class="cal-task-pill ${CP[j%5]} ${t.done?'done':''}">${escapeHtml(t.text)}</div>`).join(''):'<div class="cal-col-empty">·</div>';
+    const allDone=ds<=T&&tasks.length>0&&tasks.every(t=>t.done);
+    const pills=tasks.length?tasks.map(calPillHTML).join(''):'<div class="cal-col-empty">·</div>';
     const pv=provaPillsHTML(ds);
-    return `<div class="cal-week-col${isT?' today':''}${isMissed?' missed':''}${pv?' has-prova':''}" onclick="openDayModal('${ds}')"><div class="cal-week-head"><span class="cal-week-dow">${DOW[i]}</span><span class="cal-week-date${isT?' today':''}">${d.getDate()}</span></div><div class="cal-week-body">${pv}${pills}</div></div>`;
+    return `<div class="cal-week-col${isT?' today':''}${isMissed?' missed':''}${allDone?' all-done':''}${pv?' has-prova':''}" onclick="openDayModal('${ds}')"><div class="cal-week-head"><span class="cal-week-dow">${DOW[i]}</span><span class="cal-week-date${isT?' today':''}">${d.getDate()}</span></div><div class="cal-week-body">${pv}${pills}</div></div>`;
   }).join('');
   document.getElementById('cal-body').innerHTML=`<div class="cal-week-grid">${cols}</div>`;
 }
@@ -4999,7 +5007,7 @@ function renderCalDay(){
   const isT=ds===T;
   document.getElementById('cal-month-title').textContent=`${weekDays[d.getDay()]}, ${d.getDate()} de ${MONTHS_PT[d.getMonth()]}${isT?' · Hoje':''}`;
   const ev=getCal();
-  const tasks=ev[ds]||[];
+  const tasks=calTasksDia(ev,calHistMap(),ds);
   const rows=tasks.length?tasks.map(calTaskRowHTML).join(''):'<div class="cal-empty-day">Nenhuma tarefa neste dia. Adicione uma abaixo!</div>';
   document.getElementById('cal-body').innerHTML=`
     <div class="cal-dayview">
@@ -5062,6 +5070,22 @@ function syncAllRevToCalendar(){
   setCal(ev);
   get().topics.forEach(t=>syncRevToCalendar(t));
 }
+
+// O que foi CONCLUÍDO em cada dia, tirado das datas que o Cronograma já grava
+// (aula vista = data, questões = qposAt, revisões = r1sAt…). Só para MOSTRAR no
+// calendário: não é gravado nele e não entra no "passar para frente".
+function calHistMap(){
+  const m={},T=today();
+  const add=(ds,t,tag,k)=>{if(!ds||ds>T)return;(m[ds]=m[ds]||[]).push({id:'hist_'+t.id+'_'+k,text:`${t.semana||''} · ${t.ap||''}`,done:true,hist:true,tag});};
+  get().topics.forEach(t=>{
+    if(t.aula)add(t.data,t,'Aula vista','aula');
+    if(t.qpos)add(t.qposAt,t,'Questões','qpos');
+    REV_SEQ.forEach(s=>{if(t[s.k])add(t[s.k+'At'],t,REV_NOME[s.k],s.k);});
+  });
+  return m;
+}
+const calTasksDia=(ev,hm,ds)=>[...(ev[ds]||[]),...(hm[ds]||[])];
+const calPillHTML=(t,i)=>`<div class="cal-task-pill ${CP[i%5]} ${t.done?'done':''}">${t.done?'✓ ':''}${escapeHtml(t.hist?t.tag+' · '+t.text:t.text)}</div>`;
 
 // ── REORGANIZAR ATRASADOS + ROTINA DA SEMANA ──────────────────
 // Espalha o que está atrasado (tarefas do calendário, questões, revisões e aulas não vistas)
@@ -5260,6 +5284,11 @@ function rotinaPadrao(){if(!confirm('Voltar para a rotina sugerida?'))return;set
 
 // Uma linha de tarefa do dia, com o botão "Concluir"
 function calTaskRowHTML(t){
+  if(t.hist)return`<div class="day-task-row auto-task is-done hist">
+      <button class="day-done-btn on" disabled>✓ Concluída</button>
+      <span class="day-task-text done">${escapeHtml(t.text)}<small class="day-task-sub">📚 ${escapeHtml(t.tag)} · feita neste dia</small></span>
+      <span class="day-task-auto">FEITA</span>
+    </div>`;
   let sub='';
   if(t.auto){
     const tp=get().topics.find(x=>'rev_'+x.id===t.id);
@@ -5367,7 +5396,7 @@ function delProva(id){
 }
 function renderDayTasks(){
   const ev=getCal();
-  const tasks=(ev[calActiveDay]||[]);
+  const tasks=calTasksDia(ev,calHistMap(),calActiveDay);
   const html=tasks.length
     ?tasks.map(calTaskRowHTML).join('')
     :`<div class="cal-empty-day">Nenhuma tarefa para este dia. Adicione uma abaixo!</div>`;
