@@ -844,6 +844,11 @@ body{background:#f3eee6;background-image:linear-gradient(180deg,#ece4f1 0%,#f0e9
 /* botao "Principais" — a cor da estrela */
 .fc-top-btn{background:var(--fc-top-wash);color:var(--fc-top-ink);border:1px solid var(--fc-top);font-weight:700}
 .fc-top-btn:hover{background:var(--fc-top);color:#fff}
+/* botao "MEDCURSO" — cards que o Lucas colocou na aula */
+.fc-med-btn{background:rgba(94,92,230,.10);color:#4B49C8;border:1px solid #5E5CE6;font-weight:700}
+.fc-med-btn:hover{background:#5E5CE6;color:#fff}
+[data-dark] .fc-med-btn{background:rgba(125,122,255,.15);color:#A9A7FF;border-color:#7D7AFF}
+[data-dark] .fc-med-btn:hover{background:#7D7AFF;color:#fff}
 
 /* fundo liso (sem degradê creme) + fonte do sistema */
 body{font-family:var(--font-m);background:var(--bg);background-image:none;background-attachment:initial;letter-spacing:-.01em;-webkit-font-smoothing:antialiased}
@@ -5753,12 +5758,12 @@ function buildSessionScoped(catId,subId,includeAll,onlyTop){
   const items=[];
   function processCard(card,catName){
     if(card.type==='deck'){
-      const pool=onlyTop?(card.subs||[]).filter(fcEhTop):(card.subs||[]);
+      const pool=fcPool(card,onlyTop);
       let subs=pool.filter(s=>isDueFc(s.nextTs));
       if(!subs.length&&includeAll)subs=[...pool];
       for(const s of subs)items.push({...s,_parentId:card.id,_parentFront:card.front,_parentTag:card.tag||'',_catName:catName||''});
     } else {
-      if(onlyTop&&!fcEhTop(card))return;
+      if(onlyTop==='med'||(onlyTop&&!fcEhTop(card)))return;
       if(isDueFc(card.nextTs)||includeAll)items.push({...card,_parentId:null,_catName:catName||''});
     }
   }
@@ -5782,8 +5787,8 @@ function startFCReviewScoped(catId,subId,onlyTop){
     const children=cat.children||[];
     const scope=subId?children.filter(c=>c.id===subId):children;
     for(const ch of scope){
-      if(ch.type==='deck')dueCount+=(ch.subs||[]).filter(s=>(!onlyTop||fcEhTop(s))&&isDueFc(s.nextTs)).length;
-      else if((!onlyTop||fcEhTop(ch))&&isDueFc(ch.nextTs))dueCount++;
+      if(ch.type==='deck')dueCount+=fcPool(ch,onlyTop).filter(s=>isDueFc(s.nextTs)).length;
+      else if(onlyTop!=='med'&&(!onlyTop||fcEhTop(ch))&&isDueFc(ch.nextTs))dueCount++;
     }
   }
   const includeAll=dueCount===0;
@@ -6502,6 +6507,27 @@ function fcTopKeys(){
 }
 const fcEhTop=s=>!!(s&&s.top);
 const deckTopCount=dk=>(dk.subs||[]).filter(fcEhTop).length;
+// ── MEDCURSO (cards que o Lucas mesmo colocou numa aula) ──────
+// Num subtema de aula, todo card que NÃO veio da biblioteca (FC_LIB) é um card
+// do MEDCURSO que ele adicionou. Não precisa marcar nada: é calculado.
+// Só vale em subtema que mistura os dois (subtema 100% dele não ganha o botão).
+let _fcLibKeySet=null;
+function fcLibKeySet(){
+  if(_fcLibKeySet)return _fcLibKeySet;
+  const s=new Set();
+  FC_LIB.forEach(a=>a[1].forEach(b=>b[1].forEach(c=>s.add(fcLibKey(c[0])))));
+  FC_LIB_RENOMEIA.forEach(p=>s.add(fcLibKey(p[0])));
+  return _fcLibKeySet=s;
+}
+const fcEhMed=s=>!!(s&&s.q&&!fcLibKeySet().has(fcLibKey(s.q)));
+function deckMedCount(dk){const subs=dk.subs||[];const n=subs.filter(fcEhMed).length;return n&&n<subs.length?n:0;}
+// cards de um subtema conforme o filtro: nada = todos · true = principais · 'med' = MEDCURSO
+function fcPool(dk,f){
+  const subs=dk.subs||[];
+  if(!f)return subs;
+  if(f==='med')return deckMedCount(dk)?subs.filter(fcEhMed):[];
+  return subs.filter(fcEhTop);
+}
 // Marca nos cards que o Lucas já tem quais são os principais (roda 1x).
 // Só ACRESCENTA a estrela — nunca tira a que ele colocou na mão.
 function fcTopAuto(){
@@ -6910,6 +6936,7 @@ function showFCBrowse(){
       const arrow=collapsed?'▶':'▼';
       const toggleFn=catId?`toggleFCDeck('${catId}','${ch.id}')`:`toggleFCOrphanDeck('${ch.id}')`;
       const topCnt=deckTopCount(ch);
+      const medCnt=catId?deckMedCount(ch):0;
       const cardRow=s=>{
         const reo=catId?`draggable="true" ondragstart="fcReoStart(event,'card','${catId}','${ch.id}','${s.id}')" ondragend="fcReoEnd(event)" ondragover="fcReoOver(event,'card','${catId}','${ch.id}')" ondrop="fcReoDrop(event,'card','${catId}','${ch.id}','${s.id}')"`:'';
         const top=fcEhTop(s);
@@ -6923,17 +6950,20 @@ function showFCBrowse(){
         </div>`;};
       // cabeçalho de um grupo dentro do subtema
       const grupo=(titulo,n,destaque,botao)=>`
-        <div style="display:flex;align-items:center;gap:8px;padding:7px 12px 7px 40px;border-top:1px solid var(--border);background:${destaque?'var(--fc-top-wash)':'var(--s3)'}">
-          <span style="font-size:10.5px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:${destaque?'var(--fc-top-ink)':'var(--muted)'}">${titulo}</span>
+        <div style="display:flex;align-items:center;gap:8px;padding:7px 12px 7px 40px;border-top:1px solid var(--border);background:${destaque==='med'?'rgba(94,92,230,.10)':destaque?'var(--fc-top-wash)':'var(--s3)'}">
+          <span style="font-size:10.5px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:${destaque==='med'?'#5E5CE6':destaque?'var(--fc-top-ink)':'var(--muted)'}">${titulo}</span>
           <span style="font-size:10.5px;color:var(--muted);flex:1">${n} card${n!==1?'s':''}</span>
           ${botao||''}
         </div>`;
       let subRows='';
       if(!collapsed){
-        if(topCnt&&catId){
-          const tops=ch.subs.filter(fcEhTop),resto=ch.subs.filter(s=>!fcEhTop(s));
-          subRows=grupo('★ Principais',topCnt,true,`<button class="btn btn-p btn-sm" style="padding:3px 9px" onclick="event.stopPropagation();startFCReviewScoped('${catId}','${ch.id}',true)">▶ Revisar principais</button>`)
-            +tops.map(cardRow).join('')
+        if((topCnt||medCnt)&&catId){
+          const tops=ch.subs.filter(fcEhTop);
+          const meds=medCnt?ch.subs.filter(s=>!fcEhTop(s)&&fcEhMed(s)):[];
+          const resto=ch.subs.filter(s=>!fcEhTop(s)&&!meds.includes(s));
+          subRows=(topCnt?grupo('★ Principais',topCnt,true,`<button class="btn btn-p btn-sm" style="padding:3px 9px" onclick="event.stopPropagation();startFCReviewScoped('${catId}','${ch.id}',true)">▶ Revisar principais</button>`)
+            +tops.map(cardRow).join(''):'')
+            +(meds.length?grupo('📘 MEDCURSO · os que você colocou',meds.length,'med',`<button class="btn btn-sm fc-med-btn" style="padding:3px 9px" onclick="event.stopPropagation();startFCReviewScoped('${catId}','${ch.id}','med')">▶ Revisar MEDCURSO</button>`)+meds.map(cardRow).join(''):'')
             +(resto.length?grupo('Demais cards',resto.length,false,'')+resto.map(cardRow).join(''):'');
         }else{
           subRows=ch.subs.map(cardRow).join('');
@@ -6955,6 +6985,7 @@ function showFCBrowse(){
           ${pill}
           <div style="display:flex;gap:4px;flex-shrink:0">
             ${catId&&topCnt?`<button class="btn btn-sm fc-top-btn" title="Revisar só os principais deste subtema" onclick="event.stopPropagation();startFCReviewScoped('${catId}','${ch.id}',true)">★ Principais</button>`:''}
+            ${medCnt?`<button class="btn btn-sm fc-med-btn" title="Revisar só os cards do MEDCURSO que você colocou neste subtema" onclick="event.stopPropagation();startFCReviewScoped('${catId}','${ch.id}','med')">📘 MEDCURSO (${medCnt})</button>`:''}
             ${catId&&ch.subs.length>0?`<button class="btn btn-p btn-sm" onclick="event.stopPropagation();startFCReviewScoped('${catId}','${ch.id}')">▶ Revisar</button>`:''}
             <button class="btn btn-o btn-sm" onclick="showFCAdd('${ch.id}')">Editar</button>
             <button class="btn btn-d btn-sm" onclick="deleteFCCard('${ch.id}')">Excluir</button>
@@ -6992,6 +7023,7 @@ function showFCBrowse(){
     const collapsed=!!cat.collapsed;
     const arrow=collapsed?'▶':'▼';
     const catTop=(cat.children||[]).reduce((n,dk)=>n+(dk.type==='deck'?deckTopCount(dk):0),0);
+    const catMed=(cat.children||[]).reduce((n,dk)=>n+(dk.type==='deck'?deckMedCount(dk):0),0);
     const childrenHtml=!collapsed?(cat.children||[]).map(ch=>renderDeckRow(ch,cat.id)).join(''):'';
     const addBtn=!collapsed?`<div style="padding:10px 16px;background:var(--s2);border-top:1px solid var(--border)">
       <button class="btn btn-o btn-sm" onclick="showFCAddInCat('${cat.id}')">+ Adicionar subtema</button>
@@ -7004,6 +7036,7 @@ function showFCBrowse(){
         ${pill}
         <div style="display:flex;gap:4px;flex-shrink:0" onclick="event.stopPropagation()">
           ${catTop>0?`<button class="btn btn-sm fc-top-btn" title="Revisa só os principais de todos os subtemas" onclick="startFCReviewScoped('${cat.id}',null,true)">★ Principais (${catTop})</button>`:''}
+          ${catMed>0?`<button class="btn btn-sm fc-med-btn" title="Revisa só os cards do MEDCURSO que você colocou, de todos os subtemas" onclick="startFCReviewScoped('${cat.id}',null,'med')">📘 MEDCURSO (${catMed})</button>`:''}
           ${total>0?`<button class="btn btn-p btn-sm" onclick="startFCReviewScoped('${cat.id}',null)">▶ Revisar</button>`:''}
           <button class="btn btn-o btn-sm" onclick="showFCAddCategory('${cat.id}')">Editar</button>
           <button class="btn btn-d btn-sm" onclick="deleteFCCategory('${cat.id}')">Excluir</button>
